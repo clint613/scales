@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 24 Major &amp; Minor Scales — Classical Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f7f3ea;
+    --ivory: #fbf8f1;
+    --parchment: #efe8d8;
+    --ink: #2c2416;
+    --ink-soft: #5a4e3a;
+    --accent: #8b6914;
+    --accent-soft: #c4a35a;
+    --accent-pale: #e8d9a8;
+    --white-key: #fffcf5;
+    --black-key: #3a3226;
+    --tonic: #8b6914;
+    --tonic-bg: #f0e4b8;
+    --border: #d4c8a8;
+    --shadow: rgba(44, 36, 22, 0.08);
+    --staff: #2c2416;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(180deg, var(--ivory) 0%, var(--cream) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+  }
+
+  header::after {
+    content: "";
+    display: block;
+    width: 4rem;
+    height: 2px;
+    background: var(--accent-soft);
+    margin: 1.25rem auto 0;
+  }
+
+  h1 {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    letter-spacing: 0.02em;
+    color: var(--ink);
+  }
+
+  .subtitle {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--ink-soft);
+    margin-top: 0.4rem;
+  }
+
+  .intro {
+    max-width: 44rem;
+    margin: 1rem auto 0;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  .nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(251, 248, 241, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem 1.1rem;
+    padding: 0.75rem 1rem 0.45rem;
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+
+  .control-group {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .control-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .order-toggle {
+    display: inline-flex;
+    background: var(--parchment);
+    border-radius: 999px;
+    padding: 3px;
+    border: 1px solid var(--border);
+  }
+
+  .order-toggle button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.35rem 0.8rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .order-toggle button.active {
+    background: var(--ink);
+    color: var(--ivory);
+  }
+
+  .order-toggle button:hover:not(.active) { color: var(--ink); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .swatch {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+  }
+
+  .swatch.white { background: var(--white-key); }
+  .swatch.black { background: var(--black-key); border-color: var(--black-key); }
+  .swatch.tonic { background: var(--tonic-bg); border-color: var(--tonic); }
+
+  nav.keys {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 1rem 0.85rem;
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+
+  nav.keys .nav-section {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0.15rem 0 0.55rem;
+  }
+
+  nav.keys a {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ink);
+    padding: 0.25rem 0.55rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  nav.keys a:hover {
+    background: var(--accent-pale);
+    border-color: var(--accent-soft);
+  }
+
+  nav.keys a.minor-link { font-style: italic; }
+
+  main {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .fingering-group {
+    margin: 1.75rem 0 0.85rem;
+    padding: 0.65rem 1rem;
+    background: linear-gradient(90deg, var(--parchment), var(--ivory));
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    border-left: 4px solid var(--accent);
+  }
+
+  .fingering-group h3 {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .fingering-group .group-meta {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-top: 0.2rem;
+  }
+
+  .scale-card {
+    background: var(--ivory);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 2px 10px var(--shadow);
+    overflow: hidden;
+    break-inside: avoid;
+  }
+
+  .scale-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    padding: 1.1rem 1.35rem 0.9rem;
+    background: linear-gradient(90deg, var(--parchment) 0%, var(--ivory) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .scale-header h2 {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .enharmonic {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 1.15rem;
+  }
+
+  .mode-badge {
+    display: inline-block;
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 0.45rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+  }
+
+  .mode-badge.major { color: #3d5a2e; background: #eef4ea; }
+  .mode-badge.minor { color: #4a3560; background: #eee8f4; }
+
+  .key-sig {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.25rem 0.85rem;
+    max-width: 100%;
+  }
+
+  .key-sig strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .scale-body {
+    padding: 1.15rem 1.25rem 1.35rem;
+  }
+
+  .form-note {
+    margin: 0 0 0.85rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    background: var(--cream);
+    border: 1px dashed var(--border);
+    border-radius: 5px;
+  }
+
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.45rem;
+  }
+
+  .section-label.spaced { margin-top: 1.15rem; }
+
+  .music-wrap {
+    background: #fffcf7;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 0.85rem 0.6rem;
+    max-width: 100%;
+  }
+
+  /* One octave per system; two systems side by side on wide screens, stacked below. */
+  .systems {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem 1.75rem;
+  }
+
+  @media (min-width: 900px) {
+    .systems { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .system {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .system svg {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+    margin: 0 auto;
+    overflow: visible;
+  }
+
+  .system figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.6rem;
+    max-width: 560px;
+    margin: 0 auto 0.15rem;
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    line-height: 1.35;
+  }
+
+  .system .sys-oct {
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-size: 0.68rem;
+  }
+
+  .system .sys-notation { font-style: italic; }
+
+  .rh-t { color: #3d5a2e; font-weight: 600; }
+  .lh-t { color: #4a3560; font-weight: 600; }
+
+  .fingering-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-top: 0.55rem;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  .fingering-legend strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Fingering chart: one small table per octave; the tables wrap instead of widening the page. */
+  .finger-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    margin-top: 0.35rem;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .finger-table {
+    border-collapse: collapse;
+    font-size: 0.72rem;
+    flex: 0 0 auto;
+  }
+
+  .finger-table caption {
+    caption-side: top;
+    text-align: left;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-bottom: 0.1rem;
+  }
+
+  .finger-table th,
+  .finger-table td {
+    padding: 0.18rem 0.12rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    min-width: 1.5rem;
+  }
+
+  .finger-table th {
+    font-weight: 600;
+    font-size: 0.64rem;
+    color: var(--accent);
+    text-align: left;
+    padding-right: 0.45rem;
+    white-space: nowrap;
+    background: var(--ivory);
+  }
+
+  .finger-table .rh-row td { color: #3d5a2e; font-weight: 600; }
+  .finger-table .lh-row td { color: #4a3560; font-weight: 600; }
+  .finger-table .rh-row th { color: #3d5a2e; }
+  .finger-table .lh-row th { color: #4a3560; }
+
+  .finger-table td.tonic-f {
+    background: var(--tonic-bg);
+    font-weight: 700;
+    color: var(--tonic);
+  }
+
+  .finger-table .note-row td {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .finger-table .oct-row td,
+  .finger-table .oct-row th {
+    font-size: 0.6rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  .octave-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0.85rem 0 0.35rem;
+  }
+
+  /* Piano roll: grouped per octave; groups wrap onto new lines on narrow screens. */
+  .piano-roll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.7rem;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 0.25rem 0.1rem 0.4rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pr-oct {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+
+  @media (min-width: 700px) {
+    .piano-roll {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      gap: 0.55rem 1.25rem;
+    }
+  }
+
+  .roll-caption {
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+    margin: 0.1rem 0 0;
+  }
+
+  .note-cell {
+    flex: 0 0 auto;
+    min-width: 2.15rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: transform 0.12s;
+  }
+
+  .note-cell:hover { transform: translateY(-2px); }
+
+  .note-cell .key-visual {
+    width: 100%;
+    height: 1.15rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .note-cell.white .key-visual {
+    background: linear-gradient(180deg, #fffef9 0%, var(--white-key) 100%);
+  }
+
+  .note-cell.black .key-visual {
+    background: linear-gradient(180deg, #4a4032 0%, var(--black-key) 100%);
+  }
+
+  .note-cell.tonic {
+    border-color: var(--tonic);
+    box-shadow: 0 0 0 1.5px var(--tonic);
+  }
+
+  .note-cell.tonic .key-visual {
+    background: linear-gradient(180deg, #f5e8b0 0%, var(--tonic-bg) 100%);
+  }
+
+  .note-cell.tonic.black .key-visual {
+    background: linear-gradient(180deg, #6b5420 0%, #5a4518 100%);
+  }
+
+  .note-cell .note-name {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.2rem 0.12rem 0.25rem;
+    width: 100%;
+    text-align: center;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.15;
+  }
+
+  .note-cell.black .note-name { background: #ebe4d4; }
+  .note-cell.tonic .note-name {
+    background: var(--tonic);
+    color: var(--ivory);
+  }
+
+  .note-cell .octave-num {
+    font-size: 0.58rem;
+    font-weight: 500;
+    opacity: 0.7;
+    display: block;
+  }
+
+  .note-cell .oct-pair {
+    display: flex;
+    width: 100%;
+    font-size: 0.58rem;
+    line-height: 1.2;
+    background: var(--cream);
+  }
+
+  .note-cell .oct-pair span {
+    flex: 1;
+    text-align: center;
+    padding: 0.05rem 0;
+    opacity: 0.85;
+  }
+
+  .note-cell .oct-pair .rh-o { color: #3d5a2e; }
+  .note-cell .oct-pair .lh-o { color: #4a3560; border-left: 1px solid var(--border); }
+
+  .note-cell .finger-pair {
+    display: flex;
+    width: 100%;
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .note-cell .finger-pair span {
+    flex: 1;
+    text-align: center;
+    padding: 0.12rem 0;
+  }
+
+  .note-cell .finger-pair .rh-f {
+    background: #eef4ea;
+    color: #3d5a2e;
+    border-top: 1px solid var(--border);
+  }
+
+  .note-cell .finger-pair .lh-f {
+    background: #eee8f4;
+    color: #4a3560;
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+
+  .note-sequence {
+    margin-top: 0.85rem;
+    padding: 0.65rem 0.9rem;
+    background: var(--cream);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    line-height: 1.65;
+  }
+
+  .note-sequence strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .note-sequence .seq-line {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .note-sequence .tn {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .pattern-hint {
+    margin-top: 0.55rem;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 1rem 3rem;
+    border-top: 1px solid var(--border);
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+
+  footer p { margin-bottom: 0.35rem; }
+
+  .back-top {
+    display: inline-block;
+    margin-top: 0.75rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .back-top:hover { text-decoration: underline; }
+
+
+  /* —— Circle of fifths —— */
+  .cof-section {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 0.35rem;
+    text-align: center;
+  }
+
+  .cof-section h2 {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.2rem;
+  }
+
+  .cof-hint {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-bottom: 0.85rem;
+  }
+
+  .cof-wrap {
+    position: relative;
+    display: inline-block;
+    width: min(100%, 420px);
+    max-width: 100%;
+    vertical-align: top;
+  }
+
+  .cof-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 2px 8px var(--shadow));
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .cof-svg .cof-wedge {
+    cursor: pointer;
+    transition: opacity 0.15s, filter 0.15s;
+  }
+
+  .cof-svg .cof-wedge:focus {
+    outline: none;
+  }
+
+  .cof-svg .cof-wedge:focus .cof-major-path,
+  .cof-svg .cof-wedge:focus .cof-minor-path {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+
+  .cof-svg .cof-major-path {
+    fill: var(--ivory);
+    stroke: var(--border);
+    stroke-width: 1.25;
+    transition: fill 0.15s, stroke 0.15s, stroke-width 0.15s;
+  }
+
+  .cof-svg .cof-minor-path {
+    fill: var(--parchment);
+    stroke: var(--border);
+    stroke-width: 1;
+    transition: fill 0.15s, stroke 0.15s, stroke-width 0.15s;
+  }
+
+  .cof-svg .cof-wedge:hover .cof-major-path,
+  .cof-svg .cof-wedge.cof-hovered .cof-major-path,
+  .cof-svg .cof-wedge.cof-selected .cof-major-path {
+    fill: var(--accent-pale);
+    stroke: var(--accent-soft);
+  }
+
+  .cof-svg .cof-wedge:hover .cof-minor-path,
+  .cof-svg .cof-wedge.cof-hovered .cof-minor-path,
+  .cof-svg .cof-wedge.cof-selected .cof-minor-path {
+    fill: #e8dcc0;
+    stroke: var(--accent-soft);
+  }
+
+  .cof-svg .cof-wedge.cof-selected .cof-major-path {
+    fill: #f0e4b8;
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+
+  .cof-svg .cof-label {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 700;
+    fill: var(--ink);
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+
+  .cof-svg .cof-label-major { font-size: 15px; }
+  .cof-svg .cof-label-minor {
+    font-size: 12px;
+    font-style: italic;
+    fill: var(--ink-soft);
+  }
+
+  .cof-svg .cof-sig {
+    font-family: "Source Sans 3", system-ui, sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    fill: var(--accent);
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+
+  .cof-svg .cof-center-disc {
+    fill: var(--cream);
+    stroke: var(--accent-soft);
+    stroke-width: 1.5;
+  }
+
+  .cof-svg .cof-center-title {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--ink);
+    text-anchor: middle;
+  }
+
+  .cof-svg .cof-center-sub {
+    font-family: "Source Sans 3", system-ui, sans-serif;
+    font-size: 8px;
+    fill: var(--ink-soft);
+    text-anchor: middle;
+    letter-spacing: 0.04em;
+  }
+
+  .cof-svg .cof-ring-divider {
+    fill: none;
+    stroke: var(--accent-soft);
+    stroke-width: 1.25;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .cof-hit-major,
+  .cof-hit-minor {
+    fill: transparent;
+    cursor: pointer;
+  }
+
+  .cof-tooltip {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--ivory);
+    font-size: 0.78rem;
+    line-height: 1.35;
+    padding: 0.45rem 0.7rem;
+    border-radius: 6px;
+    border: 1px solid var(--accent-soft);
+    box-shadow: 0 4px 14px rgba(44, 36, 22, 0.25);
+    max-width: 16rem;
+    text-align: left;
+    opacity: 0;
+    transform: translate(-50%, -110%);
+    transition: opacity 0.12s;
+    white-space: nowrap;
+  }
+
+  .cof-tooltip.visible { opacity: 1; }
+
+  .cof-tooltip strong {
+    color: var(--accent-pale);
+    font-weight: 600;
+  }
+
+  .cof-a11y {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .cof-a11y:focus-within {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0.75rem auto 0;
+    clip: auto;
+    overflow: visible;
+    white-space: normal;
+    max-width: 36rem;
+    text-align: left;
+    background: var(--ivory);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .cof-a11y h3 {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .cof-a11y ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.45rem;
+  }
+
+  .cof-a11y a {
+    font-size: 0.8rem;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--cream);
+  }
+
+  .cof-a11y a:hover,
+  .cof-a11y a:focus {
+    background: var(--accent-pale);
+    border-color: var(--accent-soft);
+    outline: none;
+  }
+
+  .cof-a11y a.minor { font-style: italic; }
+
+  .scale-card.cof-flash {
+    animation: cofFlash 1.4s ease;
+  }
+
+  @keyframes cofFlash {
+    0%, 100% { box-shadow: 0 2px 10px var(--shadow); }
+    15%, 45% {
+      box-shadow: 0 0 0 3px var(--accent-soft), 0 4px 20px rgba(139, 105, 20, 0.35);
+      border-color: var(--accent);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cof-wrap { width: min(100%, 320px); }
+    .cof-svg .cof-label-major { font-size: 13px; }
+    .cof-svg .cof-label-minor { font-size: 10px; }
+    .cof-svg .cof-sig { font-size: 8px; }
+  }
+
+  @media print {
+    .cof-section { display: none; }
+  }
+
+  @media print {
+    body { background: white; color: black; }
+    .nav-wrap { position: static; box-shadow: none; }
+    .order-toggle { display: none; }
+    .scale-card {
+      break-inside: avoid;
+      box-shadow: none;
+      margin-bottom: 1rem;
+      page-break-inside: avoid;
+    }
+    header::after { background: #999; }
+    a { color: inherit; text-decoration: none; }
+  }
+
+  /* —— Back to circle of fifths (appears once the circle is scrolled out of view) —— */
+  .to-cof {
+    position: fixed;
+    right: 0.6rem;
+    top: 0.6rem;
+    z-index: 1000;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(251, 248, 241, 0.92);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px var(--shadow);
+    color: var(--accent);
+    text-decoration: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+
+  .to-cof.show {
+    opacity: 0.8;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s;
+  }
+
+  .to-cof:hover, .to-cof:focus-visible { opacity: 1; border-color: var(--accent-soft); outline: none; }
+  .to-cof svg { width: 0.95rem; height: 0.95rem; display: block; }
+
+  @media print { .to-cof { display: none; } }
+
+  @media (max-width: 600px) {
+    main { padding: 1rem 0.5rem 3rem; }
+    .scale-header { padding: 0.9rem 0.85rem 0.75rem; }
+    .scale-body { padding: 0.85rem 0.7rem 1rem; }
+    .music-wrap { padding: 0.5rem 0.35rem 0.4rem; }
+    .nav-wrap { position: static; }
+    .key-sig { font-size: 0.8rem; }
+    .to-cof { right: 0.4rem; top: 0.4rem; width: 1.6rem; height: 1.6rem; }
+    .note-cell { min-width: 1.9rem; }
+    .note-cell .note-name { font-size: 0.72rem; }
+    .scale-header h2 { font-size: 1.35rem; }
+    .order-toggle button { padding: 0.3rem 0.55rem; font-size: 0.72rem; }
+  }
+</style>
+</head>
+<body>
+
+<header id="top">
+  <h1>The 24 Major &amp; Minor Scales</h1>
+  <p class="subtitle">A complete reference for the classical pianist</p>
+  <p class="intro">
+    All twelve major keys and twelve minor keys — ascending four octaves — with sheet music,
+    standard classical fingerings for both hands, and a piano-roll guide. Minor keys include
+    natural, harmonic, and melodic (ascending) forms. Enharmonic pairs are the same pitches
+    written two ways.
+  </p>
+</header>
+
+
+<section class="cof-section" aria-labelledby="cof-heading">
+  <h2 id="cof-heading">Circle of Fifths</h2>
+  <p class="cof-hint">Click a key to jump to its scale · hover for signature &amp; relative · outer = major · inner = relative minor</p>
+  <div class="cof-wrap" id="cof-wrap">
+    <div id="cof-root" role="img" aria-label="Interactive circle of fifths. Outer ring majors, inner ring relative minors."></div>
+    <div class="cof-tooltip" id="cof-tooltip" role="tooltip" hidden></div>
+    <nav class="cof-a11y" id="cof-a11y" aria-label="Circle of fifths key list"></nav>
+  </div>
+</section>
+
+<div class="nav-wrap">
+  <div class="controls">
+    <div class="control-group">
+      <span class="control-label">Sort</span>
+      <div class="order-toggle" role="group" aria-label="Scale order">
+        <button type="button" id="btn-fifths" class="active" aria-pressed="true">Circle of fifths</button>
+        <button type="button" id="btn-chromatic" aria-pressed="false">Chromatic</button>
+        <button type="button" id="btn-fingering" aria-pressed="false">By fingering</button>
+      </div>
+    </div>
+    <div class="control-group">
+      <span class="control-label">Filter</span>
+      <div class="order-toggle" role="group" aria-label="Mode filter">
+        <button type="button" id="btn-all" class="active" aria-pressed="true">All</button>
+        <button type="button" id="btn-major" aria-pressed="false">Major only</button>
+        <button type="button" id="btn-minor" aria-pressed="false">Minor only</button>
+      </div>
+    </div>
+    <div class="control-group">
+      <span class="control-label">Minor form</span>
+      <div class="order-toggle" role="group" aria-label="Minor scale form">
+        <button type="button" id="btn-natural" class="active" aria-pressed="true">Natural</button>
+        <button type="button" id="btn-harmonic" aria-pressed="false">Harmonic</button>
+        <button type="button" id="btn-melodic" aria-pressed="false">Melodic</button>
+      </div>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span><i class="swatch white"></i> White key</span>
+      <span><i class="swatch black"></i> Black key</span>
+      <span><i class="swatch tonic"></i> Tonic</span>
+    </div>
+  </div>
+  <nav class="keys" id="key-nav" aria-label="Jump to scale"></nav>
+</div>
+
+<main id="scales-container"></main>
+
+<a class="to-cof" id="to-cof" href="#cof-heading" aria-label="Back to circle of fifths" title="Back to circle of fifths" tabindex="-1" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+    <circle cx="12" cy="12" r="9"/>
+    <circle cx="12" cy="12" r="4.2"/>
+    <path d="M12 3v4.8M12 16.2V21M3 12h4.8M16.2 12H21M5.6 5.6l3.4 3.4M15 15l3.4 3.4M18.4 5.6 15 9M9 15l-3.4 3.4"/>
+  </svg>
+</a>
+
+<footer>
+  <p>Major: W–W–H–W–W–W–H &nbsp;·&nbsp; Natural minor: W–H–W–W–H–W–W</p>
+  <p>Harmonic: raised 7th &nbsp;·&nbsp; Melodic ascending: raised 6th &amp; 7th (descending usually natural)</p>
+  <p>Fingerings: 1 = thumb · 2 = index · 3 = middle · 4 = ring · 5 = little</p>
+  <p>24 keys · four octaves each · sheet music + RH/LH classical fingerings</p>
+  <a class="back-top" href="#top">↑ Back to top</a>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* —— Data: 12 major + 12 minor keys —— */
+  const SCALES = [
+    /* ===== MAJORS (circle of fifths) ===== */
+    {
+      id: "c", name: "C major", type: "major", enharmonic: null,
+      sig: "No sharps or flats", sigShort: "0♯ / 0♭",
+      sigCount: 0, accidentalType: "none",
+      notes: ["C", "D", "E", "F", "G", "A", "B"],
+      startOctave: 4, blackMask: [0, 0, 0, 0, 0, 0, 0],
+      fifthsOrder: 0, chromaticOrder: 0,
+      rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+    },
+    {
+      id: "g", name: "G major", type: "major", enharmonic: null,
+      sig: "1 sharp — F♯", sigShort: "1♯",
+      sigCount: 1, accidentalType: "sharp",
+      notes: ["G", "A", "B", "C", "D", "E", "F♯"],
+      startOctave: 3, blackMask: [0, 0, 0, 0, 0, 0, 1],
+      fifthsOrder: 1, chromaticOrder: 7,
+      rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+    },
+    {
+      id: "d", name: "D major", type: "major", enharmonic: null,
+      sig: "2 sharps — F♯, C♯", sigShort: "2♯",
+      sigCount: 2, accidentalType: "sharp",
+      notes: ["D", "E", "F♯", "G", "A", "B", "C♯"],
+      startOctave: 3, blackMask: [0, 0, 1, 0, 0, 0, 1],
+      fifthsOrder: 2, chromaticOrder: 2,
+      rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+    },
+    {
+      id: "a", name: "A major", type: "major", enharmonic: null,
+      sig: "3 sharps — F♯, C♯, G♯", sigShort: "3♯",
+      sigCount: 3, accidentalType: "sharp",
+      notes: ["A", "B", "C♯", "D", "E", "F♯", "G♯"],
+      startOctave: 3, blackMask: [0, 0, 1, 0, 0, 1, 1],
+      fifthsOrder: 3, chromaticOrder: 9,
+      rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+    },
+    {
+      id: "e", name: "E major", type: "major", enharmonic: null,
+      sig: "4 sharps — F♯, C♯, G♯, D♯", sigShort: "4♯",
+      sigCount: 4, accidentalType: "sharp",
+      notes: ["E", "F♯", "G♯", "A", "B", "C♯", "D♯"],
+      startOctave: 3, blackMask: [0, 1, 1, 0, 0, 1, 1],
+      fifthsOrder: 4, chromaticOrder: 4,
+      rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+    },
+    {
+      id: "b", name: "B major", type: "major", enharmonic: "C♭ major",
+      sig: "5 sharps — F♯, C♯, G♯, D♯, A♯  (C♭ major: 7 flats)",
+      sigShort: "5♯ / 7♭",
+      sigCount: 5, accidentalType: "sharp",
+      notes: ["B", "C♯", "D♯", "E", "F♯", "G♯", "A♯"],
+      startOctave: 3, blackMask: [0, 1, 1, 0, 1, 1, 1],
+      fifthsOrder: 5, chromaticOrder: 11,
+      rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
+    },
+    {
+      id: "fs", name: "F♯ major", type: "major", enharmonic: "G♭ major",
+      sig: "6 sharps — F♯, C♯, G♯, D♯, A♯, E♯  (G♭ major: 6 flats)",
+      sigShort: "6♯ / 6♭",
+      sigCount: 6, accidentalType: "sharp",
+      notes: ["F♯", "G♯", "A♯", "B", "C♯", "D♯", "E♯"],
+      notesAlt: ["G♭", "A♭", "B♭", "C♭", "D♭", "E♭", "F"],
+      startOctave: 3, blackMask: [1, 1, 1, 0, 1, 1, 0],
+      fifthsOrder: 6, chromaticOrder: 6,
+      rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
+    },
+    {
+      id: "db", name: "D♭ major", type: "major", enharmonic: "C♯ major",
+      sig: "5 flats — B♭, E♭, A♭, D♭, G♭  (C♯ major: 7 sharps)",
+      sigShort: "5♭ / 7♯",
+      sigCount: 5, accidentalType: "flat",
+      notes: ["D♭", "E♭", "F", "G♭", "A♭", "B♭", "C"],
+      notesAlt: ["C♯", "D♯", "E♯", "F♯", "G♯", "A♯", "B♯"],
+      startOctave: 3, blackMask: [1, 1, 0, 1, 1, 1, 0],
+      fifthsOrder: 7, chromaticOrder: 1,
+      rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
+    },
+    {
+      id: "ab", name: "A♭ major", type: "major", enharmonic: null,
+      sig: "4 flats — B♭, E♭, A♭, D♭", sigShort: "4♭",
+      sigCount: 4, accidentalType: "flat",
+      notes: ["A♭", "B♭", "C", "D♭", "E♭", "F", "G"],
+      startOctave: 3, blackMask: [1, 1, 0, 1, 1, 0, 0],
+      fifthsOrder: 8, chromaticOrder: 8,
+      rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
+    },
+    {
+      id: "eb", name: "E♭ major", type: "major", enharmonic: null,
+      sig: "3 flats — B♭, E♭, A♭", sigShort: "3♭",
+      sigCount: 3, accidentalType: "flat",
+      notes: ["E♭", "F", "G", "A♭", "B♭", "C", "D"],
+      startOctave: 3, blackMask: [1, 0, 0, 1, 1, 0, 0],
+      fifthsOrder: 9, chromaticOrder: 3,
+      rhOct: [3,1,2,3,4,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
+    },
+    {
+      id: "bb", name: "B♭ major", type: "major", enharmonic: null,
+      sig: "2 flats — B♭, E♭", sigShort: "2♭",
+      sigCount: 2, accidentalType: "flat",
+      notes: ["B♭", "C", "D", "E♭", "F", "G", "A"],
+      startOctave: 3, blackMask: [1, 0, 0, 1, 0, 0, 0],
+      fifthsOrder: 10, chromaticOrder: 10,
+      rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
+    },
+    {
+      id: "f", name: "F major", type: "major", enharmonic: null,
+      sig: "1 flat — B♭", sigShort: "1♭",
+      sigCount: 1, accidentalType: "flat",
+      notes: ["F", "G", "A", "B♭", "C", "D", "E"],
+      startOctave: 3, blackMask: [0, 0, 0, 1, 0, 0, 0],
+      fifthsOrder: 11, chromaticOrder: 5,
+      rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
+    },
+
+    /* ===== MINORS (relative order / circle of fifths) ===== */
+    {
+      id: "a-min", name: "A minor", type: "minor", enharmonic: null,
+      sig: "No sharps or flats (relative of C major)", sigShort: "0♯ / 0♭",
+      sigCount: 0, accidentalType: "none",
+      startOctave: 3, fifthsOrder: 0, chromaticOrder: 9,
+      forms: {
+        natural: {
+          notes: ["A","B","C","D","E","F","G"],
+          blackMask: [0,0,0,0,0,0,0],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        harmonic: {
+          notes: ["A","B","C","D","E","F","G♯"],
+          blackMask: [0,0,0,0,0,0,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        melodic: {
+          notes: ["A","B","C","D","E","F♯","G♯"],
+          blackMask: [0,0,0,0,0,1,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        }
+      }
+    },
+    {
+      id: "e-min", name: "E minor", type: "minor", enharmonic: null,
+      sig: "1 sharp — F♯ (relative of G major)", sigShort: "1♯",
+      sigCount: 1, accidentalType: "sharp",
+      startOctave: 3, fifthsOrder: 1, chromaticOrder: 4,
+      forms: {
+        natural: {
+          notes: ["E","F♯","G","A","B","C","D"],
+          blackMask: [0,1,0,0,0,0,0],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        harmonic: {
+          notes: ["E","F♯","G","A","B","C","D♯"],
+          blackMask: [0,1,0,0,0,0,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        melodic: {
+          notes: ["E","F♯","G","A","B","C♯","D♯"],
+          blackMask: [0,1,0,0,0,1,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        }
+      }
+    },
+    {
+      id: "b-min", name: "B minor", type: "minor", enharmonic: null,
+      sig: "2 sharps — F♯, C♯ (relative of D major)", sigShort: "2♯",
+      sigCount: 2, accidentalType: "sharp",
+      startOctave: 3, fifthsOrder: 2, chromaticOrder: 11,
+      forms: {
+        natural: {
+          notes: ["B","C♯","D","E","F♯","G","A"],
+          blackMask: [0,1,0,0,1,0,0],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
+        },
+        harmonic: {
+          notes: ["B","C♯","D","E","F♯","G","A♯"],
+          blackMask: [0,1,0,0,1,0,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
+        },
+        melodic: {
+          notes: ["B","C♯","D","E","F♯","G♯","A♯"],
+          blackMask: [0,1,0,0,1,1,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
+        }
+      }
+    },
+    {
+      id: "fs-min", name: "F♯ minor", type: "minor", enharmonic: null,
+      sig: "3 sharps — F♯, C♯, G♯ (relative of A major)", sigShort: "3♯",
+      sigCount: 3, accidentalType: "sharp",
+      startOctave: 3, fifthsOrder: 3, chromaticOrder: 6,
+      forms: {
+        natural: {
+          notes: ["F♯","G♯","A","B","C♯","D","E"],
+          blackMask: [1,1,0,0,1,0,0],
+          rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
+        },
+        harmonic: {
+          notes: ["F♯","G♯","A","B","C♯","D","E♯"],
+          blackMask: [1,1,0,0,1,0,0],
+          rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
+        },
+        melodic: {
+          notes: ["F♯","G♯","A","B","C♯","D♯","E♯"],
+          blackMask: [1,1,0,0,1,1,0],
+          rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
+        }
+      }
+    },
+    {
+      id: "cs-min", name: "C♯ minor", type: "minor", enharmonic: null,
+      sig: "4 sharps — F♯, C♯, G♯, D♯ (relative of E major)", sigShort: "4♯",
+      sigCount: 4, accidentalType: "sharp",
+      startOctave: 3, fifthsOrder: 4, chromaticOrder: 1,
+      forms: {
+        natural: {
+          notes: ["C♯","D♯","E","F♯","G♯","A","B"],
+          blackMask: [1,1,0,1,1,0,0],
+          rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
+        },
+        harmonic: {
+          notes: ["C♯","D♯","E","F♯","G♯","A","B♯"],
+          blackMask: [1,1,0,1,1,0,0],
+          rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
+        },
+        melodic: {
+          notes: ["C♯","D♯","E","F♯","G♯","A♯","B♯"],
+          blackMask: [1,1,0,1,1,1,0],
+          rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
+        }
+      }
+    },
+    {
+      id: "gs-min", name: "G♯ minor", type: "minor", enharmonic: "A♭ minor",
+      sig: "5 sharps — F♯, C♯, G♯, D♯, A♯  (A♭ minor: 7 flats)",
+      sigShort: "5♯ / 7♭",
+      sigCount: 5, accidentalType: "sharp",
+      startOctave: 3, fifthsOrder: 5, chromaticOrder: 8,
+      notesAlt: ["A♭","B♭","C♭","D♭","E♭","F♭","G♭"],
+      forms: {
+        natural: {
+          notes: ["G♯","A♯","B","C♯","D♯","E","F♯"],
+          blackMask: [1,1,0,1,1,0,1],
+          rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
+        },
+        harmonic: {
+          notes: ["G♯","A♯","B","C♯","D♯","E","F𝄪"],
+          blackMask: [1,1,0,1,1,0,0],
+          rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
+        },
+        melodic: {
+          notes: ["G♯","A♯","B","C♯","D♯","E♯","F𝄪"],
+          blackMask: [1,1,0,1,1,0,0],
+          rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
+        }
+      }
+    },
+    {
+      id: "ds-min", name: "D♯ minor", type: "minor", enharmonic: "E♭ minor",
+      sig: "6 sharps — F♯, C♯, G♯, D♯, A♯, E♯  (E♭ minor: 6 flats)",
+      sigShort: "6♯ / 6♭",
+      sigCount: 6, accidentalType: "sharp",
+      startOctave: 3, fifthsOrder: 6, chromaticOrder: 3,
+      notesAlt: ["E♭","F","G♭","A♭","B♭","C♭","D♭"],
+      forms: {
+        natural: {
+          notes: ["D♯","E♯","F♯","G♯","A♯","B","C♯"],
+          blackMask: [1,0,1,1,1,0,1],
+          rhOct: [3,1,2,3,4,1,2,3], lhOct: [2,1,4,3,2,1,3,2]
+        },
+        harmonic: {
+          notes: ["D♯","E♯","F♯","G♯","A♯","B","C𝄪"],
+          blackMask: [1,0,1,1,1,0,0],
+          rhOct: [3,1,2,3,4,1,2,3], lhOct: [2,1,4,3,2,1,3,2]
+        },
+        melodic: {
+          notes: ["D♯","E♯","F♯","G♯","A♯","B♯","C𝄪"],
+          blackMask: [1,0,1,1,1,0,0],
+          rhOct: [3,1,2,3,4,1,2,3], lhOct: [2,1,4,3,2,1,3,2]
+        }
+      }
+    },
+    {
+      id: "bb-min", name: "B♭ minor", type: "minor", enharmonic: null,
+      sig: "5 flats — B♭, E♭, A♭, D♭, G♭ (relative of D♭ major)",
+      sigShort: "5♭",
+      sigCount: 5, accidentalType: "flat",
+      startOctave: 3, fifthsOrder: 7, chromaticOrder: 10,
+      forms: {
+        natural: {
+          notes: ["B♭","C","D♭","E♭","F","G♭","A♭"],
+          blackMask: [1,0,1,1,0,1,1],
+          rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
+        },
+        harmonic: {
+          notes: ["B♭","C","D♭","E♭","F","G♭","A"],
+          blackMask: [1,0,1,1,0,1,0],
+          rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
+        },
+        melodic: {
+          notes: ["B♭","C","D♭","E♭","F","G","A"],
+          blackMask: [1,0,1,1,0,0,0],
+          rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
+        }
+      }
+    },
+    {
+      id: "f-min", name: "F minor", type: "minor", enharmonic: null,
+      sig: "4 flats — B♭, E♭, A♭, D♭ (relative of A♭ major)", sigShort: "4♭",
+      sigCount: 4, accidentalType: "flat",
+      startOctave: 3, fifthsOrder: 8, chromaticOrder: 5,
+      forms: {
+        natural: {
+          notes: ["F","G","A♭","B♭","C","D♭","E♭"],
+          blackMask: [0,0,1,1,0,1,1],
+          rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        harmonic: {
+          notes: ["F","G","A♭","B♭","C","D♭","E"],
+          blackMask: [0,0,1,1,0,1,0],
+          rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        melodic: {
+          notes: ["F","G","A♭","B♭","C","D","E"],
+          blackMask: [0,0,1,1,0,0,0],
+          rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
+        }
+      }
+    },
+    {
+      id: "c-min", name: "C minor", type: "minor", enharmonic: null,
+      sig: "3 flats — B♭, E♭, A♭ (relative of E♭ major)", sigShort: "3♭",
+      sigCount: 3, accidentalType: "flat",
+      startOctave: 4, fifthsOrder: 9, chromaticOrder: 0,
+      forms: {
+        natural: {
+          notes: ["C","D","E♭","F","G","A♭","B♭"],
+          blackMask: [0,0,1,0,0,1,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        harmonic: {
+          notes: ["C","D","E♭","F","G","A♭","B"],
+          blackMask: [0,0,1,0,0,1,0],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        melodic: {
+          notes: ["C","D","E♭","F","G","A","B"],
+          blackMask: [0,0,1,0,0,0,0],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        }
+      }
+    },
+    {
+      id: "g-min", name: "G minor", type: "minor", enharmonic: null,
+      sig: "2 flats — B♭, E♭ (relative of B♭ major)", sigShort: "2♭",
+      sigCount: 2, accidentalType: "flat",
+      startOctave: 3, fifthsOrder: 10, chromaticOrder: 7,
+      forms: {
+        natural: {
+          notes: ["G","A","B♭","C","D","E♭","F"],
+          blackMask: [0,0,1,0,0,1,0],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        harmonic: {
+          notes: ["G","A","B♭","C","D","E♭","F♯"],
+          blackMask: [0,0,1,0,0,1,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        melodic: {
+          notes: ["G","A","B♭","C","D","E","F♯"],
+          blackMask: [0,0,1,0,0,0,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        }
+      }
+    },
+    {
+      id: "d-min", name: "D minor", type: "minor", enharmonic: null,
+      sig: "1 flat — B♭ (relative of F major)", sigShort: "1♭",
+      sigCount: 1, accidentalType: "flat",
+      startOctave: 3, fifthsOrder: 11, chromaticOrder: 2,
+      forms: {
+        natural: {
+          notes: ["D","E","F","G","A","B♭","C"],
+          blackMask: [0,0,0,0,0,1,0],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        harmonic: {
+          notes: ["D","E","F","G","A","B♭","C♯"],
+          blackMask: [0,0,0,0,0,1,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        },
+        melodic: {
+          notes: ["D","E","F","G","A","B","C♯"],
+          blackMask: [0,0,0,0,0,0,1],
+          rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
+        }
+      }
+    }
+  ];
+
+  const PC = {
+    "C": 0, "C♯": 1, "D♭": 1, "D": 2, "D♯": 3, "E♭": 3,
+    "E": 4, "E♯": 5, "F♭": 4, "F": 5, "F♯": 6, "G♭": 6,
+    "G": 7, "G♯": 8, "A♭": 8, "A": 9, "A♯": 10, "B♭": 10,
+    "B": 11, "B♯": 0, "C♭": 11,
+    "F𝄪": 7, "C𝄪": 2, "G𝄪": 9, "D𝄪": 4, "A𝄪": 11
+  };
+
+  const LETTER_IDX = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+
+  let currentOrder = "fifths";
+  let currentFilter = "all";
+  let currentMinorForm = "natural";
+
+  function letterOf(noteName) {
+    return noteName.charAt(0);
+  }
+
+  function parseAccidental(noteName) {
+    if (noteName.includes("𝄪")) return "double-sharp";
+    if (noteName.includes("♯")) return "sharp";
+    if (noteName.includes("♭")) return "flat";
+    return "natural";
+  }
+
+  /* —— Pitch helpers —— */
+  function alterOf(noteName) {
+    const a = parseAccidental(noteName);
+    if (a === "double-sharp") return 2;
+    if (a === "sharp") return 1;
+    if (a === "flat") return -1;
+    return 0;
+  }
+
+  /** Written (scientific) octave of a spelled note at absolute semitone `abs` (C4 = 48).
+      B♯ sounding as C5 is written B♯4; C♭ sounding as B4 is written C♭5. */
+  function writtenOctave(noteName, abs) {
+    return Math.floor((abs - alterOf(noteName)) / 12);
+  }
+
+  /** Diatonic staff step (C0 = 0, C4 = 28) — always on the note's own letter. */
+  function staffStep(noteName, abs) {
+    return writtenOctave(noteName, abs) * 7 + LETTER_IDX[letterOf(noteName)];
+  }
+
+  function keySigMap(sigCount, type) {
+    const map = { C: "natural", D: "natural", E: "natural", F: "natural",
+                  G: "natural", A: "natural", B: "natural" };
+    const sharpOrder = ["F", "C", "G", "D", "A", "E", "B"];
+    const flatOrder = ["B", "E", "A", "D", "G", "C", "F"];
+    if (type === "sharp") {
+      for (let i = 0; i < sigCount; i++) map[sharpOrder[i]] = "sharp";
+    } else if (type === "flat") {
+      for (let i = 0; i < sigCount; i++) map[flatOrder[i]] = "flat";
+    }
+    return map;
+  }
+
+  function resolveScale(scale) {
+    if (scale.type === "major") {
+      return {
+        notes: scale.notes,
+        blackMask: scale.blackMask,
+        rhOct: scale.rhOct,
+        lhOct: scale.lhOct,
+        formLabel: null,
+        formHint: null
+      };
+    }
+    const form = scale.forms[currentMinorForm];
+    const labels = {
+      natural: "Natural minor (Aeolian)",
+      harmonic: "Harmonic minor (raised 7th)",
+      melodic: "Melodic minor ascending (raised 6th & 7th)"
+    };
+    let hint = null;
+    if (currentMinorForm === "melodic") {
+      hint = "Ascending form shown for four octaves. Descending melodic minor is usually the natural minor (cancel the raised 6th & 7th).";
+    } else if (currentMinorForm === "harmonic") {
+      hint = "Raised leading tone (7th degree) creates the characteristic augmented 2nd between degrees 6 and 7.";
+    }
+    return {
+      notes: form.notes,
+      blackMask: form.blackMask,
+      rhOct: form.rhOct,
+      lhOct: form.lhOct,
+      formLabel: labels[currentMinorForm],
+      formHint: hint
+    };
+  }
+
+  function fingeringKey(scale) {
+    const r = resolveScale(scale);
+    return "RH " + r.rhOct.join("-") + " · LH " + r.lhOct.join("-");
+  }
+
+  function expandRH(P) {
+    const out = [];
+    for (let o = 0; o < 4; o++)
+      for (let i = 0; i < 7; i++) out.push(P[i]);
+    out.push(P[7]);
+    return out;
+  }
+
+  function expandLH(P) {
+    const out = [];
+    for (let i = 0; i < 7; i++) out.push(P[i]);
+    for (let oct = 1; oct < 4; oct++) {
+      out.push(P[7]);
+      for (let i = 1; i <= 6; i++) out.push(P[i]);
+    }
+    out.push(P[7]);
+    return out;
+  }
+
+  /** RH starts on tonic4 only for C (C4→C8, the top key of the piano); every other
+      tonic starts in octave 3 so the four-octave run never goes above C8.
+      LH always plays two octaves (24 semitones) below RH. */
+  const LH_OFFSET = 24;
+  function rhStartOctave(tonicName) {
+    return PC[tonicName] === 0 ? 4 : 3;
+  }
+
+  function renumberOctaves(scale, resolved) {
+    const notes = resolved.notes;
+    const result = [];
+    let abs = (scale.startOctave || rhStartOctave(notes[0])) * 12 + PC[notes[0]];
+
+    for (let i = 0; i < 29; i++) {
+      const deg = i % 7;
+      const name = notes[deg];
+      const targetPc = PC[name];
+
+      if (i !== 0) {
+        const curPc = abs % 12;
+        let step = (targetPc - curPc + 12) % 12;
+        if (step === 0) step = 12;
+        abs += step;
+      }
+      const lhAbs = abs - LH_OFFSET;
+      result.push({
+        name: name,
+        isTonic: deg === 0,
+        isBlack: !!resolved.blackMask[deg],
+        degree: deg,
+        abs: abs,
+        octave: writtenOctave(name, abs),        /* RH octave */
+        lhOctave: writtenOctave(name, lhAbs),    /* LH octave */
+        steps: staffStep(name, abs),
+        lhSteps: staffStep(name, lhAbs),
+        acc: null
+      });
+    }
+    return result;
+  }
+
+  /** Accidentals relative to the key signature; each system (= one octave) behaves
+      like a fresh measure, so state resets at every tonic. */
+  function attachAccidentals(seq, scale) {
+    const sigMap = keySigMap(scale.sigCount, scale.accidentalType);
+    let active = Object.assign({}, sigMap);
+    for (let i = 0; i < seq.length; i++) {
+      const n = seq[i];
+      if (n.isTonic && i < 28) active = Object.assign({}, sigMap);
+      const L = letterOf(n.name);
+      const want = parseAccidental(n.name);
+      if (want !== active[L]) {
+        n.acc = want;
+        active[L] = want;
+      } else {
+        n.acc = null;
+      }
+    }
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /* —— Engraving ——
+     All sizes are in SVG user units with one staff space S = 10.
+     Every system shares the same viewBox width, so staff size is identical
+     everywhere and scales proportionally with the card (width:100%, height:auto). */
+  const S = 10;
+  const HALF = S / 2;
+  const VB_W = 420;
+  const INK = "#2c2416";
+  const RH_COLOR = "#3d5a2e";
+  const LH_COLOR = "#4a3560";
+  const TONIC_COLOR = "#8b6914";
+
+  const CLEFS = {
+    treble: { topStep: 38, midStep: 34 },   /* top line F5, middle line B4 */
+    bass:   { topStep: 26, midStep: 22 }    /* top line A3, middle line D3 */
+  };
+
+  const SHARP_ORDER = ["F", "C", "G", "D", "A", "E", "B"];
+  const FLAT_ORDER = ["B", "E", "A", "D", "G", "C", "F"];
+  const SIG_STEPS = {
+    treble: {
+      sharp: { F: 38, C: 35, G: 39, D: 36, A: 33, E: 37, B: 34 },
+      flat:  { B: 34, E: 37, A: 33, D: 36, G: 32, C: 35, F: 31 }
+    },
+    bass: {
+      sharp: { F: 24, C: 21, G: 25, D: 22, A: 19, E: 23, B: 20 },
+      flat:  { B: 20, E: 23, A: 19, D: 22, G: 18, C: 21, F: 17 }
+    }
+  };
+
+  /* Accidental glyphs, drawn centred on the note position (0,0). */
+  function sharpGlyph(x, y) {
+    return `<g transform="translate(${x},${y})" stroke="${INK}" stroke-linecap="butt" fill="none">
+      <line x1="-2" y1="-11" x2="-2" y2="13.5" stroke-width="1.2"/>
+      <line x1="2" y1="-13.5" x2="2" y2="11" stroke-width="1.2"/>
+      <line x1="-4.3" y1="-3.1" x2="4.3" y2="-6" stroke-width="2.9"/>
+      <line x1="-4.3" y1="6" x2="4.3" y2="3.1" stroke-width="2.9"/>
+    </g>`;
+  }
+
+  function flatGlyph(x, y) {
+    return `<g transform="translate(${x},${y})" stroke="${INK}" fill="none" stroke-linecap="round">
+      <line x1="-3" y1="-17" x2="-3" y2="5.5" stroke-width="1.3"/>
+      <path d="M-3,-1.2 C-0.5,-5.2 5.6,-5.4 4.6,-1.2 C4,1.6 0.4,3.8 -3,5.5" stroke-width="2"/>
+    </g>`;
+  }
+
+  function naturalGlyph(x, y) {
+    return `<g transform="translate(${x},${y})" stroke="${INK}" fill="none" stroke-linecap="butt">
+      <line x1="-2.6" y1="-13" x2="-2.6" y2="5.5" stroke-width="1.2"/>
+      <line x1="2.6" y1="-5.5" x2="2.6" y2="13" stroke-width="1.2"/>
+      <line x1="-2.6" y1="-2.4" x2="2.6" y2="-4.2" stroke-width="2.8"/>
+      <line x1="-2.6" y1="4.2" x2="2.6" y2="2.4" stroke-width="2.8"/>
+    </g>`;
+  }
+
+  function doubleSharpGlyph(x, y) {
+    return `<g transform="translate(${x},${y})" stroke="${INK}" fill="${INK}" stroke-linecap="round">
+      <line x1="-3" y1="-3" x2="3" y2="3" stroke-width="1.3"/>
+      <line x1="3" y1="-3" x2="-3" y2="3" stroke-width="1.3"/>
+      <rect x="-4.6" y="-4.6" width="3" height="3" stroke="none"/>
+      <rect x="1.6" y="-4.6" width="3" height="3" stroke="none"/>
+      <rect x="-4.6" y="1.6" width="3" height="3" stroke="none"/>
+      <rect x="1.6" y="1.6" width="3" height="3" stroke="none"/>
+    </g>`;
+  }
+
+  function accidentalGlyph(kind, x, y) {
+    if (kind === "sharp") return sharpGlyph(x, y);
+    if (kind === "flat") return flatGlyph(x, y);
+    if (kind === "natural") return naturalGlyph(x, y);
+    if (kind === "double-sharp") return doubleSharpGlyph(x, y);
+    return "";
+  }
+
+  /* Vertical extent of each accidental relative to its note (for layout). */
+  const ACC_EXTENT = {
+    "sharp": [-14.5, 14.5], "flat": [-17.5, 6.5],
+    "natural": [-13.5, 13.5], "double-sharp": [-5, 5]
+  };
+
+  /** Treble (G) clef; origin = left edge on the G line. ~2.7 spaces wide. */
+  function trebleClef(x, yG) {
+    return `<g transform="translate(${x},${yG})">
+      <path fill="none" stroke="${INK}" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"
+        d="M14.5,3.2 C10.5,3.4 9.6,-3 14,-4.2 C19.8,-5.6 23.4,0.6 21.2,5.4
+           C19,10.4 10.4,11.6 6,8.2 C1.2,4.4 1.8,-4.6 8,-10.2
+           C13.6,-15.2 19.6,-20.6 19.6,-29.6 C19.6,-37.6 17,-43.2 14.2,-42.8
+           C10.8,-42.2 9.4,-35.4 10.4,-28 L16,13.8 C17,20.6 13,24.6 9,22.8"/>
+      <path fill="none" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"
+        d="M21.2,5.4 C19,10.4 10.4,11.6 6,8.2"/>
+      <circle cx="9.6" cy="20.4" r="3" fill="${INK}"/>
+    </g>`;
+  }
+
+  /** Bass (F) clef; origin = left edge on the F line. ~2.7 spaces wide. */
+  function bassClef(x, yF) {
+    return `<g transform="translate(${x},${yF})" fill="${INK}">
+      <path d="M1,-2 C3,-10.6 18.4,-12 18.8,-1 C19.2,9.4 10.2,18.4 1.2,24.4
+               C8.4,17 13.8,9.2 13.4,-1.2 C13,-8.6 5.8,-9 3.8,-3 Z"/>
+      <circle cx="3.6" cy="-0.6" r="3.3"/>
+      <circle cx="24.4" cy="-5" r="1.8"/>
+      <circle cx="24.4" cy="5" r="1.8"/>
+    </g>`;
+  }
+
+  function clefGlyph(clef, x, staffTop) {
+    return clef === "treble"
+      ? trebleClef(x, staffTop + 3 * S)
+      : bassClef(x, staffTop + S);
+  }
+
+  function braceGlyph(xr, top, bottom) {
+    const w = 8, H = bottom - top, M = (top + bottom) / 2;
+    return `<path fill="${INK}" d="M${xr},${top}
+      C${xr - 0.95 * w},${top + 0.1 * H} ${xr + 0.1 * w},${M - 0.12 * H} ${xr - w},${M}
+      C${xr + 0.1 * w},${M + 0.12 * H} ${xr - 0.95 * w},${bottom - 0.1 * H} ${xr},${bottom}
+      C${xr - 0.55 * w},${bottom - 0.12 * H} ${xr + 0.55 * w},${M + 0.1 * H} ${xr - w},${M}
+      C${xr + 0.55 * w},${M - 0.1 * H} ${xr - 0.55 * w},${top + 0.12 * H} ${xr},${top} Z"/>`;
+  }
+
+  function noteHead(x, y, isTonic) {
+    const fill = isTonic ? TONIC_COLOR : INK;
+    return `<ellipse cx="${x}" cy="${y}" rx="6.1" ry="4.3" transform="rotate(-20 ${x} ${y})" fill="${fill}"/>`;
+  }
+
+  function ledgerCount(w, clef) {
+    const top = CLEFS[clef].topStep, bottom = top - 8;
+    if (w >= top + 2) return Math.floor((w - top) / 2);
+    if (w <= bottom - 2) return Math.floor((bottom - w) / 2);
+    return 0;
+  }
+
+  /** Pick clef + ottava for one hand in one system (readability-first cost model:
+      ≤2 ledger lines are free-ish, then prefer a clef change, then 8va/8vb, then 15ma/15mb). */
+  function chooseNotation(sounding, home, prev) {
+    const cands = home === "treble"
+      ? [{ clef: "treble", oct: 0 }, { clef: "treble", oct: 7 }, { clef: "treble", oct: 14 }, { clef: "bass", oct: 0 }]
+      : [{ clef: "bass", oct: 0 }, { clef: "bass", oct: -7 }, { clef: "bass", oct: -14 }, { clef: "treble", oct: 0 }, { clef: "treble", oct: 7 }];
+    const LEDGER_COST = [0, 0, 1, 4, 7, 11, 16, 22, 29];
+    let best = null, bestCost = Infinity;
+    cands.forEach(c => {
+      let maxL = 0;
+      sounding.forEach(st => { maxL = Math.max(maxL, ledgerCount(st - c.oct, c.clef)); });
+      let cost = LEDGER_COST[Math.min(maxL, 8)];
+      if (c.clef !== home) cost += 1.5;
+      if (Math.abs(c.oct) === 7) cost += 2;
+      if (Math.abs(c.oct) === 14) cost += 5;
+      if (prev && (prev.clef !== c.clef || prev.oct !== c.oct)) cost += 0.4;
+      if (cost < bestCost - 1e-9) { bestCost = cost; best = c; }
+    });
+    return best;
+  }
+
+  function ottavaLabel(oct) {
+    return { 7: "8va", 14: "15ma", "-7": "8vb", "-14": "15mb" }[oct] || "";
+  }
+
+  /** Vertical extent of one staff's content, relative to its top line. */
+  function staffExtent(notes, key, cfg, sig) {
+    const top = CLEFS[cfg.clef].topStep, mid = CLEFS[cfg.clef].midStep;
+    let lo = cfg.clef === "treble" ? -14 : -12;   /* clef glyph */
+    let hi = cfg.clef === "treble" ? 54 : 36;
+    if (sig.type !== "none") {
+      const tbl = SIG_STEPS[cfg.clef][sig.type];
+      const order = sig.type === "sharp" ? SHARP_ORDER : FLAT_ORDER;
+      const ext = ACC_EXTENT[sig.type];
+      for (let i = 0; i < sig.count; i++) {
+        const y = (top - tbl[order[i]]) * HALF;
+        lo = Math.min(lo, y + ext[0]); hi = Math.max(hi, y + ext[1]);
+      }
+    }
+    notes.forEach(n => {
+      const w = n[key] - cfg.oct;
+      const y = (top - w) * HALF;
+      lo = Math.min(lo, y - 6); hi = Math.max(hi, y + 6);
+      if (n.acc) { lo = Math.min(lo, y + ACC_EXTENT[n.acc][0]); hi = Math.max(hi, y + ACC_EXTENT[n.acc][1]); }
+      const midY = (top - mid) * HALF;
+      if (w >= mid) hi = Math.max(hi, y + 3.5 * S, midY);
+      else lo = Math.min(lo, y - 3.5 * S, midY);
+    });
+    return [lo, hi];
+  }
+
+  const FINGER_FONT = 13;
+
+  function computeLayout(systems, sig) {
+    let tLo = 0, tHi = 40, bLo = 0, bHi = 40;
+    let topOtt = false, botOttAbove = false, botOttBelow = false;
+    systems.forEach(s => {
+      const [a, b] = staffExtent(s.notes, "steps", s.rhCfg, sig);
+      const [c, d] = staffExtent(s.notes, "lhSteps", s.lhCfg, sig);
+      tLo = Math.min(tLo, a); tHi = Math.max(tHi, b);
+      bLo = Math.min(bLo, c); bHi = Math.max(bHi, d);
+      if (s.rhCfg.oct !== 0) topOtt = true;
+      if (s.lhCfg.oct > 0) botOttAbove = true;
+      if (s.lhCfg.oct < 0) botOttBelow = true;
+    });
+    const L = {};
+    let y = 4;
+    if (topOtt) { L.topOttY = y + 11; y += 17; }
+    L.rhFingerY = y + FINGER_FONT - 2; y += FINGER_FONT + 2;
+    L.topStaff = y + 5 - tLo;
+    y = L.topStaff + tHi + 5;
+    if (botOttAbove) { L.botOttAboveY = y + 11; y += 17; }
+    L.botStaff = Math.max(y - bLo, L.topStaff + 4 * S + 5 * S);
+    y = L.botStaff + bHi + 5;
+    L.lhFingerY = y + FINGER_FONT - 2; y += FINGER_FONT + 2;
+    if (botOttBelow) { L.botOttBelowY = y + 11; y += 17; }
+    L.height = Math.ceil(y + 4);
+    return L;
+  }
+
+  function drawKeySig(clef, staffTop, sig, x0) {
+    let s = "", x = x0;
+    if (sig.type === "none") return { svg: "", end: x0 };
+    const tbl = SIG_STEPS[clef][sig.type];
+    const order = sig.type === "sharp" ? SHARP_ORDER : FLAT_ORDER;
+    const top = CLEFS[clef].topStep;
+    for (let i = 0; i < sig.count; i++) {
+      const y = staffTop + (top - tbl[order[i]]) * HALF;
+      s += accidentalGlyph(sig.type, x + 5, y);
+      x += sig.type === "sharp" ? 11 : 9.5;
+    }
+    return { svg: s, end: x };
+  }
+
+  function drawOttava(label, x1, x2, y, hookDown) {
+    const tw = label.length * 5.6 + 3;
+    const hy = hookDown ? y + 3 : y - 10;
+    const ly = y - 3.5;
+    return `<text x="${x1}" y="${y}" font-family="Cormorant Garamond,Georgia,serif" font-size="13" font-style="italic" font-weight="700" fill="${INK}">${label}</text>
+      <line x1="${x1 + tw}" y1="${ly}" x2="${x2}" y2="${ly}" stroke="${INK}" stroke-width="1" stroke-dasharray="4 3"/>
+      <line x1="${x2}" y1="${ly}" x2="${x2}" y2="${hy}" stroke="${INK}" stroke-width="1"/>`;
+  }
+
+  function renderSystem(sys, L, sig, isLast) {
+    const { notes, rh, lh, rhCfg, lhCfg, label } = sys;
+    const x0 = 18;                 /* left system line */
+    const xEnd = VB_W - 4;         /* right bar line */
+    const tTop = L.topStaff, bTop = L.botStaff;
+
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VB_W} ${L.height}" role="img" aria-label="${esc(label)}">`;
+
+    /* staves */
+    for (let i = 0; i < 5; i++) {
+      svg += `<line x1="${x0}" y1="${tTop + i * S}" x2="${xEnd}" y2="${tTop + i * S}" stroke="${INK}" stroke-width="1.1"/>`;
+      svg += `<line x1="${x0}" y1="${bTop + i * S}" x2="${xEnd}" y2="${bTop + i * S}" stroke="${INK}" stroke-width="1.1"/>`;
+    }
+    svg += `<line x1="${x0}" y1="${tTop}" x2="${x0}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.6"/>`;
+    svg += braceGlyph(x0 - 4, tTop, bTop + 4 * S);
+
+    /* clefs + key signatures */
+    svg += clefGlyph(rhCfg.clef, x0 + 5, tTop);
+    svg += clefGlyph(lhCfg.clef, x0 + 5, bTop);
+    const ksT = drawKeySig(rhCfg.clef, tTop, sig, x0 + 37);
+    const ksB = drawKeySig(lhCfg.clef, bTop, sig, x0 + 37);
+    svg += ksT.svg + ksB.svg;
+
+    const sigEnd = Math.max(ksT.end, ksB.end);
+    const firstX = sigEnd + 20;
+    const lastX = xEnd - (isLast ? 22 : 18);
+    const n = notes.length;
+    const gapX = n > 1 ? (lastX - firstX) / (n - 1) : 0;
+
+    /* bar lines (connected across the grand staff, like printed piano music) */
+    if (isLast) {
+      svg += `<line x1="${xEnd - 6}" y1="${tTop}" x2="${xEnd - 6}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.1"/>`;
+      svg += `<line x1="${xEnd - 1.6}" y1="${tTop}" x2="${xEnd - 1.6}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="3.2"/>`;
+    } else {
+      svg += `<line x1="${xEnd}" y1="${tTop}" x2="${xEnd}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.3"/>`;
+    }
+
+    /* ottava lines */
+    if (rhCfg.oct > 0) svg += drawOttava(ottavaLabel(rhCfg.oct), firstX - 12, lastX + 8, L.topOttY, true);
+    if (lhCfg.oct > 0) svg += drawOttava(ottavaLabel(lhCfg.oct), firstX - 12, lastX + 8, L.botOttAboveY, true);
+    if (lhCfg.oct < 0) svg += drawOttava(ottavaLabel(lhCfg.oct), firstX - 12, lastX + 8, L.botOttBelowY, false);
+
+    /* notes */
+    const staffNotes = (key, cfg, staffTop) => {
+      const top = CLEFS[cfg.clef].topStep, mid = CLEFS[cfg.clef].midStep;
+      const midY = staffTop + (top - mid) * HALF;
+      let out = "";
+      notes.forEach((nt, i) => {
+        const x = +(firstX + i * gapX).toFixed(2);
+        const w = nt[key] - cfg.oct;
+        const y = staffTop + (top - w) * HALF;
+        /* ledger lines */
+        for (let st = top + 2; st <= w; st += 2) {
+          const ly = staffTop + (top - st) * HALF;
+          out += `<line x1="${x - 10}" y1="${ly}" x2="${x + 10}" y2="${ly}" stroke="${INK}" stroke-width="1.5"/>`;
+        }
+        for (let st = top - 10; st >= w; st -= 2) {
+          const ly = staffTop + (top - st) * HALF;
+          out += `<line x1="${x - 10}" y1="${ly}" x2="${x + 10}" y2="${ly}" stroke="${INK}" stroke-width="1.5"/>`;
+        }
+        /* accidentals sit clear of ledger lines when the note has any */
+        if (nt.acc) out += accidentalGlyph(nt.acc, x - (ledgerCount(w, cfg.clef) ? 17 : 14), y);
+        /* stem: down on/above the middle line, up below it; reaches the middle line when on ledgers */
+        if (w >= mid) {
+          const y2 = Math.max(y + 3.5 * S, midY);
+          out += `<line x1="${x - 5.5}" y1="${y + 1}" x2="${x - 5.5}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>`;
+        } else {
+          const y2 = Math.min(y - 3.5 * S, midY);
+          out += `<line x1="${x + 5.5}" y1="${y - 1}" x2="${x + 5.5}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>`;
+        }
+        out += noteHead(x, y, nt.isTonic);
+      });
+      return out;
+    };
+    svg += staffNotes("steps", rhCfg, tTop);
+    svg += staffNotes("lhSteps", lhCfg, bTop);
+
+    /* fingering rows — fixed rows outside all ledger lines, so they never collide */
+    const ff = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="${FINGER_FONT}" font-weight="700" text-anchor="middle"`;
+    notes.forEach((nt, i) => {
+      const x = +(firstX + i * gapX).toFixed(2);
+      svg += `<text x="${x}" y="${L.rhFingerY}" ${ff} fill="${RH_COLOR}">${rh[i]}</text>`;
+      svg += `<text x="${x}" y="${L.lhFingerY}" ${ff} fill="${LH_COLOR}">${lh[i]}</text>`;
+    });
+    const lf = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="10" font-weight="700"`;
+    svg += `<text x="2" y="${L.rhFingerY}" ${lf} fill="${RH_COLOR}">RH</text>`;
+    svg += `<text x="2" y="${L.lhFingerY}" ${lf} fill="${LH_COLOR}">LH</text>`;
+
+    svg += `</svg>`;
+    return svg;
+  }
+
+  function clefName(cfg) {
+    return cfg.clef === "treble" ? "treble clef" : "bass clef";
+  }
+
+  function notationNote(cfg, home) {
+    const parts = [];
+    if (cfg.clef !== home) parts.push(clefName(cfg));
+    if (cfg.oct) parts.push(ottavaLabel(cfg.oct) + (cfg.oct > 0 ? " (play 8ve" + (cfg.oct === 14 ? "s" : "") + " higher)" : " (play 8ve" + (cfg.oct === -14 ? "s" : "") + " lower)"));
+    return parts.join(", ");
+  }
+
+  const OCTAVE_SLICES = [[0, 7], [7, 14], [14, 21], [21, 29]];
+
+  function renderSheetMusic(scale, seq, rh, lh) {
+    const sig = { count: scale.sigCount, type: scale.accidentalType };
+    let prevR = null, prevL = null;
+    const systems = OCTAVE_SLICES.map(([a, b], k) => {
+      const notes = seq.slice(a, b);
+      const rhCfg = chooseNotation(notes.map(n => n.steps), "treble", prevR);
+      const lhCfg = chooseNotation(notes.map(n => n.lhSteps), "bass", prevL);
+      prevR = rhCfg; prevL = lhCfg;
+      const f = notes[0], t = notes[notes.length - 1];
+      const label = `Octave ${k + 1}: RH ${f.name}${f.octave}–${t.name}${t.octave}, LH ${f.name}${f.lhOctave}–${t.name}${t.lhOctave}`;
+      return { notes, rh: rh.slice(a, b), lh: lh.slice(a, b), rhCfg, lhCfg, label, k, f, t };
+    });
+    const L = computeLayout(systems, sig);
+
+    const figs = systems.map((s, idx) => {
+      const rn = notationNote(s.rhCfg, "treble");
+      const ln = notationNote(s.lhCfg, "bass");
+      const notesTxt = [rn ? `RH: ${rn}` : "", ln ? `LH: ${ln}` : ""].filter(Boolean).join(" · ");
+      return `<figure class="system">
+        <figcaption><span class="sys-oct">Octave ${s.k + 1}</span>
+          <span class="sys-range"><b class="rh-t">RH ${esc(s.f.name + s.f.octave)}–${esc(s.t.name + s.t.octave)}</b> · <b class="lh-t">LH ${esc(s.f.name + s.f.lhOctave)}–${esc(s.t.name + s.t.lhOctave)}</b></span>
+          ${notesTxt ? `<span class="sys-notation">${esc(notesTxt)}</span>` : ""}
+        </figcaption>
+        ${renderSystem(s, L, sig, idx === systems.length - 1)}
+      </figure>`;
+    }).join("");
+
+    return `<div class="music-wrap"><div class="systems">${figs}</div></div>
+    <div class="fingering-legend">
+      <span><strong>RH</strong> (green, above) · <strong>LH</strong> (violet, below) — ascending fingering</span>
+      <span>LH plays two octaves below RH</span>
+      <span>One octave per system · gold noteheads = tonic</span>
+      <span><em>8va</em>/<em>15ma</em> = play 1/2 octaves higher than written · <em>8vb</em> = 1 octave lower · clef changes keep ledger lines to a minimum</span>
+    </div>`;
+  }
+
+  function renderFingerStrip(seq, rh, lh) {
+    const blocks = OCTAVE_SLICES.map(([a, b], k) => {
+      const idx = [];
+      for (let i = a; i < b; i++) idx.push(i);
+      const cls = i => (seq[i].isTonic ? ` class="tonic-f"` : "");
+      return `<table class="finger-table" aria-label="Octave ${k + 1} fingering">
+        <caption>Octave ${k + 1}</caption>
+        <tr class="note-row"><th scope="row">Note</th>${idx.map(i => `<td${cls(i)}>${esc(seq[i].name)}</td>`).join("")}</tr>
+        <tr class="rh-row"><th scope="row">RH finger</th>${idx.map(i => `<td${cls(i)}>${rh[i]}</td>`).join("")}</tr>
+        <tr class="oct-row rh-oct"><th scope="row">RH octave</th>${idx.map(i => `<td>${seq[i].octave}</td>`).join("")}</tr>
+        <tr class="lh-row"><th scope="row">LH finger</th>${idx.map(i => `<td${cls(i)}>${lh[i]}</td>`).join("")}</tr>
+        <tr class="oct-row lh-oct"><th scope="row">LH octave</th>${idx.map(i => `<td>${seq[i].lhOctave}</td>`).join("")}</tr>
+      </table>`;
+    }).join("");
+    return `<div class="finger-strip">${blocks}</div>`;
+  }
+
+  function navLabel(scale) {
+    if (scale.type === "minor") {
+      const short = {
+        "a-min": "A", "e-min": "E", "b-min": "B", "fs-min": "F♯",
+        "cs-min": "C♯", "gs-min": "G♯ / A♭", "ds-min": "D♯ / E♭",
+        "bb-min": "B♭", "f-min": "F", "c-min": "C", "g-min": "G", "d-min": "D"
+      };
+      return short[scale.id] || scale.name.replace(" minor", "");
+    }
+    if (scale.enharmonic) {
+      const short = { b: "B / C♭", fs: "F♯ / G♭", db: "D♭ / C♯" };
+      return short[scale.id] || scale.name.replace(" major", "");
+    }
+    return scale.name.replace(" major", "");
+  }
+
+  function filteredScales() {
+    return SCALES.filter(s => {
+      if (currentFilter === "major") return s.type === "major";
+      if (currentFilter === "minor") return s.type === "minor";
+      return true;
+    });
+  }
+
+  function renderNav(scales) {
+    const nav = document.getElementById("key-nav");
+    const majors = scales.filter(s => s.type === "major");
+    const minors = scales.filter(s => s.type === "minor");
+    let html = "";
+    if (majors.length) {
+      html += `<span class="nav-section">Major</span>`;
+      html += majors.map(s =>
+        `<a href="#scale-${esc(s.id)}">${esc(navLabel(s))}</a>`
+      ).join("");
+    }
+    if (minors.length) {
+      html += `<span class="nav-section">Minor</span>`;
+      html += minors.map(s =>
+        `<a class="minor-link" href="#scale-${esc(s.id)}">${esc(navLabel(s))}</a>`
+      ).join("");
+    }
+    nav.innerHTML = html;
+  }
+
+  function patternHintFor(scale) {
+    if (scale.type === "major") return "Pattern: W–W–H–W–W–W–H";
+    if (currentMinorForm === "natural") return "Pattern: W–H–W–W–H–W–W (natural minor / Aeolian)";
+    if (currentMinorForm === "harmonic") return "Pattern: W–H–W–W–H–aug2–H (harmonic minor)";
+    return "Pattern: W–H–W–W–W–W–H ascending (melodic); descending usually natural";
+  }
+
+  function renderScale(scale) {
+    const resolved = resolveScale(scale);
+    const seq = renumberOctaves(scale, resolved);
+    attachAccidentals(seq, scale);
+    const rh = expandRH(resolved.rhOct);
+    const lh = expandLH(resolved.lhOct);
+    const title = scale.enharmonic
+      ? `${esc(scale.name)} <span class="enharmonic">/ ${esc(scale.enharmonic)}</span>`
+      : esc(scale.name);
+    const badge = scale.type === "major"
+      ? `<span class="mode-badge major">Major</span>`
+      : `<span class="mode-badge minor">${esc(resolved.formLabel || "Minor")}</span>`;
+
+    const sheet = renderSheetMusic(scale, seq, rh, lh);
+    const strip = renderFingerStrip(seq, rh, lh);
+
+    const cell = (n, i) => {
+      const cls = [
+        "note-cell",
+        n.isBlack ? "black" : "white",
+        n.isTonic ? "tonic" : ""
+      ].filter(Boolean).join(" ");
+      return `<div class="${cls}" role="listitem" title="${esc(n.name)} · RH ${esc(n.name)}${n.octave} finger ${rh[i]} · LH ${esc(n.name)}${n.lhOctave} finger ${lh[i]}">
+        <div class="key-visual"></div>
+        <div class="note-name">${esc(n.name)}</div>
+        <div class="oct-pair"><span class="rh-o">${n.octave}</span><span class="lh-o">${n.lhOctave}</span></div>
+        <div class="finger-pair"><span class="rh-f">${rh[i]}</span><span class="lh-f">${lh[i]}</span></div>
+      </div>`;
+    };
+    const cells = OCTAVE_SLICES.map(([a, b]) =>
+      `<div class="pr-oct">${seq.slice(a, b).map((n, j) => cell(n, a + j)).join("")}</div>`
+    ).join("");
+
+    const seqText = (octKey) => seq.map(n => {
+      const label = `${n.name}${n[octKey]}`;
+      return n.isTonic ? `<span class="tn">${esc(label)}</span>` : esc(label);
+    }).join(" · ");
+    const textSeq = `<span class="seq-line"><b class="rh-t">RH</b> ${seqText("octave")}</span>
+          <span class="seq-line"><b class="lh-t">LH</b> ${seqText("lhOctave")}</span>`;
+
+    let altHint = "";
+    if (scale.notesAlt) {
+      const enhName = scale.enharmonic || "enharmonic";
+      altHint = `<p class="pattern-hint">Enharmonic spelling (${esc(enhName)} natural): ${esc(scale.notesAlt.join(" – "))} (same pitches on the keyboard)</p>`;
+    }
+
+    const oneOctRH = resolved.rhOct.join("-");
+    const oneOctLH = resolved.lhOct.join("-");
+    const formNote = resolved.formHint
+      ? `<p class="form-note">${esc(resolved.formHint)}</p>`
+      : "";
+
+    return `<article class="scale-card" id="scale-${esc(scale.id)}" data-type="${esc(scale.type)}">
+      <div class="scale-header">
+        <h2>${title}${badge}</h2>
+        <span class="key-sig"><strong>${esc(scale.sigShort)}</strong> &nbsp;·&nbsp; ${esc(scale.sig)}</span>
+      </div>
+      <div class="scale-body">
+        ${formNote}
+        <div class="section-label">Sheet music · four octaves ascending</div>
+        ${sheet}
+
+        <div class="section-label spaced">Fingering chart · all 29 notes</div>
+        ${strip}
+        <p class="pattern-hint">One-octave pattern — RH: ${oneOctRH} &nbsp;·&nbsp; LH: ${oneOctLH} (extended across four octaves; RH uses 5 / terminal finger only on the final tonic)</p>
+
+        <div class="section-label spaced">Piano roll</div>
+        <div class="piano-roll" role="list">${cells}</div>
+        <p class="roll-caption">Each key: note name, then <b class="rh-t">RH</b> | <b class="lh-t">LH</b> octave number and finger. Both hands play the same note names — the LH two octaves lower.</p>
+
+        <div class="note-sequence">
+          <strong>Full ascending sequence (4 octaves):</strong>
+          ${textSeq}
+        </div>
+        <p class="pattern-hint">${patternHintFor(scale)} &nbsp;·&nbsp; Tonics highlighted in gold</p>
+        ${altHint}
+      </div>
+    </article>`;
+  }
+
+  function renderAll() {
+    const list = filteredScales();
+    const container = document.getElementById("scales-container");
+
+    if (currentOrder === "fingering") {
+      const groups = new Map();
+      list.forEach(s => {
+        const key = fingeringKey(s);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(s);
+      });
+      /* Within each group: circle of fifths, majors before minors at same fifths order */
+      for (const arr of groups.values()) {
+        arr.sort((a, b) => {
+          if (a.fifthsOrder !== b.fifthsOrder) return a.fifthsOrder - b.fifthsOrder;
+          if (a.type !== b.type) return a.type === "major" ? -1 : 1;
+          return a.name.localeCompare(b.name);
+        });
+      }
+      /* Order groups by size desc, then by first scale's fifths order */
+      const sortedKeys = Array.from(groups.keys()).sort((ka, kb) => {
+        const ga = groups.get(ka), gb = groups.get(kb);
+        if (gb.length !== ga.length) return gb.length - ga.length;
+        return ga[0].fifthsOrder - gb[0].fifthsOrder;
+      });
+
+      const navScales = [];
+      let html = "";
+      sortedKeys.forEach(key => {
+        const members = groups.get(key);
+        navScales.push(...members);
+        const names = members.map(s => s.name).join(", ");
+        html += `<div class="fingering-group">
+          <h3>${esc(key)}</h3>
+          <p class="group-meta">${members.length} scale${members.length > 1 ? "s" : ""}: ${esc(names)}</p>
+        </div>`;
+        html += members.map(renderScale).join("");
+      });
+      renderNav(navScales);
+      container.innerHTML = html;
+      return;
+    }
+
+    const sorted = list.slice().sort((a, b) => {
+      const primary = currentOrder === "chromatic"
+        ? a.chromaticOrder - b.chromaticOrder
+        : a.fifthsOrder - b.fifthsOrder;
+      if (primary !== 0) return primary;
+      if (a.type !== b.type) return a.type === "major" ? -1 : 1;
+      return 0;
+    });
+    renderNav(sorted);
+    container.innerHTML = sorted.map(renderScale).join("");
+  }
+
+
+  /* —— Interactive circle of fifths —— */
+  const COF_ORDER = [
+    { majorId: "c",   minorId: "a-min",  majLabel: "C",    minLabel: "a",    sig: "0",     sigFull: "No sharps or flats" },
+    { majorId: "g",   minorId: "e-min",  majLabel: "G",    minLabel: "e",    sig: "1♯",    sigFull: "1 sharp" },
+    { majorId: "d",   minorId: "b-min",  majLabel: "D",    minLabel: "b",    sig: "2♯",    sigFull: "2 sharps" },
+    { majorId: "a",   minorId: "fs-min", majLabel: "A",    minLabel: "f♯",   sig: "3♯",    sigFull: "3 sharps" },
+    { majorId: "e",   minorId: "cs-min", majLabel: "E",    minLabel: "c♯",   sig: "4♯",    sigFull: "4 sharps" },
+    { majorId: "b",   minorId: "gs-min", majLabel: "B",    minLabel: "g♯",   sig: "5♯",    sigFull: "5 sharps (C♭: 7♭)" },
+    { majorId: "fs",  minorId: "ds-min", majLabel: "F♯/G♭",minLabel: "d♯/e♭",sig: "6♯/6♭", sigFull: "6 sharps / 6 flats" },
+    { majorId: "db",  minorId: "bb-min", majLabel: "D♭",   minLabel: "b♭",   sig: "5♭",    sigFull: "5 flats (C♯: 7♯)" },
+    { majorId: "ab",  minorId: "f-min",  majLabel: "A♭",   minLabel: "f",    sig: "4♭",    sigFull: "4 flats" },
+    { majorId: "eb",  minorId: "c-min",  majLabel: "E♭",   minLabel: "c",    sig: "3♭",    sigFull: "3 flats" },
+    { majorId: "bb",  minorId: "g-min",  majLabel: "B♭",   minLabel: "g",    sig: "2♭",    sigFull: "2 flats" },
+    { majorId: "f",   minorId: "d-min",  majLabel: "F",    minLabel: "d",    sig: "1♭",    sigFull: "1 flat" }
+  ];
+
+  let cofSelectedId = null;
+
+  function polar(cx, cy, r, deg) {
+    const rad = (deg * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+
+  function wedgePath(cx, cy, rInner, rOuter, a0, a1) {
+    const p0 = polar(cx, cy, rOuter, a0);
+    const p1 = polar(cx, cy, rOuter, a1);
+    const p2 = polar(cx, cy, rInner, a1);
+    const p3 = polar(cx, cy, rInner, a0);
+    const large = a1 - a0 > 180 ? 1 : 0;
+    return [
+      `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)}`,
+      `A ${rOuter} ${rOuter} 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`,
+      `L ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`,
+      `A ${rInner} ${rInner} 0 ${large} 0 ${p3.x.toFixed(2)} ${p3.y.toFixed(2)}`,
+      "Z"
+    ].join(" ");
+  }
+
+  function scaleById(id) {
+    return SCALES.find(s => s.id === id);
+  }
+
+  function jumpToScale(id, type) {
+    const scale = scaleById(id);
+    if (!scale) return;
+
+    /* Show matching mode filter so the card is visible */
+    if (type === "major" && currentFilter !== "major") {
+      currentFilter = "major";
+      setActive(btnMajor, filterBtns);
+      renderAll();
+    } else if (type === "minor" && currentFilter !== "minor") {
+      currentFilter = "minor";
+      setActive(btnMinor, filterBtns);
+      renderAll();
+    }
+
+    cofSelectedId = id;
+    updateCofSelection();
+
+    const el = document.getElementById("scale-" + id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    el.classList.remove("cof-flash");
+    void el.offsetWidth;
+    el.classList.add("cof-flash");
+    window.setTimeout(() => el.classList.remove("cof-flash"), 1500);
+  }
+
+  function showCofTooltip(entry, kind, clientX, clientY) {
+    const tip = document.getElementById("cof-tooltip");
+    const wrap = document.getElementById("cof-wrap");
+    if (!tip || !wrap) return;
+    const maj = scaleById(entry.majorId);
+    const min = scaleById(entry.minorId);
+    const isMajor = kind === "major";
+    const name = isMajor ? (maj ? maj.name : entry.majLabel + " major") : (min ? min.name : entry.minLabel + " minor");
+    const rel = isMajor
+      ? "Relative minor: " + (min ? min.name : entry.minLabel)
+      : "Relative major: " + (maj ? maj.name : entry.majLabel);
+    tip.innerHTML = `<strong>${esc(name)}</strong><br>${esc(rel)}<br>Signature: ${esc(entry.sigFull)}`;
+    tip.hidden = false;
+    tip.classList.add("visible");
+    const rect = wrap.getBoundingClientRect();
+    tip.style.left = (clientX - rect.left) + "px";
+    tip.style.top = (clientY - rect.top) + "px";
+  }
+
+  function hideCofTooltip() {
+    const tip = document.getElementById("cof-tooltip");
+    if (!tip) return;
+    tip.classList.remove("visible");
+    tip.hidden = true;
+  }
+
+  function updateCofSelection() {
+    document.querySelectorAll(".cof-wedge").forEach(g => {
+      const mid = g.getAttribute("data-major-id");
+      const nid = g.getAttribute("data-minor-id");
+      g.classList.toggle("cof-selected", mid === cofSelectedId || nid === cofSelectedId);
+    });
+  }
+
+  function renderCircleOfFifths() {
+    const root = document.getElementById("cof-root");
+    const a11y = document.getElementById("cof-a11y");
+    if (!root) return;
+
+    const size = 400;
+    const cx = 200, cy = 200;
+    const rOuter = 188;
+    const rMid = 118;
+    const rInner = 62;
+    const rMajLabel = (rOuter + rMid) / 2 + 4;
+    const rMinLabel = (rMid + rInner) / 2;
+    const rSig = rOuter - 16;
+
+    let wedges = "";
+    COF_ORDER.forEach((entry, i) => {
+      const mid = -90 + i * 30;
+      const a0 = mid - 15;
+      const a1 = mid + 15;
+      const majPath = wedgePath(cx, cy, rMid, rOuter, a0, a1);
+      const minPath = wedgePath(cx, cy, rInner, rMid, a0, a1);
+      const majPos = polar(cx, cy, rMajLabel, mid);
+      const minPos = polar(cx, cy, rMinLabel, mid);
+      const sigPos = polar(cx, cy, rSig, mid);
+      const majName = (scaleById(entry.majorId) || {}).name || entry.majLabel + " major";
+      const minName = (scaleById(entry.minorId) || {}).name || entry.minLabel + " minor";
+
+      wedges += `<g class="cof-wedge" data-index="${i}" data-major-id="${esc(entry.majorId)}" data-minor-id="${esc(entry.minorId)}" role="group" aria-label="${esc(majName)} / ${esc(minName)}, ${esc(entry.sigFull)}">
+        <path class="cof-major-path" d="${majPath}"/>
+        <path class="cof-minor-path" d="${minPath}"/>
+        <path class="cof-hit-major" d="${majPath}" tabindex="0" role="button" aria-label="Go to ${esc(majName)}" data-kind="major" data-id="${esc(entry.majorId)}"/>
+        <path class="cof-hit-minor" d="${minPath}" tabindex="0" role="button" aria-label="Go to ${esc(minName)}" data-kind="minor" data-id="${esc(entry.minorId)}"/>
+        <text class="cof-label cof-label-major" x="${majPos.x.toFixed(1)}" y="${majPos.y.toFixed(1)}">${esc(entry.majLabel)}</text>
+        <text class="cof-label cof-label-minor" x="${minPos.x.toFixed(1)}" y="${minPos.y.toFixed(1)}">${esc(entry.minLabel)}</text>
+        <text class="cof-sig" x="${sigPos.x.toFixed(1)}" y="${sigPos.y.toFixed(1)}">${esc(entry.sig)}</text>
+      </g>`;
+    });
+
+    root.innerHTML = `<svg class="cof-svg" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle class="cof-ring-divider" cx="${cx}" cy="${cy}" r="${rMid}"/>
+      <circle class="cof-ring-divider" cx="${cx}" cy="${cy}" r="${rOuter}"/>
+      ${wedges}
+      <circle class="cof-center-disc" cx="${cx}" cy="${cy}" r="${rInner - 2}"/>
+      <text class="cof-center-title" x="${cx}" y="${cy - 6}">Fifths</text>
+      <text class="cof-center-sub" x="${cx}" y="${cy + 10}">♯ → · ← ♭</text>
+    </svg>`;
+
+    /* Accessible linked list fallback */
+    if (a11y) {
+      let links = "<h3>Jump by key</h3><ul>";
+      COF_ORDER.forEach(entry => {
+        const maj = scaleById(entry.majorId);
+        const min = scaleById(entry.minorId);
+        links += `<li><a href="#scale-${esc(entry.majorId)}" data-cof-id="${esc(entry.majorId)}" data-cof-type="major">${esc(maj ? maj.name : entry.majLabel)}</a></li>`;
+        links += `<li><a class="minor" href="#scale-${esc(entry.minorId)}" data-cof-id="${esc(entry.minorId)}" data-cof-type="minor">${esc(min ? min.name : entry.minLabel)}</a></li>`;
+      });
+      links += "</ul>";
+      a11y.innerHTML = links;
+      a11y.querySelectorAll("a[data-cof-id]").forEach(a => {
+        a.addEventListener("click", e => {
+          e.preventDefault();
+          jumpToScale(a.getAttribute("data-cof-id"), a.getAttribute("data-cof-type"));
+        });
+      });
+    }
+
+    root.querySelectorAll(".cof-hit-major, .cof-hit-minor").forEach(hit => {
+      const kind = hit.getAttribute("data-kind");
+      const id = hit.getAttribute("data-id");
+      const wedge = hit.closest(".cof-wedge");
+      const idx = +wedge.getAttribute("data-index");
+      const entry = COF_ORDER[idx];
+
+      hit.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        jumpToScale(id, kind);
+      });
+      hit.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          jumpToScale(id, kind);
+        }
+      });
+      hit.addEventListener("mouseenter", e => {
+        wedge.classList.add("cof-hovered");
+        showCofTooltip(entry, kind, e.clientX, e.clientY);
+      });
+      hit.addEventListener("mousemove", e => {
+        showCofTooltip(entry, kind, e.clientX, e.clientY);
+      });
+      hit.addEventListener("mouseleave", () => {
+        wedge.classList.remove("cof-hovered");
+        hideCofTooltip();
+      });
+      hit.addEventListener("focus", () => {
+        wedge.classList.add("cof-hovered");
+        const rect = hit.getBoundingClientRect();
+        showCofTooltip(entry, kind, rect.left + rect.width / 2, rect.top);
+      });
+      hit.addEventListener("blur", () => {
+        wedge.classList.remove("cof-hovered");
+        hideCofTooltip();
+      });
+    });
+
+    updateCofSelection();
+  }
+
+
+  function setActive(btn, groupBtns) {
+    groupBtns.forEach(b => {
+      b.classList.toggle("active", b === btn);
+      b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+    });
+  }
+
+  const btnFifths = document.getElementById("btn-fifths");
+  const btnChrom = document.getElementById("btn-chromatic");
+  const btnFinger = document.getElementById("btn-fingering");
+  const orderBtns = [btnFifths, btnChrom, btnFinger];
+
+  btnFifths.addEventListener("click", () => { currentOrder = "fifths"; setActive(btnFifths, orderBtns); renderAll(); });
+  btnChrom.addEventListener("click", () => { currentOrder = "chromatic"; setActive(btnChrom, orderBtns); renderAll(); });
+  btnFinger.addEventListener("click", () => { currentOrder = "fingering"; setActive(btnFinger, orderBtns); renderAll(); });
+
+  const btnAll = document.getElementById("btn-all");
+  const btnMajor = document.getElementById("btn-major");
+  const btnMinor = document.getElementById("btn-minor");
+  const filterBtns = [btnAll, btnMajor, btnMinor];
+
+  btnAll.addEventListener("click", () => { currentFilter = "all"; setActive(btnAll, filterBtns); renderAll(); });
+  btnMajor.addEventListener("click", () => { currentFilter = "major"; setActive(btnMajor, filterBtns); renderAll(); });
+  btnMinor.addEventListener("click", () => { currentFilter = "minor"; setActive(btnMinor, filterBtns); renderAll(); });
+
+  const btnNatural = document.getElementById("btn-natural");
+  const btnHarmonic = document.getElementById("btn-harmonic");
+  const btnMelodic = document.getElementById("btn-melodic");
+  const formBtns = [btnNatural, btnHarmonic, btnMelodic];
+
+  btnNatural.addEventListener("click", () => { currentMinorForm = "natural"; setActive(btnNatural, formBtns); renderAll(); });
+  btnHarmonic.addEventListener("click", () => { currentMinorForm = "harmonic"; setActive(btnHarmonic, formBtns); renderAll(); });
+  btnMelodic.addEventListener("click", () => { currentMinorForm = "melodic"; setActive(btnMelodic, formBtns); renderAll(); });
+
+  renderAll();
+  renderCircleOfFifths();
+
+  /* Back-to-circle button: hidden while the circle of fifths is on screen. */
+  (function initBackToCircle() {
+    const btn = document.getElementById("to-cof");
+    const section = document.querySelector(".cof-section");
+    if (!btn || !section) return;
+    const setShown = (show) => {
+      btn.classList.toggle("show", show);
+      btn.setAttribute("aria-hidden", show ? "false" : "true");
+      btn.tabIndex = show ? 0 : -1;
+    };
+    if (!("IntersectionObserver" in window)) { setShown(true); return; }
+    new IntersectionObserver(entries => {
+      entries.forEach(e => setShown(!e.isIntersecting));
+    }, { threshold: 0 }).observe(section);
+    btn.addEventListener("click", e => {
+      e.preventDefault();
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+      /* keyboard activation: move focus into the circle */
+      const first = section.querySelector(".cof-hit-major");
+      if (e.detail === 0 && first) window.setTimeout(() => first.focus({ preventScroll: true }), 450);
+    });
+  })();
+})();
+</script>
+</body>
+</html>
