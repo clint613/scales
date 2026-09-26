@@ -396,7 +396,7 @@
     font-weight: 600;
   }
 
-  /* —— One-line staff preview (all four octaves on one grand-staff system) —— */
+  /* —— One-line staff preview (both octaves on one grand-staff system) —— */
   .oneline {
     position: relative;
     cursor: pointer;
@@ -412,7 +412,9 @@
   .oneline svg {
     display: block;
     width: 100%;
+    max-width: 880px;
     height: auto;
+    margin: 0 auto;
   }
 
   .oneline-foot {
@@ -1072,7 +1074,7 @@
   <h1>The 24 Major &amp; Minor Scales</h1>
   <p class="subtitle">A complete reference for the classical pianist</p>
   <p class="intro">
-    All twelve major keys and twelve minor keys — ascending four octaves — with sheet music and
+    All twelve major keys and twelve minor keys — two octaves ascending, hands one octave apart — with sheet music and
     standard classical fingerings for both hands. Each scale fits on one line; tap it for a larger,
     one-octave-per-row view. Minor keys include
     natural, harmonic, and melodic (ascending) forms. Enharmonic pairs are the same pitches
@@ -1152,7 +1154,7 @@
   <p>Major: W–W–H–W–W–W–H &nbsp;·&nbsp; Natural minor: W–H–W–W–H–W–W</p>
   <p>Harmonic: raised 7th &nbsp;·&nbsp; Melodic ascending: raised 6th &amp; 7th (descending usually natural)</p>
   <p>Fingerings: 1 = thumb · 2 = index · 3 = middle · 4 = ring · 5 = little</p>
-  <p>24 keys · four octaves each · sheet music + RH/LH classical fingerings</p>
+  <p>24 keys · two octaves each, hands one octave apart · sheet music + RH/LH classical fingerings</p>
   <a class="back-top" href="#top">↑ Back to top</a>
 </footer>
 
@@ -1636,7 +1638,7 @@
     };
     let hint = null;
     if (currentMinorForm === "melodic") {
-      hint = "Ascending form shown for four octaves. Descending melodic minor is usually the natural minor (cancel the raised 6th & 7th).";
+      hint = "Ascending form shown for two octaves. Descending melodic minor is usually the natural minor (cancel the raised 6th & 7th).";
     } else if (currentMinorForm === "harmonic") {
       hint = "Raised leading tone (7th degree) creates the characteristic augmented 2nd between degrees 6 and 7.";
     }
@@ -1654,18 +1656,24 @@
     return "RH " + r.rhOct.join("-") + " · LH " + r.lhOct.join("-");
   }
 
+  /* Two octaves ascending: 15 notes, tonic to tonic. */
+  const OCTAVES = 2;
+  const N_NOTES = OCTAVES * 7 + 1;
+
+  /** RH: the one-octave pattern twice, top finger (P[7]) only on the top tonic. */
   function expandRH(P) {
     const out = [];
-    for (let o = 0; o < 4; o++)
+    for (let o = 0; o < OCTAVES; o++)
       for (let i = 0; i < 7; i++) out.push(P[i]);
     out.push(P[7]);
     return out;
   }
 
+  /** LH: bottom finger (P[0], usually 5) only on the bottom tonic; each later tonic uses P[7]. */
   function expandLH(P) {
     const out = [];
     for (let i = 0; i < 7; i++) out.push(P[i]);
-    for (let oct = 1; oct < 4; oct++) {
+    for (let oct = 1; oct < OCTAVES; oct++) {
       out.push(P[7]);
       for (let i = 1; i <= 6; i++) out.push(P[i]);
     }
@@ -1673,20 +1681,15 @@
     return out;
   }
 
-  /** RH starts on tonic4 only for C (C4→C8, the top key of the piano); every other
-      tonic starts in octave 3 so the four-octave run never goes above C8.
-      LH always plays two octaves (24 semitones) below RH. */
-  const LH_OFFSET = 24;
-  function rhStartOctave(tonicName) {
-    return PC[tonicName] === 0 ? 4 : 3;
-  }
+  /** Hands in parallel, one octave apart: LH plays 12 semitones below RH. */
+  const LH_OFFSET = 12;
 
-  function renumberOctaves(scale, resolved) {
+  function renumberOctaves(scale, resolved, rhOctave) {
     const notes = resolved.notes;
     const result = [];
-    let abs = (scale.startOctave || rhStartOctave(notes[0])) * 12 + PC[notes[0]];
+    let abs = rhOctave * 12 + PC[notes[0]];
 
-    for (let i = 0; i < 29; i++) {
+    for (let i = 0; i < N_NOTES; i++) {
       const deg = i % 7;
       const name = notes[deg];
       const targetPc = PC[name];
@@ -1713,14 +1716,14 @@
     return result;
   }
 
-  /** Accidentals relative to the key signature; each system (= one octave) behaves
-      like a fresh measure, so state resets at every tonic. */
+  /** Accidentals relative to the key signature; each octave is a measure (bar line
+      before the middle tonic), so state resets at every tonic except the last. */
   function attachAccidentals(seq, scale) {
     const sigMap = keySigMap(scale.sigCount, scale.accidentalType);
     let active = Object.assign({}, sigMap);
     for (let i = 0; i < seq.length; i++) {
       const n = seq[i];
-      if (n.isTonic && i < 28) active = Object.assign({}, sigMap);
+      if (n.isTonic && i < N_NOTES - 1) active = Object.assign({}, sigMap);
       const L = letterOf(n.name);
       const want = parseAccidental(n.name);
       if (want !== active[L]) {
@@ -1873,24 +1876,58 @@
     return 0;
   }
 
-  /** Pick clef + ottava for one hand in one system (readability-first cost model:
-      ≤2 ledger lines are free-ish, then prefer a clef change, then 8va/8vb, then 15ma/15mb). */
-  function chooseNotation(sounding, home, prev) {
-    const cands = home === "treble"
-      ? [{ clef: "treble", oct: 0 }, { clef: "treble", oct: 7 }, { clef: "treble", oct: 14 }, { clef: "bass", oct: 0 }]
-      : [{ clef: "bass", oct: 0 }, { clef: "bass", oct: -7 }, { clef: "bass", oct: -14 }, { clef: "treble", oct: 0 }, { clef: "treble", oct: 7 }];
-    const LEDGER_COST = [0, 0, 1, 4, 7, 11, 16, 22, 29];
-    let best = null, bestCost = Infinity;
-    cands.forEach(c => {
-      let maxL = 0;
-      sounding.forEach(st => { maxL = Math.max(maxL, ledgerCount(st - c.oct, c.clef)); });
-      let cost = LEDGER_COST[Math.min(maxL, 8)];
-      if (c.clef !== home) cost += 1.5;
-      if (Math.abs(c.oct) === 7) cost += 2;
-      if (Math.abs(c.oct) === 14) cost += 5;
-      if (prev && (prev.clef !== c.clef || prev.oct !== c.oct)) cost += 0.4;
-      if (cost < bestCost - 1e-9) { bestCost = cost; best = c; }
+  /* —— Register + notation planner ——
+     RH always on treble, LH always on bass, LH exactly one octave below RH, never a clef
+     change. For each key we try the RH tonic in octave 3 and 4, each with no octave sign or
+     ONE 8va/8vb bracket covering a whole octave (= one measure) of one hand, and count the
+     ledger lines every written note needs. Ranking (lowest wins):
+       1. how far the worst note goes past 2 ledger lines
+       2. how many notes need more than 2 ledger lines
+       3. octave brackets (0 before 1: only used when they fix 1–2)
+       4. total ledger lines, both hands
+       5. distance of the RH start from middle C (the more central register) */
+  const MAX_LEDGERS = 2;
+  const NOTATION_OPTIONS = [
+    { rh: [0, 0], lh: [0, 0] },
+    { rh: [0, 0], lh: [0, 7] },     /* LH second octave written an octave lower, marked 8va */
+    { rh: [0, 7], lh: [0, 0] },     /* RH second octave marked 8va */
+    { rh: [-7, 0], lh: [0, 0] },    /* RH first octave marked 8vb */
+    { rh: [0, 0], lh: [-7, 0] }     /* LH first octave marked 8vb */
+  ];
+  const planCache = new Map();
+
+  function evaluatePlan(seq, opt) {
+    let total = 0, worst = 0, over = 0;
+    const perHand = { rh: 0, lh: 0 };
+    seq.forEach((n, i) => {
+      const k = i < 7 ? 0 : 1;                       /* measure: notes 1–7 | 8–15 */
+      const r = ledgerCount(n.steps - opt.rh[k], "treble");
+      const l = ledgerCount(n.lhSteps - opt.lh[k], "bass");
+      [r, l].forEach(c => { total += c; worst = Math.max(worst, c); if (c > MAX_LEDGERS) over++; });
+      perHand.rh += r; perHand.lh += l;
     });
+    const brackets = opt.rh.concat(opt.lh).filter(o => o !== 0).length;
+    return { total, worst, over, brackets, perHand };
+  }
+
+  function compareRank(a, b) {
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i];
+    return 0;
+  }
+
+  function planFor(scale, resolved) {
+    const key = scale.id + "|" + resolved.notes.join(",");
+    if (planCache.has(key)) return planCache.get(key);
+    let best = null;
+    [3, 4].forEach(oct => {
+      const seq = renumberOctaves(scale, resolved, oct);
+      NOTATION_OPTIONS.forEach(opt => {
+        const e = evaluatePlan(seq, opt);
+        const rank = [Math.max(0, e.worst - MAX_LEDGERS), e.over, e.brackets, e.total, Math.abs(seq[0].steps - 28)];
+        if (!best || compareRank(rank, best.rank) < 0) best = { rhOctave: oct, opt, rank, ...e };
+      });
+    });
+    planCache.set(key, best);
     return best;
   }
 
@@ -1924,17 +1961,18 @@
     return [lo, hi];
   }
 
-  const FINGER_FONT = 13;
+  const FINGER_FONT = 16;
 
   function computeLayout(systems, sig) {
     let tLo = 0, tHi = 40, bLo = 0, bHi = 40;
-    let topOtt = false, botOttAbove = false, botOttBelow = false;
+    let topOtt = false, topOttBelow = false, botOttAbove = false, botOttBelow = false;
     systems.forEach(s => {
       const [a, b] = staffExtent(s.notes, "steps", s.rhCfg, sig);
       const [c, d] = staffExtent(s.notes, "lhSteps", s.lhCfg, sig);
       tLo = Math.min(tLo, a); tHi = Math.max(tHi, b);
       bLo = Math.min(bLo, c); bHi = Math.max(bHi, d);
-      if (s.rhCfg.oct !== 0) topOtt = true;
+      if (s.rhCfg.oct > 0) topOtt = true;
+      if (s.rhCfg.oct < 0) topOttBelow = true;     /* RH 8vb sits under the treble staff */
       if (s.lhCfg.oct > 0) botOttAbove = true;
       if (s.lhCfg.oct < 0) botOttBelow = true;
     });
@@ -1944,6 +1982,7 @@
     L.rhFingerY = y + FINGER_FONT - 2; y += FINGER_FONT + 2;
     L.topStaff = y + 5 - tLo;
     y = L.topStaff + tHi + 5;
+    if (topOttBelow) { L.topOttBelowY = y + 11; y += 17; }
     if (botOttAbove) { L.botOttAboveY = y + 11; y += 17; }
     L.botStaff = Math.max(y - bLo, L.topStaff + 4 * S + 5 * S);
     y = L.botStaff + bHi + 5;
@@ -2021,7 +2060,7 @@
   }
 
   function handLabels(L) {
-    const lf = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="10" font-weight="700"`;
+    const lf = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="11" font-weight="700"`;
     return `<text x="2" y="${L.rhFingerY}" ${lf} fill="${RH_COLOR}">RH</text>` +
            `<text x="2" y="${L.lhFingerY}" ${lf} fill="${LH_COLOR}">LH</text>`;
   }
@@ -2074,6 +2113,7 @@
 
     /* ottava lines */
     if (rhCfg.oct > 0) svg += drawOttava(ottavaLabel(rhCfg.oct), firstX - 12, lastX + 8, L.topOttY, true);
+    if (rhCfg.oct < 0) svg += drawOttava(ottavaLabel(rhCfg.oct), firstX - 12, lastX + 8, L.topOttBelowY, false);
     if (lhCfg.oct > 0) svg += drawOttava(ottavaLabel(lhCfg.oct), firstX - 12, lastX + 8, L.botOttAboveY, true);
     if (lhCfg.oct < 0) svg += drawOttava(ottavaLabel(lhCfg.oct), firstX - 12, lastX + 8, L.botOttBelowY, false);
 
@@ -2093,13 +2133,13 @@
   }
 
   /* One-line system: fixed viewBox width, so the staff is the same size on every card. */
-  const LINE_W = 1040;
-  const BAR_LEAD = 24;      /* bar line → first note of the next octave */
-  const BAR_EXTRA = 16;     /* extra room at each bar line (on top of the normal note gap) */
+  const LINE_W = 620;       /* 15 notes: roughly 1.7× larger staff than the old 4-octave line */
+  const BAR_LEAD = 20;      /* bar line → first note of the next octave */
+  const BAR_EXTRA = 12;     /* extra room at the bar line (on top of the normal note gap) */
   const CLEF_EXTRA = 22;    /* extra room when a clef changes at a bar line */
 
-  /** All four octaves on ONE continuous grand-staff system (collapsed card preview).
-      Each octave is a measure; clef changes and 8va/15ma/8vb brackets carry over between them. */
+  /** Both octaves on ONE continuous grand-staff system (card view). Each octave is a
+      measure; an 8va/8vb bracket (rare) spans the measure it applies to. */
   function renderLine(systems, L, sig, label) {
     const x0 = 18, xEnd = LINE_W - 4;
     const tTop = L.topStaff, bTop = L.botStaff;
@@ -2153,6 +2193,7 @@
     };
     const span = r => [segXs[r.start][0] - 12, segXs[r.end][segXs[r.end].length - 1] + 8];
     runs(s => s.rhCfg.oct, o => o > 0).forEach(r => { const [a, b] = span(r); svg += drawOttava(ottavaLabel(r.o), a, b, L.topOttY, true); });
+    runs(s => s.rhCfg.oct, o => o < 0).forEach(r => { const [a, b] = span(r); svg += drawOttava(ottavaLabel(r.o), a, b, L.topOttBelowY, false); });
     runs(s => s.lhCfg.oct, o => o > 0).forEach(r => { const [a, b] = span(r); svg += drawOttava(ottavaLabel(r.o), a, b, L.botOttAboveY, true); });
     runs(s => s.lhCfg.oct, o => o < 0).forEach(r => { const [a, b] = span(r); svg += drawOttava(ottavaLabel(r.o), a, b, L.botOttBelowY, false); });
 
@@ -2177,15 +2218,13 @@
     return parts.join(", ");
   }
 
-  const OCTAVE_SLICES = [[0, 7], [7, 14], [14, 21], [21, 29]];
+  const OCTAVE_SLICES = [[0, 7], [7, 15]];   /* bar line before the middle tonic */
 
-  function buildSystems(seq, rh, lh) {
-    let prevR = null, prevL = null;
+  function buildSystems(seq, rh, lh, plan) {
     return OCTAVE_SLICES.map(([a, b], k) => {
       const notes = seq.slice(a, b);
-      const rhCfg = chooseNotation(notes.map(n => n.steps), "treble", prevR);
-      const lhCfg = chooseNotation(notes.map(n => n.lhSteps), "bass", prevL);
-      prevR = rhCfg; prevL = lhCfg;
+      const rhCfg = { clef: "treble", oct: plan.opt.rh[k] };
+      const lhCfg = { clef: "bass", oct: plan.opt.lh[k] };
       const f = notes[0], t = notes[notes.length - 1];
       const label = `Octave ${k + 1}: RH ${f.name}${f.octave}–${t.name}${t.octave}, LH ${f.name}${f.lhOctave}–${t.name}${t.lhOctave}`;
       return { notes, rh: rh.slice(a, b), lh: lh.slice(a, b), rhCfg, lhCfg, label, k, f, t };
@@ -2195,14 +2234,15 @@
   /** Everything needed to draw one scale in the current minor form. */
   function prepareScale(scale) {
     const resolved = resolveScale(scale);
-    const seq = renumberOctaves(scale, resolved);
+    const plan = planFor(scale, resolved);
+    const seq = renumberOctaves(scale, resolved, plan.rhOctave);
     attachAccidentals(seq, scale);
     const rh = expandRH(resolved.rhOct);
     const lh = expandLH(resolved.lhOct);
     const sig = { count: scale.sigCount, type: scale.accidentalType };
-    const systems = buildSystems(seq, rh, lh);
+    const systems = buildSystems(seq, rh, lh, plan);
     const L = computeLayout(systems, sig);
-    return { resolved, seq, rh, lh, sig, systems, L };
+    return { resolved, seq, rh, lh, sig, systems, L, plan };
   }
 
   /** Expanded view: four systems, one octave per row. */
@@ -2224,22 +2264,31 @@
     return `<div class="music-wrap" title="Tap to close"><div class="systems">${figs}</div></div>
     <div class="fingering-legend">
       <span><strong>RH</strong> (green, above) · <strong>LH</strong> (violet, below) — ascending fingering</span>
-      <span>LH plays two octaves below RH</span>
-      <span>One octave per system · gold noteheads = tonic</span>
-      <span><em>8va</em>/<em>15ma</em> = play 1/2 octaves higher than written · <em>8vb</em> = 1 octave lower · clef changes keep ledger lines to a minimum</span>
+      <span>LH plays one octave below RH</span>
+      <span>One octave per row · gold noteheads = tonic</span>
+      ${ottavaLegend(prep.plan)}
     </div>
     <p class="sm-hint">Tap the music, press Esc, or use ✕ to close</p>`;
   }
 
-  /** Collapsed card view: all four octaves on one line; tap/click/Enter/Space opens the expanded view. */
+  /** Legend text for an octave bracket, only when this scale uses one. */
+  function ottavaLegend(plan) {
+    const o = plan.opt.rh.concat(plan.opt.lh);
+    const parts = [];
+    if (o.some(v => v > 0)) parts.push(`<em>8va</em> = play one octave higher than written`);
+    if (o.some(v => v < 0)) parts.push(`<em>8vb</em> = play one octave lower than written`);
+    return parts.length ? `<span>${parts.join(" · ")}</span>` : "";
+  }
+
+  /** Card view: both octaves on one line; tap/click/Enter/Space opens one octave per row. */
   function renderOneLine(scale, prep) {
-    const label = `${scale.name}, four octaves ascending on one grand staff`;
+    const label = `${scale.name}, two octaves ascending on one grand staff, left hand one octave below right hand`;
     return `<div class="music-wrap oneline" role="button" tabindex="0" aria-haspopup="dialog"
         data-expand="${esc(scale.id)}" aria-label="${esc(scale.name)} sheet music (one line). Open larger view">
         ${renderLine(prep.systems, prep.L, prep.sig, label)}
       </div>
       <div class="oneline-foot">
-        <span><b class="rh-t">RH</b> fingering above · <b class="lh-t">LH</b> below · gold = tonic · bar line = octave</span>
+        <span><b class="rh-t">RH</b> fingering above · <b class="lh-t">LH</b> below · gold = tonic · bar line = octave${ottavaLegend(prep.plan) ? " · " + ottavaLegend(prep.plan).replace(/^<span>|<\/span>$/g, "") : ""}</span>
         <span class="expand-hint" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg><span class="hint-touch">Tap to expand</span><span class="hint-mouse">Click to expand</span></span>
       </div>`;
   }
@@ -2333,12 +2382,12 @@
       </div>
       <div class="scale-body">
         ${formNote}
-        <div class="section-label">Sheet music · four octaves ascending</div>
+        <div class="section-label">Sheet music · two octaves ascending</div>
         ${sheet}
-        <p class="pattern-hint">One-octave pattern — RH: ${oneOctRH} &nbsp;·&nbsp; LH: ${oneOctLH} (extended across four octaves; RH uses 5 / terminal finger only on the final tonic)</p>
+        <p class="pattern-hint">One-octave pattern — RH: ${oneOctRH} &nbsp;·&nbsp; LH: ${oneOctLH}. Played twice for two octaves: the LH begins with ${esc(String(resolved.lhOct[0]))} on the bottom tonic and the RH finishes with ${esc(String(resolved.rhOct[7]))} on the top tonic.</p>
 
         <div class="note-sequence">
-          <strong>Full ascending sequence (4 octaves):</strong>
+          <strong>Full ascending sequence (2 octaves, LH one octave below RH):</strong>
           ${textSeq}
         </div>
         <p class="pattern-hint">${patternHintFor(scale)} &nbsp;·&nbsp; Tonics highlighted in gold</p>
@@ -2698,6 +2747,23 @@
   renderAll();
   renderCircleOfFifths();
 
+  /* Read-only hook for tests / curiosity: the register plan chosen for each scale. */
+  window.__scalesPlan = function (id, form) {
+    const scale = scaleById(id);
+    if (!scale) return null;
+    const saved = currentMinorForm;
+    if (form) currentMinorForm = form;
+    const prep = prepareScale(scale);
+    currentMinorForm = saved;
+    const f = prep.seq[0], t = prep.seq[prep.seq.length - 1];
+    return {
+      rh: `${f.name}${f.octave}–${t.name}${t.octave}`, lh: `${f.name}${f.lhOctave}–${t.name}${t.lhOctave}`,
+      rhOctave: prep.plan.rhOctave, rhOtt: prep.plan.opt.rh, lhOtt: prep.plan.opt.lh,
+      total: prep.plan.total, worst: prep.plan.worst, over: prep.plan.over, perHand: prep.plan.perHand,
+      rank: prep.plan.rank
+    };
+  };
+
   /* Expanded sheet music (tap the one-line staff). Native <dialog> gives Escape, focus
      containment and the top layer; a small fallback covers browsers without showModal. */
   (function initSheetModal() {
@@ -2718,7 +2784,7 @@
       if (!scale || isOpen()) return;
       const prep = prepareScale(scale);
       titleEl.textContent = scale.name + (scale.enharmonic ? " / " + scale.enharmonic : "");
-      subEl.textContent = (prep.resolved.formLabel || "Major") + " · " + scale.sigShort + " · four octaves, one per row";
+      subEl.textContent = (prep.resolved.formLabel || "Major") + " · " + scale.sigShort + " · two octaves, one per row";
       body.innerHTML = renderSheetMusic(prep);
       returnFocus = document.activeElement;
       document.documentElement.classList.add("modal-open");
