@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The 24 Major &amp; Minor Scales — Classical Study Guide</title>
+<link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
@@ -575,6 +576,124 @@
     font-style: italic;
   }
 
+  /* —— Account control for synced notes (top of the page) —— */
+  .auth-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.3rem 0.6rem;
+    max-width: 72rem;
+    min-height: 1.95rem;
+    margin: -1.65rem auto 1rem;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+
+  .auth-bar [hidden] { display: none !important; }
+
+  .auth-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.2;
+    padding: 0.36rem 0.85rem 0.36rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--ivory);
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: 0 1px 4px var(--shadow);
+    transition: border-color 0.15s, background 0.15s, opacity 0.2s;
+  }
+
+  .auth-btn:hover, .auth-btn:focus-visible { border-color: var(--accent-soft); background: #fffcf7; outline: none; }
+  .auth-btn:focus-visible { box-shadow: 0 0 0 3px var(--accent-pale); }
+  .auth-btn[disabled] { opacity: 0.55; cursor: progress; }
+  .auth-btn svg { width: 1rem; height: 1rem; flex: none; }
+
+  .auth-user { display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0; max-width: 100%; }
+  .auth-who {
+    font-weight: 600;
+    color: var(--ink);
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .auth-link {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    border: none;
+    padding: 0.2rem 0.15rem;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .auth-link:hover, .auth-link:focus-visible { color: var(--ink); outline: none; }
+  .auth-msg { font-size: 0.74rem; font-style: italic; }
+  .auth-msg.err { color: #9a3b1f; font-style: normal; }
+
+  /* —— My notes (per scale, synced to the signed-in Google account) —— */
+  .notes-box {
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  .notes-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .notes-head .section-label { margin: 0; }
+
+  .notes-status {
+    font-size: 0.7rem;
+    font-style: italic;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+
+  .notes-status.show { opacity: 0.85; }
+  .notes-status.err { color: #9a3b1f; font-style: normal; font-weight: 600; opacity: 1; }
+
+  .scale-notes {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-height: 4.8rem;
+    resize: none;
+    overflow-y: hidden;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--ink);
+    background: #fffcf7;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.55rem 0.7rem;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+
+  .scale-notes::placeholder { color: var(--ink-soft); opacity: 0.65; font-style: italic; }
+  .scale-notes:hover:not(:disabled) { border-color: var(--accent-soft); }
+  .scale-notes:focus { outline: none; border-color: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-pale); }
+  .scale-notes:disabled { background: var(--cream); border-style: dashed; cursor: not-allowed; }
+  .notes-print { display: none; }
+
   footer {
     text-align: center;
     padding: 2rem 1rem 3rem;
@@ -859,7 +978,19 @@
   @media print {
     body { background: white; color: black; }
     .nav-wrap { position: static; box-shadow: none; }
-    .order-toggle { display: none; }
+    .order-toggle, .auth-bar { display: none; }
+    .notes-box { break-inside: avoid; }
+    .notes-box.is-empty { display: none; }
+    .notes-status, .scale-notes { display: none; }
+    .notes-print {
+      display: block;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 0.9rem;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      padding: 0.4rem 0.6rem;
+    }
     .scale-card {
       break-inside: avoid;
       box-shadow: none;
@@ -917,12 +1048,27 @@
     .sm-body .music-wrap { padding: 0.45rem 0.3rem 0.4rem; }
     .scale-header h2 { font-size: 1.35rem; }
     .order-toggle button { padding: 0.3rem 0.55rem; font-size: 0.72rem; }
+    .auth-bar { justify-content: center; margin: -1.5rem auto 1rem; }
+    .auth-who { max-width: 9.5rem; }
+    .scale-notes { font-size: 16px; }   /* 16px+ stops iOS Safari zooming in on focus */
   }
 </style>
 </head>
 <body>
 
 <header id="top">
+  <div class="auth-bar" id="auth-bar">
+    <button type="button" class="auth-btn" id="auth-signin" disabled title="Loading sign-in…">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      <span>Sign in with Google to sync notes</span>
+    </button>
+    <span class="auth-user" id="auth-user" hidden>
+      <span class="auth-who" id="auth-who"></span>
+      <span aria-hidden="true">·</span>
+      <button type="button" class="auth-link" id="auth-signout">Sign out</button>
+    </span>
+    <span class="auth-msg" id="auth-msg" role="status" aria-live="polite" hidden></span>
+  </div>
   <h1>The 24 Major &amp; Minor Scales</h1>
   <p class="subtitle">A complete reference for the classical pianist</p>
   <p class="intro">
@@ -1392,6 +1538,41 @@
   let currentOrder = "fifths";
   let currentFilter = "all";
   let currentMinorForm = "natural";
+
+  /* —— My notes. Firebase (module script at the end of the page) syncs them to
+     users/{uid}/notes/{docId}; this classic script owns the UI and an in-memory map,
+     so sort / filter / minor-form re-renders never lose text and the page works
+     even when Firebase can't load. —— */
+  const NOTES_MAX = 20000;
+  const NOTES_DEBOUNCE_MS = 800;
+  const notesText = new Map();          /* docId -> text */
+  const notesDirty = new Set();         /* docIds with local edits not yet confirmed saved */
+  const notesTimers = new Map();        /* docId -> debounce timer */
+  const notesRemotePending = new Map(); /* docId -> text from another device that arrived mid-typing */
+  const notesSaveSeq = new Map();       /* docId -> latest save number */
+  const notesState = { mode: "loading", api: null, user: null, loaded: false, loadTimer: null };
+  /* mode: "loading" (SDK not ready) | "signedOut" | "signedIn" | "unavailable" */
+
+  /** Firestore doc id per key + mode: "G major" -> "G-major", "F♯ major" -> "Fsharp-major", "B♭ minor" -> "Bflat-minor". */
+  function noteDocId(scale) {
+    return scale.name
+      .replace(/♯/g, "sharp")
+      .replace(/♭/g, "flat")
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^A-Za-z0-9-]/g, "");
+  }
+
+  function notesEditable() {
+    return notesState.mode === "signedIn" && notesState.loaded;
+  }
+
+  function notesPlaceholder() {
+    if (notesState.mode === "signedIn") return notesState.loaded ? "Practice notes, tempo, tricky spots…" : "Loading your notes…";
+    if (notesState.mode === "signedOut") return "Sign in to add notes";
+    if (notesState.mode === "unavailable") return "Notes unavailable offline";
+    return "Loading notes…";
+  }
 
   function letterOf(noteName) {
     return noteName.charAt(0);
@@ -2162,11 +2343,56 @@
         </div>
         <p class="pattern-hint">${patternHintFor(scale)} &nbsp;·&nbsp; Tonics highlighted in gold</p>
         ${altHint}
+        ${renderNotesBox(scale)}
       </div>
     </article>`;
   }
 
+  function renderNotesBox(scale) {
+    const id = noteDocId(scale);
+    const text = notesText.get(id) || "";
+    const shared = scale.type === "minor" ? " (shared by the natural, harmonic and melodic forms)" : "";
+    return `<div class="notes-box${text.trim() ? "" : " is-empty"}" data-note-box="${esc(id)}">
+          <div class="notes-head">
+            <label class="section-label" for="notes-${esc(scale.id)}">My notes</label>
+            <span class="notes-status" aria-live="polite"></span>
+          </div>
+          <textarea class="scale-notes" id="notes-${esc(scale.id)}" data-note-id="${esc(id)}" rows="3"
+            maxlength="${NOTES_MAX}" spellcheck="true" autocomplete="off"
+            placeholder="${esc(notesPlaceholder())}" aria-label="My notes for ${esc(scale.name)}${shared}"${notesEditable() ? "" : " disabled"}>${esc(text)}</textarea>
+          <div class="notes-print">${esc(text)}</div>
+        </div>`;
+  }
+
+  /** Grow a notes box to fit its text. */
+  function autosizeNotes(ta) {
+    ta.style.height = "auto";
+    const max = Math.max(240, window.innerHeight * 0.7);
+    const h = ta.scrollHeight + 2;
+    ta.style.height = Math.min(h, max) + "px";
+    ta.style.overflowY = h > max ? "auto" : "hidden";
+  }
+
+  function autosizeAllNotes() {
+    document.querySelectorAll(".scale-notes").forEach(ta => { if (ta.value) autosizeNotes(ta); });
+  }
+
+  /* Keep taps and keys inside the notes box to itself: the card's tap-to-expand and the
+     page's Enter/Space/Escape handlers never see them. */
+  function isolateNoteBoxes() {
+    const stop = e => e.stopPropagation();
+    document.querySelectorAll(".notes-box").forEach(box => {
+      ["click", "dblclick", "keydown", "keyup", "keypress"].forEach(t => box.addEventListener(t, stop));
+    });
+  }
+
   function renderAll() {
+    renderAllCards();
+    isolateNoteBoxes();
+    autosizeAllNotes();
+  }
+
+  function renderAllCards() {
     const list = filteredScales();
     const container = document.getElementById("scales-container");
 
@@ -2537,6 +2763,291 @@
     });
   })();
 
+  /* —— My notes: typing, debounced saves, sign-in control, and the bridge that the
+     Firebase module script talks to (window.__scalesNotes). —— */
+  (function initNotes() {
+    const container = document.getElementById("scales-container");
+    const btnIn = document.getElementById("auth-signin");
+    const userBox = document.getElementById("auth-user");
+    const whoEl = document.getElementById("auth-who");
+    const btnOut = document.getElementById("auth-signout");
+    const msgEl = document.getElementById("auth-msg");
+    const statusTimers = new Map();
+    let msgTimer = null;
+
+    const textareaFor = id => container.querySelector(`textarea[data-note-id="${id}"]`);
+
+    function setNoteStatus(id, text, isError, detail) {
+      const ta = textareaFor(id);
+      const st = ta && ta.closest(".notes-box").querySelector(".notes-status");
+      if (!st) return;
+      clearTimeout(statusTimers.get(id));
+      st.textContent = text;
+      st.title = detail || "";
+      st.classList.toggle("err", !!isError);
+      st.classList.toggle("show", !!text);
+      if (text === "Saved") statusTimers.set(id, setTimeout(() => st.classList.remove("show"), 2000));
+    }
+
+    function paintNote(id) {
+      const ta = textareaFor(id);
+      if (!ta) return;
+      const text = notesText.get(id) || "";
+      if (ta.value !== text) ta.value = text;
+      const box = ta.closest(".notes-box");
+      box.classList.toggle("is-empty", !text.trim());
+      const pr = box.querySelector(".notes-print");
+      if (pr) pr.textContent = text;
+      autosizeNotes(ta);
+    }
+
+    function paintMode() {
+      const editable = notesEditable();
+      const ph = notesPlaceholder();
+      container.querySelectorAll(".scale-notes").forEach(ta => {
+        ta.disabled = !editable;
+        ta.placeholder = ph;
+      });
+      container.querySelectorAll(".notes-box").forEach(box => {
+        paintNote(box.getAttribute("data-note-box"));
+      });
+
+      const m = notesState.mode;
+      btnIn.hidden = !(m === "signedOut" || m === "loading");
+      btnIn.disabled = !notesState.api;
+      btnIn.title = notesState.api ? "Sign in to keep your notes in sync on all your devices" : "Loading sign-in…";
+      userBox.hidden = m !== "signedIn";
+      if (m === "signedIn" && notesState.user) {
+        const u = notesState.user;
+        const first = (u.name || "").trim().split(/\s+/)[0];
+        whoEl.textContent = first || u.email || "Signed in";
+        whoEl.title = u.email ? `Signed in as ${u.email}` : "";
+      }
+      if (m === "unavailable") showMsg("Notes unavailable offline", false, true);
+      else if (msgEl.dataset.sticky) hideMsg();
+    }
+
+    function showMsg(text, isError, sticky) {
+      clearTimeout(msgTimer);
+      msgEl.textContent = text;
+      msgEl.classList.toggle("err", !!isError);
+      msgEl.hidden = false;
+      if (sticky) msgEl.dataset.sticky = "1"; else delete msgEl.dataset.sticky;
+      if (!sticky) msgTimer = setTimeout(hideMsg, 9000);
+    }
+
+    function hideMsg() {
+      clearTimeout(msgTimer);
+      msgEl.hidden = true;
+      msgEl.textContent = "";
+      delete msgEl.dataset.sticky;
+    }
+
+    function friendlyAuthError(err) {
+      const code = (err && err.code) || "";
+      const map = {
+        "auth/network-request-failed": "No connection — try again when you're online.",
+        "auth/unauthorized-domain": "This site isn't authorized for Google sign-in yet.",
+        "auth/popup-blocked": "The sign-in window was blocked — allow pop-ups and try again.",
+        "auth/too-many-requests": "Too many attempts — wait a minute and try again.",
+        "auth/user-disabled": "This account has been disabled.",
+        "auth/web-storage-unsupported": "This browser is blocking storage, so sign-in can't work here."
+      };
+      return map[code] || ("Sign-in didn't work" + (code ? ` (${code.replace("auth/", "")})` : "") + ". Please try again.");
+    }
+
+    /* ---- saving ---- */
+    function scheduleSave(id) {
+      clearTimeout(notesTimers.get(id));
+      notesTimers.set(id, setTimeout(() => saveNote(id), NOTES_DEBOUNCE_MS));
+    }
+
+    function saveNote(id) {
+      clearTimeout(notesTimers.get(id));
+      notesTimers.delete(id);
+      if (!notesDirty.has(id)) return Promise.resolve();
+      const api = notesState.api;
+      if (!api || notesState.mode !== "signedIn") {
+        setNoteStatus(id, "Error", true, "Not signed in");
+        return Promise.resolve();
+      }
+      const text = notesText.get(id) || "";
+      const seq = (notesSaveSeq.get(id) || 0) + 1;
+      notesSaveSeq.set(id, seq);
+      setNoteStatus(id, "Saving…");
+      /* Offline, Firestore keeps the write on this device and sends it later; say so. */
+      const offlineT = setTimeout(() => {
+        if (notesSaveSeq.get(id) === seq && navigator.onLine === false) setNoteStatus(id, "Saved on this device · will sync");
+      }, 2500);
+      return Promise.resolve()
+        .then(() => api.save(id, text))
+        .then(() => {
+          clearTimeout(offlineT);
+          if (notesSaveSeq.get(id) !== seq) return;          /* a newer save is on its way */
+          if ((notesText.get(id) || "") === text && !notesTimers.has(id)) {
+            notesDirty.delete(id);
+            notesRemotePending.delete(id);                  /* our text is now the latest */
+          }
+          setNoteStatus(id, "Saved");
+        }, err => {
+          clearTimeout(offlineT);
+          if (notesSaveSeq.get(id) !== seq) return;
+          console.warn("[notes] save failed", err);
+          setNoteStatus(id, "Error", true, (err && (err.code || err.message)) || "Save failed");
+        });
+    }
+
+    function flushSaves() {
+      const ids = new Set([...notesTimers.keys()]);
+      notesDirty.forEach(id => ids.add(id));
+      return Promise.all([...ids].map(saveNote));
+    }
+
+    function clearNotes() {
+      notesTimers.forEach(t => clearTimeout(t));
+      notesTimers.clear();
+      notesText.clear();
+      notesDirty.clear();
+      notesRemotePending.clear();
+      container.querySelectorAll(".notes-status").forEach(st => { st.textContent = ""; st.className = "notes-status"; });
+    }
+
+    /* ---- typing ---- */
+    container.addEventListener("input", e => {
+      const ta = e.target;
+      if (!ta.matches || !ta.matches(".scale-notes")) return;
+      const id = ta.getAttribute("data-note-id");
+      notesText.set(id, ta.value);
+      notesDirty.add(id);
+      const box = ta.closest(".notes-box");
+      box.classList.toggle("is-empty", !ta.value.trim());
+      const pr = box.querySelector(".notes-print");
+      if (pr) pr.textContent = ta.value;
+      autosizeNotes(ta);
+      setNoteStatus(id, "Saving…");
+      scheduleSave(id);
+    });
+
+    container.addEventListener("focusout", e => {
+      const ta = e.target;
+      if (!ta.matches || !ta.matches(".scale-notes")) return;
+      const id = ta.getAttribute("data-note-id");
+      if (notesDirty.has(id)) { saveNote(id); return; }
+      if (notesRemotePending.has(id)) {           /* an edit from another device arrived while this box had focus */
+        notesText.set(id, notesRemotePending.get(id));
+        notesRemotePending.delete(id);
+        paintNote(id);
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushSaves(); });
+    window.addEventListener("pagehide", () => { flushSaves(); });
+
+    let resizeT = null, lastW = window.innerWidth;
+    window.addEventListener("resize", () => {
+      if (window.innerWidth === lastW) return;
+      lastW = window.innerWidth;
+      clearTimeout(resizeT);
+      resizeT = setTimeout(autosizeAllNotes, 150);
+    });
+
+    /* ---- sign in / out ---- */
+    btnIn.addEventListener("click", () => {
+      const api = notesState.api;
+      if (!api) return;
+      hideMsg();
+      let p;
+      try { p = api.signIn(); }   /* called synchronously in the tap so the popup isn't blocked */
+      catch (err) { p = Promise.reject(err); }
+      Promise.resolve(p).catch(err => {
+        console.warn("[notes] sign-in failed", err);
+        showMsg(friendlyAuthError(err), true);
+      });
+    });
+
+    btnOut.addEventListener("click", () => {
+      const api = notesState.api;
+      if (!api) return;
+      const done = Promise.race([flushSaves(), new Promise(r => setTimeout(r, 3000))]);
+      done.then(() => api.signOut()).catch(err => showMsg("Couldn't sign out — please try again.", true));
+    });
+
+    /* ---- bridge for the Firebase module ---- */
+    window.__scalesNotes = {
+      /** Firebase is loaded; api = { signIn(), signOut(), save(docId, text) -> Promise }. */
+      ready(api) {
+        notesState.api = api;
+        if (notesState.mode === "unavailable") notesState.mode = "loading";
+        paintMode();
+      },
+      /** Auth state: null when signed out, else { uid, name, email }. */
+      setUser(user) {
+        clearTimeout(notesState.loadTimer);
+        const prevUid = notesState.user && notesState.user.uid;
+        if (!user) {
+          notesState.user = null;
+          notesState.mode = "signedOut";
+          notesState.loaded = false;
+          clearNotes();
+        } else {
+          if (prevUid !== user.uid) clearNotes();
+          notesState.user = user;
+          notesState.mode = "signedIn";
+          notesState.loaded = false;
+          /* Normally the first snapshot arrives in well under a second; don't lock the boxes forever if it doesn't. */
+          notesState.loadTimer = setTimeout(() => {
+            if (notesState.mode === "signedIn" && !notesState.loaded) { notesState.loaded = true; paintMode(); }
+          }, 6000);
+        }
+        paintMode();
+      },
+      /** Notes from Firestore (first snapshot = all notes; later = edits from any device). */
+      applyRemote(changes) {
+        if (notesState.mode !== "signedIn") return;
+        (changes || []).forEach(ch => {
+          const id = String(ch.id);
+          const text = typeof ch.text === "string" ? ch.text : "";
+          const ta = textareaFor(id);
+          const typing = notesDirty.has(id) || (ta && document.activeElement === ta);
+          if (typing) {
+            if (text !== (notesText.get(id) || "")) notesRemotePending.set(id, text);
+            else notesRemotePending.delete(id);
+            return;
+          }
+          notesRemotePending.delete(id);
+          notesText.set(id, text);
+          paintNote(id);
+        });
+        if (!notesState.loaded) {
+          notesState.loaded = true;
+          clearTimeout(notesState.loadTimer);
+          paintMode();
+        }
+      },
+      syncError(err) {
+        if (notesState.mode !== "signedIn") return;
+        console.warn("[notes] sync error", err);
+        showMsg("Couldn't load your notes" + (err && err.code ? ` (${err.code})` : "") + ".", true);
+        if (!notesState.loaded) { notesState.loaded = true; paintMode(); }
+      },
+      authError(err) {
+        console.warn("[notes] sign-in error", err);
+        showMsg(friendlyAuthError(err), true);
+      },
+      /** Firebase couldn't load (offline / blocked): the page keeps working, notes are unavailable. */
+      unavailable() {
+        if (notesState.api) return;
+        notesState.mode = "unavailable";
+        paintMode();
+      },
+      _state: notesState,
+      _text: notesText
+    };
+
+    paintMode();
+    autosizeAllNotes();
+  })();
+
   /* Back-to-circle button: hidden while the circle of fifths is on screen. */
   (function initBackToCircle() {
     const btn = document.getElementById("to-cof");
@@ -2559,6 +3070,127 @@
       if (e.detail === 0 && first) window.setTimeout(() => first.focus({ preventScroll: true }), 450);
     });
   })();
+})();
+</script>
+<script nomodule>
+  /* Very old browser without ES modules: the page works, notes can't sync. */
+  if (window.__scalesNotes) window.__scalesNotes.unavailable();
+</script>
+<script type="module">
+/* Firebase sync for "My notes". Loaded from the gstatic CDN with dynamic import(), so if it
+   fails (offline, blocked, CDN down) only the notes are affected — the rest of the page has
+   already rendered. Data lives at users/{uid}/notes/{docId} as { text, updatedAt }. */
+const FIREBASE_VERSION = "11.10.0";
+const CDN = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/`;
+const firebaseConfig = {
+  apiKey: "AIzaSyDUqLGMm5o1jo00K1Yd1MX6pnjysStTJpI",
+  authDomain: "scales-notes.firebaseapp.com",
+  projectId: "scales-notes",
+  storageBucket: "scales-notes.firebasestorage.app",
+  messagingSenderId: "947608713375",
+  appId: "1:947608713375:web:682e5328e588f616becaaa"
+};
+
+/* Sign-in method. signInWithRedirect needs third-party storage on the authDomain
+   (scales-notes.firebaseapp.com) when the site is hosted elsewhere (github.io), and Safari
+   16.1+, Chrome 115+ and Firefox 109+ now partition that storage, so a redirect sign-in from
+   GitHub Pages usually lands back signed out (see Firebase "redirect-best-practices").
+   A popup started directly from the tap works on Android Chrome and iPad Safari too (it opens
+   as a tab and closes itself), so the popup is tried first everywhere and a redirect is used
+   only when the popup can't open. Set to true to prefer redirect on touch devices once the
+   auth helper is served from this site's own domain. */
+const PREFER_REDIRECT_ON_TOUCH = false;
+
+const bridge = window.__scalesNotes;
+
+(async function startNotesSync() {
+  if (!bridge) return;
+  const slowT = setTimeout(() => bridge.unavailable(), 15000);
+  let appMod, authMod, fsMod;
+  try {
+    [appMod, authMod, fsMod] = await Promise.all([
+      import(CDN + "firebase-app.js"),
+      import(CDN + "firebase-auth.js"),
+      import(CDN + "firebase-firestore.js")
+    ]);
+  } catch (err) {
+    clearTimeout(slowT);
+    console.warn("[notes] Firebase could not load; notes unavailable.", err);
+    bridge.unavailable();
+    return;
+  }
+  clearTimeout(slowT);
+
+  try {
+    const { initializeApp } = appMod;
+    const {
+      getAuth, onAuthStateChanged, GoogleAuthProvider,
+      signInWithPopup, signInWithRedirect, getRedirectResult, signOut
+    } = authMod;
+    const {
+      initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager,
+      doc, setDoc, collection, onSnapshot, serverTimestamp
+    } = fsMod;
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);            /* default persistence: stays signed in (IndexedDB/local) */
+    let db;
+    try {
+      /* Offline cache: notes load instantly and edits made offline sync later. */
+      db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+    } catch (e) {
+      console.warn("[notes] offline cache unavailable, using memory cache", e);
+      db = getFirestore(app);
+    }
+
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    const isTouch = (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) || navigator.maxTouchPoints > 0;
+
+    bridge.ready({
+      signIn() {
+        if (PREFER_REDIRECT_ON_TOUCH && isTouch) return signInWithRedirect(auth, provider);
+        return signInWithPopup(auth, provider).catch(err => {
+          const code = err && err.code;
+          if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment") {
+            return signInWithRedirect(auth, provider);
+          }
+          if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return null;
+          throw err;
+        });
+      },
+      signOut() {
+        return signOut(auth);
+      },
+      save(id, text) {
+        const user = auth.currentUser;
+        if (!user) return Promise.reject(Object.assign(new Error("Not signed in"), { code: "not-signed-in" }));
+        return setDoc(doc(db, "users", user.uid, "notes", id), { text, updatedAt: serverTimestamp() });
+      }
+    });
+
+    /* Finish a redirect sign-in if we're coming back from one. */
+    getRedirectResult(auth).catch(err => bridge.authError(err));
+
+    let unsubscribe = null;
+    onAuthStateChanged(auth, user => {
+      if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+      if (!user) { bridge.setUser(null); return; }
+      const uid = user.uid;
+      bridge.setUser({ uid, name: user.displayName || "", email: user.email || "" });
+      /* First snapshot = all of this user's notes; after that, edits from any device. */
+      unsubscribe = onSnapshot(collection(db, "users", uid, "notes"), snap => {
+        if (!auth.currentUser || auth.currentUser.uid !== uid) return;
+        bridge.applyRemote(snap.docChanges().map(ch => ({
+          id: ch.doc.id,
+          text: ch.type === "removed" ? "" : String((ch.doc.data() || {}).text || "")
+        })));
+      }, err => bridge.syncError(err));
+    });
+  } catch (err) {
+    console.warn("[notes] Firebase setup failed; notes unavailable.", err);
+    bridge.unavailable();
+  }
 })();
 </script>
 </body>
