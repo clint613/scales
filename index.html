@@ -545,6 +545,92 @@
     text-align: center;
   }
 
+  /* —— Minor cards: harmonic & melodic drop-down —— */
+  .minor-forms {
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--ivory);
+  }
+
+  .minor-forms > summary {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.55rem;
+    padding: 0.6rem 0.85rem;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .minor-forms > summary::-webkit-details-marker { display: none; }
+  .minor-forms > summary:hover { background: var(--parchment); }
+  .minor-forms > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .minor-forms[open] > summary { border-bottom: 1px dashed var(--border); border-radius: 8px 8px 0 0; }
+
+  .mf-chev {
+    width: 1rem;
+    height: 1rem;
+    flex: none;
+    color: var(--accent);
+    transition: transform 0.2s ease;
+  }
+
+  .minor-forms[open] .mf-chev { transform: rotate(90deg); }
+  .mf-sum-sub { font-weight: 400; font-size: 0.75rem; font-style: italic; color: var(--ink-soft); }
+
+  .mf-body { padding: 0.35rem 0.85rem 0.9rem; }
+
+  .minor-form { padding-top: 0.75rem; }
+  .minor-form + .minor-form { margin-top: 1rem; border-top: 1px dashed var(--border); padding-top: 1rem; }
+
+  .mf-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.55rem;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 0.15rem;
+  }
+
+  .mf-name {
+    padding-left: 0.55rem;
+    border-left: 4px solid;
+  }
+
+  .mf-harmonic .mf-name { border-color: #8a5a9e; }
+  .mf-melodic .mf-name { border-color: #4f7aa0; }
+
+  .mf-sub {
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .mf-caption { font-size: 0.8rem; color: var(--ink-soft); margin: 0 0 0.55rem; }
+
+  @media (max-width: 600px) {
+    .mf-body { padding: 0.2rem 0.45rem 0.75rem; }
+    .minor-forms > summary { padding: 0.6rem 0.65rem; }
+  }
+
+  @media print {
+    .minor-forms { border: none; background: none; }
+    .minor-forms > summary .mf-chev, .minor-forms > summary .mf-sum-sub { display: none; }
+  }
+
   .note-sequence {
     margin-top: 0.75rem;
     padding: 0.5rem 0.75rem;
@@ -1076,8 +1162,8 @@
   <p class="intro">
     All twelve major keys and twelve minor keys — two octaves ascending, hands one octave apart — with sheet music and
     standard classical fingerings for both hands. Each scale fits on one line; tap it for a larger,
-    one-octave-per-row view. Minor keys include
-    natural, harmonic, and melodic (ascending) forms. Enharmonic pairs are the same pitches
+    one-octave-per-row view. Minor keys show the natural minor, with the
+    harmonic and melodic (ascending) forms in a drop-down under it. Enharmonic pairs are the same pitches
     written two ways.
   </p>
 </header>
@@ -1109,14 +1195,6 @@
         <button type="button" id="btn-all" class="active" aria-pressed="true">All</button>
         <button type="button" id="btn-major" aria-pressed="false">Major only</button>
         <button type="button" id="btn-minor" aria-pressed="false">Minor only</button>
-      </div>
-    </div>
-    <div class="control-group">
-      <span class="control-label">Minor form</span>
-      <div class="order-toggle" role="group" aria-label="Minor scale form">
-        <button type="button" id="btn-natural" class="active" aria-pressed="true">Natural</button>
-        <button type="button" id="btn-harmonic" aria-pressed="false">Harmonic</button>
-        <button type="button" id="btn-melodic" aria-pressed="false">Melodic</button>
       </div>
     </div>
     <div class="legend" aria-hidden="true">
@@ -1539,7 +1617,9 @@
 
   let currentOrder = "fifths";
   let currentFilter = "all";
-  let currentMinorForm = "natural";
+  const MINOR_FORMS = ["natural", "harmonic", "melodic"];
+  /** Minor cards whose "Harmonic & melodic minor" drop-down is open (survives re-renders). */
+  const openMinorForms = new Set();
 
   /* —— My notes. Firebase (module script at the end of the page) syncs them to
      users/{uid}/notes/{docId}; this classic script owns the UI and an in-memory map,
@@ -1620,7 +1700,7 @@
     return map;
   }
 
-  function resolveScale(scale) {
+  function resolveScale(scale, formName) {
     if (scale.type === "major") {
       return {
         notes: scale.notes,
@@ -1630,29 +1710,31 @@
         formHint: null
       };
     }
-    const form = scale.forms[currentMinorForm];
+    const fname = MINOR_FORMS.includes(formName) ? formName : "natural";
+    const form = scale.forms[fname];
     const labels = {
       natural: "Natural minor (Aeolian)",
       harmonic: "Harmonic minor (raised 7th)",
       melodic: "Melodic minor ascending (raised 6th & 7th)"
     };
     let hint = null;
-    if (currentMinorForm === "melodic") {
-      hint = "Ascending form shown for two octaves. Descending melodic minor is usually the natural minor (cancel the raised 6th & 7th).";
-    } else if (currentMinorForm === "harmonic") {
-      hint = "Raised leading tone (7th degree) creates the characteristic augmented 2nd between degrees 6 and 7.";
+    if (fname === "melodic") {
+      hint = `Ascending form: raise the 6th and 7th (${form.notes[5]}, ${form.notes[6]}). Coming down, melodic minor usually returns to the natural minor.`;
+    } else if (fname === "harmonic") {
+      hint = `Raise the 7th (${form.notes[6]}) going up and down; the gap between the 6th and 7th is an augmented 2nd.`;
     }
     return {
+      form: fname,
       notes: form.notes,
       rhOct: form.rhOct,
       lhOct: form.lhOct,
-      formLabel: labels[currentMinorForm],
+      formLabel: labels[fname],
       formHint: hint
     };
   }
 
   function fingeringKey(scale) {
-    const r = resolveScale(scale);
+    const r = resolveScale(scale, "natural");
     return "RH " + r.rhOct.join("-") + " · LH " + r.lhOct.join("-");
   }
 
@@ -2232,8 +2314,8 @@
   }
 
   /** Everything needed to draw one scale in the current minor form. */
-  function prepareScale(scale) {
-    const resolved = resolveScale(scale);
+  function prepareScale(scale, formName) {
+    const resolved = resolveScale(scale, formName);
     const plan = planFor(scale, resolved);
     const seq = renumberOctaves(scale, resolved, plan.rhOctave);
     attachAccidentals(seq, scale);
@@ -2282,9 +2364,11 @@
 
   /** Card view: both octaves on one line; tap/click/Enter/Space opens one octave per row. */
   function renderOneLine(scale, prep) {
-    const label = `${scale.name}, two octaves ascending on one grand staff, left hand one octave below right hand`;
+    const form = scale.type === "minor" ? prep.resolved.form : "";
+    const what = form ? `${scale.name} (${form} minor${form === "melodic" ? ", ascending" : ""})` : scale.name;
+    const label = `${what}, two octaves ascending on one grand staff, left hand one octave below right hand`;
     return `<div class="music-wrap oneline" role="button" tabindex="0" aria-haspopup="dialog"
-        data-expand="${esc(scale.id)}" aria-label="${esc(scale.name)} sheet music (one line). Open larger view">
+        data-expand="${esc(scale.id)}" data-form="${esc(form)}" aria-label="${esc(what)} sheet music (one line). Open larger view">
         ${renderLine(prep.systems, prep.L, prep.sig, label)}
       </div>
       <div class="oneline-foot">
@@ -2337,31 +2421,56 @@
     nav.innerHTML = html;
   }
 
-  function patternHintFor(scale) {
+  function patternHintFor(scale, form) {
     if (scale.type === "major") return "Pattern: W–W–H–W–W–W–H";
-    if (currentMinorForm === "natural") return "Pattern: W–H–W–W–H–W–W (natural minor / Aeolian)";
-    if (currentMinorForm === "harmonic") return "Pattern: W–H–W–W–H–aug2–H (harmonic minor)";
+    if (form === "natural") return "Pattern: W–H–W–W–H–W–W (natural minor / Aeolian)";
+    if (form === "harmonic") return "Pattern: W–H–W–W–H–aug2–H (harmonic minor)";
     return "Pattern: W–H–W–W–W–W–H ascending (melodic); descending usually natural";
   }
 
-  function renderScale(scale) {
-    const prep = prepareScale(scale);
+  /** Staff + fingering + note sequence + interval pattern for one scale in one form. */
+  function renderFormBlock(scale, formName) {
+    const prep = prepareScale(scale, formName);
     const { resolved, seq } = prep;
-    const title = scale.enharmonic
-      ? `${esc(scale.name)} <span class="enharmonic">/ ${esc(scale.enharmonic)}</span>`
-      : esc(scale.name);
-    const badge = scale.type === "major"
-      ? `<span class="mode-badge major">Major</span>`
-      : `<span class="mode-badge minor">${esc(resolved.formLabel || "Minor")}</span>`;
-
-    const sheet = renderOneLine(scale, prep);
-
     const seqText = (octKey) => seq.map(n => {
       const label = `${n.name}${n[octKey]}`;
       return n.isTonic ? `<span class="tn">${esc(label)}</span>` : esc(label);
     }).join(" · ");
-    const textSeq = `<span class="seq-line"><b class="rh-t">RH</b> ${seqText("octave")}</span>
-          <span class="seq-line"><b class="lh-t">LH</b> ${seqText("lhOctave")}</span>`;
+    const oneOctRH = resolved.rhOct.join("-");
+    const oneOctLH = resolved.lhOct.join("-");
+    return `${renderOneLine(scale, prep)}
+        <p class="pattern-hint">One-octave pattern — RH: ${oneOctRH} &nbsp;·&nbsp; LH: ${oneOctLH}. Played twice for two octaves: the LH begins with ${esc(String(resolved.lhOct[0]))} on the bottom tonic and the RH finishes with ${esc(String(resolved.rhOct[7]))} on the top tonic.</p>
+
+        <div class="note-sequence">
+          <strong>Full ascending sequence (2 octaves, LH one octave below RH):</strong>
+          <span class="seq-line"><b class="rh-t">RH</b> ${seqText("octave")}</span>
+          <span class="seq-line"><b class="lh-t">LH</b> ${seqText("lhOctave")}</span>
+        </div>
+        <p class="pattern-hint">${patternHintFor(scale, resolved.form)} &nbsp;·&nbsp; Tonics highlighted in gold</p>`;
+  }
+
+  /** Contents of a minor card's drop-down: harmonic and melodic (ascending) staves. */
+  function renderMinorForms(scale) {
+    return ["harmonic", "melodic"].map(f => {
+      const r = resolveScale(scale, f);
+      const title = f === "harmonic" ? "Harmonic minor" : "Melodic minor";
+      const sub = f === "harmonic" ? `raised 7th · ${r.notes[6]}` : `ascending · raised 6th &amp; 7th · ${r.notes[5]}, ${r.notes[6]}`;
+      return `<section class="minor-form mf-${f}" data-form-section="${f}" aria-label="${esc(scale.name)}: ${title}">
+          <h3 class="mf-title"><span class="mf-name">${title}</span> <span class="mf-sub">${sub}</span></h3>
+          <p class="mf-caption">${esc(r.formHint)}</p>
+          ${renderFormBlock(scale, f)}
+        </section>`;
+    }).join("");
+  }
+
+  function renderScale(scale) {
+    const isMinor = scale.type === "minor";
+    const title = scale.enharmonic
+      ? `${esc(scale.name)} <span class="enharmonic">/ ${esc(scale.enharmonic)}</span>`
+      : esc(scale.name);
+    const badge = isMinor
+      ? `<span class="mode-badge minor">Minor</span>`
+      : `<span class="mode-badge major">Major</span>`;
 
     let altHint = "";
     if (scale.notesAlt) {
@@ -2369,11 +2478,14 @@
       altHint = `<p class="pattern-hint">Enharmonic spelling (${esc(enhName)} natural): ${esc(scale.notesAlt.join(" – "))} (same pitches on the keyboard)</p>`;
     }
 
-    const oneOctRH = resolved.rhOct.join("-");
-    const oneOctLH = resolved.lhOct.join("-");
-    const formNote = resolved.formHint
-      ? `<p class="form-note">${esc(resolved.formHint)}</p>`
-      : "";
+    let forms = "";
+    if (isMinor) {
+      const open = openMinorForms.has(scale.id);
+      forms = `<details class="minor-forms" data-minor-forms="${esc(scale.id)}"${open ? " open" : ""}>
+          <summary><svg class="mf-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mf-sum-title">Harmonic &amp; melodic minor</span><span class="mf-sum-sub">two more staves</span></summary>
+          <div class="mf-body">${open ? renderMinorForms(scale) : ""}</div>
+        </details>`;
+    }
 
     return `<article class="scale-card" id="scale-${esc(scale.id)}" data-type="${esc(scale.type)}">
       <div class="scale-header">
@@ -2381,17 +2493,10 @@
         <span class="key-sig"><strong>${esc(scale.sigShort)}</strong> &nbsp;·&nbsp; ${esc(scale.sig)}</span>
       </div>
       <div class="scale-body">
-        ${formNote}
-        <div class="section-label">Sheet music · two octaves ascending</div>
-        ${sheet}
-        <p class="pattern-hint">One-octave pattern — RH: ${oneOctRH} &nbsp;·&nbsp; LH: ${oneOctLH}. Played twice for two octaves: the LH begins with ${esc(String(resolved.lhOct[0]))} on the bottom tonic and the RH finishes with ${esc(String(resolved.rhOct[7]))} on the top tonic.</p>
-
-        <div class="note-sequence">
-          <strong>Full ascending sequence (2 octaves, LH one octave below RH):</strong>
-          ${textSeq}
-        </div>
-        <p class="pattern-hint">${patternHintFor(scale)} &nbsp;·&nbsp; Tonics highlighted in gold</p>
+        <div class="section-label">${isMinor ? "Natural minor · " : "Sheet music · "}two octaves ascending</div>
+        ${renderFormBlock(scale, isMinor ? "natural" : null)}
         ${altHint}
+        ${forms}
         ${renderNotesBox(scale)}
       </div>
     </article>`;
@@ -2735,14 +2840,6 @@
   btnMajor.addEventListener("click", () => { currentFilter = "major"; setActive(btnMajor, filterBtns); renderAll(); });
   btnMinor.addEventListener("click", () => { currentFilter = "minor"; setActive(btnMinor, filterBtns); renderAll(); });
 
-  const btnNatural = document.getElementById("btn-natural");
-  const btnHarmonic = document.getElementById("btn-harmonic");
-  const btnMelodic = document.getElementById("btn-melodic");
-  const formBtns = [btnNatural, btnHarmonic, btnMelodic];
-
-  btnNatural.addEventListener("click", () => { currentMinorForm = "natural"; setActive(btnNatural, formBtns); renderAll(); });
-  btnHarmonic.addEventListener("click", () => { currentMinorForm = "harmonic"; setActive(btnHarmonic, formBtns); renderAll(); });
-  btnMelodic.addEventListener("click", () => { currentMinorForm = "melodic"; setActive(btnMelodic, formBtns); renderAll(); });
 
   renderAll();
   renderCircleOfFifths();
@@ -2751,10 +2848,7 @@
   window.__scalesPlan = function (id, form) {
     const scale = scaleById(id);
     if (!scale) return null;
-    const saved = currentMinorForm;
-    if (form) currentMinorForm = form;
-    const prep = prepareScale(scale);
-    currentMinorForm = saved;
+    const prep = prepareScale(scale, form || null);
     const f = prep.seq[0], t = prep.seq[prep.seq.length - 1];
     return {
       rh: `${f.name}${f.octave}–${t.name}${t.octave}`, lh: `${f.name}${f.lhOctave}–${t.name}${t.lhOctave}`,
@@ -2763,6 +2857,22 @@
       rank: prep.plan.rank
     };
   };
+
+  /* Minor cards: "Harmonic & melodic minor" drop-down (closed by default). Its staves are
+     rendered the first time it opens; open/closed state survives sort / filter re-renders.
+     "toggle" doesn't bubble, so listen in the capture phase. */
+  document.getElementById("scales-container").addEventListener("toggle", e => {
+    const d = e.target;
+    if (!d.matches || !d.matches("details.minor-forms")) return;
+    const id = d.getAttribute("data-minor-forms");
+    if (d.open) {
+      openMinorForms.add(id);
+      const body = d.querySelector(".mf-body");
+      if (body && !body.firstElementChild) body.innerHTML = renderMinorForms(scaleById(id));
+    } else {
+      openMinorForms.delete(id);
+    }
+  }, true);
 
   /* Expanded sheet music (tap the one-line staff). Native <dialog> gives Escape, focus
      containment and the top layer; a small fallback covers browsers without showModal. */
@@ -2779,10 +2889,10 @@
 
     function isOpen() { return modal.hasAttribute("open"); }
 
-    function openSheet(id) {
+    function openSheet(id, form) {
       const scale = scaleById(id);
       if (!scale || isOpen()) return;
-      const prep = prepareScale(scale);
+      const prep = prepareScale(scale, form || null);
       titleEl.textContent = scale.name + (scale.enharmonic ? " / " + scale.enharmonic : "");
       subEl.textContent = (prep.resolved.formLabel || "Major") + " · " + scale.sigShort + " · two octaves, one per row";
       body.innerHTML = renderSheetMusic(prep);
@@ -2810,12 +2920,12 @@
 
     container.addEventListener("click", e => {
       const t = e.target.closest("[data-expand]");
-      if (t) openSheet(t.getAttribute("data-expand"));
+      if (t) openSheet(t.getAttribute("data-expand"), t.getAttribute("data-form"));
     });
     container.addEventListener("keydown", e => {
       if ((e.key === "Enter" || e.key === " " || e.key === "Spacebar") && e.target.matches("[data-expand]")) {
         e.preventDefault();
-        openSheet(e.target.getAttribute("data-expand"));
+        openSheet(e.target.getAttribute("data-expand"), e.target.getAttribute("data-form"));
       }
     });
 
