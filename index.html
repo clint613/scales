@@ -17,8 +17,6 @@
     --accent: #8b6914;
     --accent-soft: #c4a35a;
     --accent-pale: #e8d9a8;
-    --white-key: #fffcf5;
-    --black-key: #3a3226;
     --tonic: #8b6914;
     --tonic-bg: #f0e4b8;
     --border: #d4c8a8;
@@ -162,8 +160,6 @@
     border: 1px solid var(--border);
   }
 
-  .swatch.white { background: var(--white-key); }
-  .swatch.black { background: var(--black-key); border-color: var(--black-key); }
   .swatch.tonic { background: var(--tonic-bg); border-color: var(--tonic); }
 
   nav.keys {
@@ -399,239 +395,162 @@
     font-weight: 600;
   }
 
-  /* Fingering chart: one small table per octave; the tables wrap instead of widening the page. */
-  .finger-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
-    margin-top: 0.35rem;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  /* —— One-line staff preview (all four octaves on one grand-staff system) —— */
+  .oneline {
+    position: relative;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
-  .finger-table {
-    border-collapse: collapse;
+  .oneline:hover { border-color: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-pale); }
+  .oneline:active { box-shadow: 0 0 0 3px var(--accent-pale); }
+  .oneline:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .oneline svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .oneline-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+    margin-top: 0.4rem;
     font-size: 0.72rem;
-    flex: 0 0 auto;
-  }
-
-  .finger-table caption {
-    caption-side: top;
-    text-align: left;
-    font-size: 0.64rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-    padding-bottom: 0.1rem;
-  }
-
-  .finger-table th,
-  .finger-table td {
-    padding: 0.18rem 0.12rem;
-    text-align: center;
-    border-bottom: 1px solid var(--border);
-    min-width: 1.5rem;
-  }
-
-  .finger-table th {
-    font-weight: 600;
-    font-size: 0.64rem;
-    color: var(--accent);
-    text-align: left;
-    padding-right: 0.45rem;
-    white-space: nowrap;
-    background: var(--ivory);
-  }
-
-  .finger-table .rh-row td { color: #3d5a2e; font-weight: 600; }
-  .finger-table .lh-row td { color: #4a3560; font-weight: 600; }
-  .finger-table .rh-row th { color: #3d5a2e; }
-  .finger-table .lh-row th { color: #4a3560; }
-
-  .finger-table td.tonic-f {
-    background: var(--tonic-bg);
-    font-weight: 700;
-    color: var(--tonic);
-  }
-
-  .finger-table .note-row td {
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--ink);
-  }
-
-  .finger-table .oct-row td,
-  .finger-table .oct-row th {
-    font-size: 0.6rem;
-    font-weight: 400;
     color: var(--ink-soft);
+    line-height: 1.35;
   }
 
-  .octave-label {
-    font-size: 0.75rem;
+  .expand-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
     color: var(--accent);
-    margin: 0.85rem 0 0.35rem;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    white-space: nowrap;
   }
 
-  /* Piano roll: grouped per octave; groups wrap onto new lines on narrow screens. */
-  .piano-roll {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 0.7rem;
+  .expand-hint svg { width: 0.8rem; height: 0.8rem; display: block; }
+  .hint-mouse { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .hint-mouse { display: inline; }
+    .hint-touch { display: none; }
+  }
+
+  /* —— Expanded sheet music: full-screen on phones, centred dialog on wider screens —— */
+  html.modal-open { overflow: hidden; }
+
+  .sheet-modal {
+    position: fixed;
+    inset: 0;
+    width: 100%;
     max-width: 100%;
-    overflow-x: auto;
-    padding: 0.25rem 0.1rem 0.4rem;
-    -webkit-overflow-scrolling: touch;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: var(--ivory);
+    color: var(--ink);
+    overflow: hidden;
   }
 
-  .pr-oct {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 2px;
-  }
+  .sheet-modal[open] { display: flex; flex-direction: column; }
+  .sheet-modal::backdrop { background: rgba(44, 36, 22, 0.6); }
 
   @media (min-width: 700px) {
-    .piano-roll {
-      display: grid;
-      grid-template-columns: repeat(2, max-content);
-      gap: 0.55rem 1.25rem;
+    .sheet-modal {
+      width: min(56rem, calc(100% - 2rem));
+      height: auto;
+      max-height: calc(100% - 2rem);
+      margin: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 12px 40px rgba(44, 36, 22, 0.35);
     }
   }
 
-  .roll-caption {
-    font-size: 0.74rem;
-    color: var(--ink-soft);
-    margin: 0.1rem 0 0;
-  }
-
-  .note-cell {
+  .sm-bar {
     flex: 0 0 auto;
-    min-width: 2.15rem;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    overflow: hidden;
-    transition: transform 0.12s;
+    gap: 0.75rem;
+    padding: 0.55rem 0.6rem 0.55rem 1rem;
+    background: linear-gradient(90deg, var(--parchment) 0%, var(--ivory) 100%);
+    border-bottom: 1px solid var(--border);
   }
 
-  .note-cell:hover { transform: translateY(-2px); }
+  .sm-titles { flex: 1 1 auto; min-width: 0; }
 
-  .note-cell .key-visual {
-    width: 100%;
-    height: 1.15rem;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-  .note-cell.white .key-visual {
-    background: linear-gradient(180deg, #fffef9 0%, var(--white-key) 100%);
-  }
-
-  .note-cell.black .key-visual {
-    background: linear-gradient(180deg, #4a4032 0%, var(--black-key) 100%);
-  }
-
-  .note-cell.tonic {
-    border-color: var(--tonic);
-    box-shadow: 0 0 0 1.5px var(--tonic);
-  }
-
-  .note-cell.tonic .key-visual {
-    background: linear-gradient(180deg, #f5e8b0 0%, var(--tonic-bg) 100%);
-  }
-
-  .note-cell.tonic.black .key-visual {
-    background: linear-gradient(180deg, #6b5420 0%, #5a4518 100%);
-  }
-
-  .note-cell .note-name {
+  .sm-bar h2 {
     font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 0.2rem 0.12rem 0.25rem;
-    width: 100%;
-    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .sm-sub { font-size: 0.75rem; color: var(--ink-soft); line-height: 1.3; }
+
+  .sm-close {
+    flex: 0 0 auto;
+    width: 2.6rem;
+    height: 2.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--border);
     background: var(--cream);
     color: var(--ink);
-    line-height: 1.15;
+    cursor: pointer;
+    touch-action: manipulation;
   }
 
-  .note-cell.black .note-name { background: #ebe4d4; }
-  .note-cell.tonic .note-name {
-    background: var(--tonic);
-    color: var(--ivory);
+  .sm-close:hover, .sm-close:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; box-shadow: 0 0 0 2px var(--accent-pale); }
+  .sm-close svg { width: 1.1rem; height: 1.1rem; display: block; }
+
+  .sm-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.85rem 0.9rem 1.1rem;
   }
 
-  .note-cell .octave-num {
-    font-size: 0.58rem;
-    font-weight: 500;
-    opacity: 0.7;
-    display: block;
-  }
+  .sm-body .music-wrap { cursor: zoom-out; touch-action: manipulation; }
+  .sm-body .systems { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .sm-body .system svg,
+  .sm-body .system figcaption { max-width: 760px; }
+  .sm-body .system figcaption { font-size: 0.8rem; }
 
-  .note-cell .oct-pair {
-    display: flex;
-    width: 100%;
-    font-size: 0.58rem;
-    line-height: 1.2;
-    background: var(--cream);
-  }
-
-  .note-cell .oct-pair span {
-    flex: 1;
+  .sm-hint {
+    margin-top: 0.6rem;
+    font-size: 0.74rem;
+    color: var(--ink-soft);
     text-align: center;
-    padding: 0.05rem 0;
-    opacity: 0.85;
-  }
-
-  .note-cell .oct-pair .rh-o { color: #3d5a2e; }
-  .note-cell .oct-pair .lh-o { color: #4a3560; border-left: 1px solid var(--border); }
-
-  .note-cell .finger-pair {
-    display: flex;
-    width: 100%;
-    font-size: 0.62rem;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  .note-cell .finger-pair span {
-    flex: 1;
-    text-align: center;
-    padding: 0.12rem 0;
-  }
-
-  .note-cell .finger-pair .rh-f {
-    background: #eef4ea;
-    color: #3d5a2e;
-    border-top: 1px solid var(--border);
-  }
-
-  .note-cell .finger-pair .lh-f {
-    background: #eee8f4;
-    color: #4a3560;
-    border-top: 1px solid var(--border);
-    border-left: 1px solid var(--border);
   }
 
   .note-sequence {
-    margin-top: 0.85rem;
-    padding: 0.65rem 0.9rem;
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
     background: var(--cream);
     border-radius: 6px;
     border: 1px solid var(--border);
-    font-size: 0.82rem;
+    font-size: 0.74rem;
     color: var(--ink-soft);
-    line-height: 1.65;
+    line-height: 1.55;
   }
 
   .note-sequence strong {
@@ -984,7 +903,7 @@
   .to-cof:hover, .to-cof:focus-visible { opacity: 1; border-color: var(--accent-soft); outline: none; }
   .to-cof svg { width: 0.95rem; height: 0.95rem; display: block; }
 
-  @media print { .to-cof { display: none; } }
+  @media print { .to-cof, .sheet-modal, .expand-hint { display: none; } }
 
   @media (max-width: 600px) {
     main { padding: 1rem 0.5rem 3rem; }
@@ -994,8 +913,8 @@
     .nav-wrap { position: static; }
     .key-sig { font-size: 0.8rem; }
     .to-cof { right: 0.4rem; top: 0.4rem; width: 1.6rem; height: 1.6rem; }
-    .note-cell { min-width: 1.9rem; }
-    .note-cell .note-name { font-size: 0.72rem; }
+    .sm-body { padding: 0.6rem 0.45rem 1rem; }
+    .sm-body .music-wrap { padding: 0.45rem 0.3rem 0.4rem; }
     .scale-header h2 { font-size: 1.35rem; }
     .order-toggle button { padding: 0.3rem 0.55rem; font-size: 0.72rem; }
   }
@@ -1007,8 +926,9 @@
   <h1>The 24 Major &amp; Minor Scales</h1>
   <p class="subtitle">A complete reference for the classical pianist</p>
   <p class="intro">
-    All twelve major keys and twelve minor keys — ascending four octaves — with sheet music,
-    standard classical fingerings for both hands, and a piano-roll guide. Minor keys include
+    All twelve major keys and twelve minor keys — ascending four octaves — with sheet music and
+    standard classical fingerings for both hands. Each scale fits on one line; tap it for a larger,
+    one-octave-per-row view. Minor keys include
     natural, harmonic, and melodic (ascending) forms. Enharmonic pairs are the same pitches
     written two ways.
   </p>
@@ -1052,9 +972,8 @@
       </div>
     </div>
     <div class="legend" aria-hidden="true">
-      <span><i class="swatch white"></i> White key</span>
-      <span><i class="swatch black"></i> Black key</span>
-      <span><i class="swatch tonic"></i> Tonic</span>
+      <span><i class="swatch tonic"></i> Tonic (gold notehead)</span>
+      <span><b class="rh-t">RH</b> fingering above · <b class="lh-t">LH</b> below</span>
     </div>
   </div>
   <nav class="keys" id="key-nav" aria-label="Jump to scale"></nav>
@@ -1069,6 +988,19 @@
     <path d="M12 3v4.8M12 16.2V21M3 12h4.8M16.2 12H21M5.6 5.6l3.4 3.4M15 15l3.4 3.4M18.4 5.6 15 9M9 15l-3.4 3.4"/>
   </svg>
 </a>
+
+<dialog class="sheet-modal" id="sheet-modal" aria-labelledby="sheet-modal-title">
+  <div class="sm-bar">
+    <div class="sm-titles">
+      <h2 id="sheet-modal-title">Sheet music</h2>
+      <p class="sm-sub" id="sheet-modal-sub"></p>
+    </div>
+    <button type="button" class="sm-close" id="sheet-modal-close" aria-label="Close sheet music" title="Close (Esc)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="sm-body" id="sheet-modal-body"></div>
+</dialog>
 
 <footer>
   <p>Major: W–W–H–W–W–W–H &nbsp;·&nbsp; Natural minor: W–H–W–W–H–W–W</p>
@@ -1090,7 +1022,7 @@
       sig: "No sharps or flats", sigShort: "0♯ / 0♭",
       sigCount: 0, accidentalType: "none",
       notes: ["C", "D", "E", "F", "G", "A", "B"],
-      startOctave: 4, blackMask: [0, 0, 0, 0, 0, 0, 0],
+      startOctave: 4,
       fifthsOrder: 0, chromaticOrder: 0,
       rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
     },
@@ -1099,7 +1031,7 @@
       sig: "1 sharp — F♯", sigShort: "1♯",
       sigCount: 1, accidentalType: "sharp",
       notes: ["G", "A", "B", "C", "D", "E", "F♯"],
-      startOctave: 3, blackMask: [0, 0, 0, 0, 0, 0, 1],
+      startOctave: 3,
       fifthsOrder: 1, chromaticOrder: 7,
       rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
     },
@@ -1108,7 +1040,7 @@
       sig: "2 sharps — F♯, C♯", sigShort: "2♯",
       sigCount: 2, accidentalType: "sharp",
       notes: ["D", "E", "F♯", "G", "A", "B", "C♯"],
-      startOctave: 3, blackMask: [0, 0, 1, 0, 0, 0, 1],
+      startOctave: 3,
       fifthsOrder: 2, chromaticOrder: 2,
       rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
     },
@@ -1117,7 +1049,7 @@
       sig: "3 sharps — F♯, C♯, G♯", sigShort: "3♯",
       sigCount: 3, accidentalType: "sharp",
       notes: ["A", "B", "C♯", "D", "E", "F♯", "G♯"],
-      startOctave: 3, blackMask: [0, 0, 1, 0, 0, 1, 1],
+      startOctave: 3,
       fifthsOrder: 3, chromaticOrder: 9,
       rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
     },
@@ -1126,7 +1058,7 @@
       sig: "4 sharps — F♯, C♯, G♯, D♯", sigShort: "4♯",
       sigCount: 4, accidentalType: "sharp",
       notes: ["E", "F♯", "G♯", "A", "B", "C♯", "D♯"],
-      startOctave: 3, blackMask: [0, 1, 1, 0, 0, 1, 1],
+      startOctave: 3,
       fifthsOrder: 4, chromaticOrder: 4,
       rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
     },
@@ -1136,7 +1068,7 @@
       sigShort: "5♯ / 7♭",
       sigCount: 5, accidentalType: "sharp",
       notes: ["B", "C♯", "D♯", "E", "F♯", "G♯", "A♯"],
-      startOctave: 3, blackMask: [0, 1, 1, 0, 1, 1, 1],
+      startOctave: 3,
       fifthsOrder: 5, chromaticOrder: 11,
       rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
     },
@@ -1147,7 +1079,7 @@
       sigCount: 6, accidentalType: "sharp",
       notes: ["F♯", "G♯", "A♯", "B", "C♯", "D♯", "E♯"],
       notesAlt: ["G♭", "A♭", "B♭", "C♭", "D♭", "E♭", "F"],
-      startOctave: 3, blackMask: [1, 1, 1, 0, 1, 1, 0],
+      startOctave: 3,
       fifthsOrder: 6, chromaticOrder: 6,
       rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
     },
@@ -1158,7 +1090,7 @@
       sigCount: 5, accidentalType: "flat",
       notes: ["D♭", "E♭", "F", "G♭", "A♭", "B♭", "C"],
       notesAlt: ["C♯", "D♯", "E♯", "F♯", "G♯", "A♯", "B♯"],
-      startOctave: 3, blackMask: [1, 1, 0, 1, 1, 1, 0],
+      startOctave: 3,
       fifthsOrder: 7, chromaticOrder: 1,
       rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
     },
@@ -1167,7 +1099,7 @@
       sig: "4 flats — B♭, E♭, A♭, D♭", sigShort: "4♭",
       sigCount: 4, accidentalType: "flat",
       notes: ["A♭", "B♭", "C", "D♭", "E♭", "F", "G"],
-      startOctave: 3, blackMask: [1, 1, 0, 1, 1, 0, 0],
+      startOctave: 3,
       fifthsOrder: 8, chromaticOrder: 8,
       rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
     },
@@ -1176,7 +1108,7 @@
       sig: "3 flats — B♭, E♭, A♭", sigShort: "3♭",
       sigCount: 3, accidentalType: "flat",
       notes: ["E♭", "F", "G", "A♭", "B♭", "C", "D"],
-      startOctave: 3, blackMask: [1, 0, 0, 1, 1, 0, 0],
+      startOctave: 3,
       fifthsOrder: 9, chromaticOrder: 3,
       rhOct: [3,1,2,3,4,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
     },
@@ -1185,7 +1117,7 @@
       sig: "2 flats — B♭, E♭", sigShort: "2♭",
       sigCount: 2, accidentalType: "flat",
       notes: ["B♭", "C", "D", "E♭", "F", "G", "A"],
-      startOctave: 3, blackMask: [1, 0, 0, 1, 0, 0, 0],
+      startOctave: 3,
       fifthsOrder: 10, chromaticOrder: 10,
       rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
     },
@@ -1194,7 +1126,7 @@
       sig: "1 flat — B♭", sigShort: "1♭",
       sigCount: 1, accidentalType: "flat",
       notes: ["F", "G", "A", "B♭", "C", "D", "E"],
-      startOctave: 3, blackMask: [0, 0, 0, 1, 0, 0, 0],
+      startOctave: 3,
       fifthsOrder: 11, chromaticOrder: 5,
       rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
     },
@@ -1208,17 +1140,14 @@
       forms: {
         natural: {
           notes: ["A","B","C","D","E","F","G"],
-          blackMask: [0,0,0,0,0,0,0],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         harmonic: {
           notes: ["A","B","C","D","E","F","G♯"],
-          blackMask: [0,0,0,0,0,0,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         melodic: {
           notes: ["A","B","C","D","E","F♯","G♯"],
-          blackMask: [0,0,0,0,0,1,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         }
       }
@@ -1231,17 +1160,14 @@
       forms: {
         natural: {
           notes: ["E","F♯","G","A","B","C","D"],
-          blackMask: [0,1,0,0,0,0,0],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         harmonic: {
           notes: ["E","F♯","G","A","B","C","D♯"],
-          blackMask: [0,1,0,0,0,0,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         melodic: {
           notes: ["E","F♯","G","A","B","C♯","D♯"],
-          blackMask: [0,1,0,0,0,1,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         }
       }
@@ -1254,17 +1180,14 @@
       forms: {
         natural: {
           notes: ["B","C♯","D","E","F♯","G","A"],
-          blackMask: [0,1,0,0,1,0,0],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
         },
         harmonic: {
           notes: ["B","C♯","D","E","F♯","G","A♯"],
-          blackMask: [0,1,0,0,1,0,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
         },
         melodic: {
           notes: ["B","C♯","D","E","F♯","G♯","A♯"],
-          blackMask: [0,1,0,0,1,1,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [4,3,2,1,4,3,2,1]
         }
       }
@@ -1277,17 +1200,14 @@
       forms: {
         natural: {
           notes: ["F♯","G♯","A","B","C♯","D","E"],
-          blackMask: [1,1,0,0,1,0,0],
           rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
         },
         harmonic: {
           notes: ["F♯","G♯","A","B","C♯","D","E♯"],
-          blackMask: [1,1,0,0,1,0,0],
           rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
         },
         melodic: {
           notes: ["F♯","G♯","A","B","C♯","D♯","E♯"],
-          blackMask: [1,1,0,0,1,1,0],
           rhOct: [2,3,4,1,2,3,1,2], lhOct: [4,3,2,1,3,2,1,4]
         }
       }
@@ -1300,17 +1220,14 @@
       forms: {
         natural: {
           notes: ["C♯","D♯","E","F♯","G♯","A","B"],
-          blackMask: [1,1,0,1,1,0,0],
           rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
         },
         harmonic: {
           notes: ["C♯","D♯","E","F♯","G♯","A","B♯"],
-          blackMask: [1,1,0,1,1,0,0],
           rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
         },
         melodic: {
           notes: ["C♯","D♯","E","F♯","G♯","A♯","B♯"],
-          blackMask: [1,1,0,1,1,1,0],
           rhOct: [2,3,1,2,3,4,1,2], lhOct: [3,2,1,4,3,2,1,3]
         }
       }
@@ -1325,17 +1242,14 @@
       forms: {
         natural: {
           notes: ["G♯","A♯","B","C♯","D♯","E","F♯"],
-          blackMask: [1,1,0,1,1,0,1],
           rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
         },
         harmonic: {
           notes: ["G♯","A♯","B","C♯","D♯","E","F𝄪"],
-          blackMask: [1,1,0,1,1,0,0],
           rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
         },
         melodic: {
           notes: ["G♯","A♯","B","C♯","D♯","E♯","F𝄪"],
-          blackMask: [1,1,0,1,1,0,0],
           rhOct: [3,4,1,2,3,1,2,3], lhOct: [3,2,1,4,3,2,1,3]
         }
       }
@@ -1350,17 +1264,14 @@
       forms: {
         natural: {
           notes: ["D♯","E♯","F♯","G♯","A♯","B","C♯"],
-          blackMask: [1,0,1,1,1,0,1],
           rhOct: [3,1,2,3,4,1,2,3], lhOct: [2,1,4,3,2,1,3,2]
         },
         harmonic: {
           notes: ["D♯","E♯","F♯","G♯","A♯","B","C𝄪"],
-          blackMask: [1,0,1,1,1,0,0],
           rhOct: [3,1,2,3,4,1,2,3], lhOct: [2,1,4,3,2,1,3,2]
         },
         melodic: {
           notes: ["D♯","E♯","F♯","G♯","A♯","B♯","C𝄪"],
-          blackMask: [1,0,1,1,1,0,0],
           rhOct: [3,1,2,3,4,1,2,3], lhOct: [2,1,4,3,2,1,3,2]
         }
       }
@@ -1374,17 +1285,14 @@
       forms: {
         natural: {
           notes: ["B♭","C","D♭","E♭","F","G♭","A♭"],
-          blackMask: [1,0,1,1,0,1,1],
           rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
         },
         harmonic: {
           notes: ["B♭","C","D♭","E♭","F","G♭","A"],
-          blackMask: [1,0,1,1,0,1,0],
           rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
         },
         melodic: {
           notes: ["B♭","C","D♭","E♭","F","G","A"],
-          blackMask: [1,0,1,1,0,0,0],
           rhOct: [4,1,2,3,1,2,3,4], lhOct: [3,2,1,4,3,2,1,3]
         }
       }
@@ -1397,17 +1305,14 @@
       forms: {
         natural: {
           notes: ["F","G","A♭","B♭","C","D♭","E♭"],
-          blackMask: [0,0,1,1,0,1,1],
           rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
         },
         harmonic: {
           notes: ["F","G","A♭","B♭","C","D♭","E"],
-          blackMask: [0,0,1,1,0,1,0],
           rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
         },
         melodic: {
           notes: ["F","G","A♭","B♭","C","D","E"],
-          blackMask: [0,0,1,1,0,0,0],
           rhOct: [1,2,3,4,1,2,3,4], lhOct: [5,4,3,2,1,3,2,1]
         }
       }
@@ -1420,17 +1325,14 @@
       forms: {
         natural: {
           notes: ["C","D","E♭","F","G","A♭","B♭"],
-          blackMask: [0,0,1,0,0,1,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         harmonic: {
           notes: ["C","D","E♭","F","G","A♭","B"],
-          blackMask: [0,0,1,0,0,1,0],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         melodic: {
           notes: ["C","D","E♭","F","G","A","B"],
-          blackMask: [0,0,1,0,0,0,0],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         }
       }
@@ -1443,17 +1345,14 @@
       forms: {
         natural: {
           notes: ["G","A","B♭","C","D","E♭","F"],
-          blackMask: [0,0,1,0,0,1,0],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         harmonic: {
           notes: ["G","A","B♭","C","D","E♭","F♯"],
-          blackMask: [0,0,1,0,0,1,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         melodic: {
           notes: ["G","A","B♭","C","D","E","F♯"],
-          blackMask: [0,0,1,0,0,0,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         }
       }
@@ -1466,17 +1365,14 @@
       forms: {
         natural: {
           notes: ["D","E","F","G","A","B♭","C"],
-          blackMask: [0,0,0,0,0,1,0],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         harmonic: {
           notes: ["D","E","F","G","A","B♭","C♯"],
-          blackMask: [0,0,0,0,0,1,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         },
         melodic: {
           notes: ["D","E","F","G","A","B","C♯"],
-          blackMask: [0,0,0,0,0,0,1],
           rhOct: [1,2,3,1,2,3,4,5], lhOct: [5,4,3,2,1,3,2,1]
         }
       }
@@ -1545,7 +1441,6 @@
     if (scale.type === "major") {
       return {
         notes: scale.notes,
-        blackMask: scale.blackMask,
         rhOct: scale.rhOct,
         lhOct: scale.lhOct,
         formLabel: null,
@@ -1566,7 +1461,6 @@
     }
     return {
       notes: form.notes,
-      blackMask: form.blackMask,
       rhOct: form.rhOct,
       lhOct: form.lhOct,
       formLabel: labels[currentMinorForm],
@@ -1626,7 +1520,6 @@
       result.push({
         name: name,
         isTonic: deg === 0,
-        isBlack: !!resolved.blackMask[deg],
         degree: deg,
         abs: abs,
         octave: writtenOctave(name, abs),        /* RH octave */
@@ -1902,6 +1795,74 @@
       <line x1="${x2}" y1="${ly}" x2="${x2}" y2="${hy}" stroke="${INK}" stroke-width="1"/>`;
   }
 
+  /** Noteheads, stems, ledger lines and accidentals for one staff; xs = x position of each note. */
+  function drawStaffNotes(notes, xs, key, cfg, staffTop) {
+    const top = CLEFS[cfg.clef].topStep, mid = CLEFS[cfg.clef].midStep;
+    const midY = staffTop + (top - mid) * HALF;
+    let out = "";
+    notes.forEach((nt, i) => {
+      const x = xs[i];
+      const w = nt[key] - cfg.oct;
+      const y = staffTop + (top - w) * HALF;
+      /* ledger lines */
+      for (let st = top + 2; st <= w; st += 2) {
+        const ly = staffTop + (top - st) * HALF;
+        out += `<line x1="${x - 10}" y1="${ly}" x2="${x + 10}" y2="${ly}" stroke="${INK}" stroke-width="1.5"/>`;
+      }
+      for (let st = top - 10; st >= w; st -= 2) {
+        const ly = staffTop + (top - st) * HALF;
+        out += `<line x1="${x - 10}" y1="${ly}" x2="${x + 10}" y2="${ly}" stroke="${INK}" stroke-width="1.5"/>`;
+      }
+      /* accidentals sit clear of ledger lines when the note has any */
+      if (nt.acc) out += accidentalGlyph(nt.acc, x - (ledgerCount(w, cfg.clef) ? 17 : 14), y);
+      /* stem: down on/above the middle line, up below it; reaches the middle line when on ledgers */
+      if (w >= mid) {
+        const y2 = Math.max(y + 3.5 * S, midY);
+        out += `<line x1="${x - 5.5}" y1="${y + 1}" x2="${x - 5.5}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>`;
+      } else {
+        const y2 = Math.min(y - 3.5 * S, midY);
+        out += `<line x1="${x + 5.5}" y1="${y - 1}" x2="${x + 5.5}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>`;
+      }
+      out += noteHead(x, y, nt.isTonic);
+    });
+    return out;
+  }
+
+  /** Fingering rows — fixed rows outside all ledger lines, so they never collide. */
+  function drawFingering(xs, rh, lh, L) {
+    const ff = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="${FINGER_FONT}" font-weight="700" text-anchor="middle"`;
+    let out = "";
+    xs.forEach((x, i) => {
+      out += `<text x="${x}" y="${L.rhFingerY}" ${ff} fill="${RH_COLOR}">${rh[i]}</text>`;
+      out += `<text x="${x}" y="${L.lhFingerY}" ${ff} fill="${LH_COLOR}">${lh[i]}</text>`;
+    });
+    return out;
+  }
+
+  function handLabels(L) {
+    const lf = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="10" font-weight="700"`;
+    return `<text x="2" y="${L.rhFingerY}" ${lf} fill="${RH_COLOR}">RH</text>` +
+           `<text x="2" y="${L.lhFingerY}" ${lf} fill="${LH_COLOR}">LH</text>`;
+  }
+
+  /** Staff lines, system line and brace of a grand staff from x0 to xEnd. */
+  function drawGrandStaff(x0, xEnd, tTop, bTop) {
+    let s = "";
+    for (let i = 0; i < 5; i++) {
+      s += `<line x1="${x0}" y1="${tTop + i * S}" x2="${xEnd}" y2="${tTop + i * S}" stroke="${INK}" stroke-width="1.1"/>`;
+      s += `<line x1="${x0}" y1="${bTop + i * S}" x2="${xEnd}" y2="${bTop + i * S}" stroke="${INK}" stroke-width="1.1"/>`;
+    }
+    s += `<line x1="${x0}" y1="${tTop}" x2="${x0}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.6"/>`;
+    s += braceGlyph(x0 - 4, tTop, bTop + 4 * S);
+    return s;
+  }
+
+  function finalBar(xEnd, tTop, bTop) {
+    return `<line x1="${xEnd - 6}" y1="${tTop}" x2="${xEnd - 6}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.1"/>` +
+           `<line x1="${xEnd - 1.6}" y1="${tTop}" x2="${xEnd - 1.6}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="3.2"/>`;
+  }
+
+  /** One-octave system (used in the expanded view). */
   function renderSystem(sys, L, sig, isLast) {
     const { notes, rh, lh, rhCfg, lhCfg, label } = sys;
     const x0 = 18;                 /* left system line */
@@ -1909,14 +1870,7 @@
     const tTop = L.topStaff, bTop = L.botStaff;
 
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VB_W} ${L.height}" role="img" aria-label="${esc(label)}">`;
-
-    /* staves */
-    for (let i = 0; i < 5; i++) {
-      svg += `<line x1="${x0}" y1="${tTop + i * S}" x2="${xEnd}" y2="${tTop + i * S}" stroke="${INK}" stroke-width="1.1"/>`;
-      svg += `<line x1="${x0}" y1="${bTop + i * S}" x2="${xEnd}" y2="${bTop + i * S}" stroke="${INK}" stroke-width="1.1"/>`;
-    }
-    svg += `<line x1="${x0}" y1="${tTop}" x2="${x0}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.6"/>`;
-    svg += braceGlyph(x0 - 4, tTop, bTop + 4 * S);
+    svg += drawGrandStaff(x0, xEnd, tTop, bTop);
 
     /* clefs + key signatures */
     svg += clefGlyph(rhCfg.clef, x0 + 5, tTop);
@@ -1930,66 +1884,103 @@
     const lastX = xEnd - (isLast ? 22 : 18);
     const n = notes.length;
     const gapX = n > 1 ? (lastX - firstX) / (n - 1) : 0;
+    const xs = notes.map((_, i) => +(firstX + i * gapX).toFixed(2));
 
     /* bar lines (connected across the grand staff, like printed piano music) */
-    if (isLast) {
-      svg += `<line x1="${xEnd - 6}" y1="${tTop}" x2="${xEnd - 6}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.1"/>`;
-      svg += `<line x1="${xEnd - 1.6}" y1="${tTop}" x2="${xEnd - 1.6}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="3.2"/>`;
-    } else {
-      svg += `<line x1="${xEnd}" y1="${tTop}" x2="${xEnd}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.3"/>`;
-    }
+    svg += isLast
+      ? finalBar(xEnd, tTop, bTop)
+      : `<line x1="${xEnd}" y1="${tTop}" x2="${xEnd}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.3"/>`;
 
     /* ottava lines */
     if (rhCfg.oct > 0) svg += drawOttava(ottavaLabel(rhCfg.oct), firstX - 12, lastX + 8, L.topOttY, true);
     if (lhCfg.oct > 0) svg += drawOttava(ottavaLabel(lhCfg.oct), firstX - 12, lastX + 8, L.botOttAboveY, true);
     if (lhCfg.oct < 0) svg += drawOttava(ottavaLabel(lhCfg.oct), firstX - 12, lastX + 8, L.botOttBelowY, false);
 
-    /* notes */
-    const staffNotes = (key, cfg, staffTop) => {
-      const top = CLEFS[cfg.clef].topStep, mid = CLEFS[cfg.clef].midStep;
-      const midY = staffTop + (top - mid) * HALF;
-      let out = "";
-      notes.forEach((nt, i) => {
-        const x = +(firstX + i * gapX).toFixed(2);
-        const w = nt[key] - cfg.oct;
-        const y = staffTop + (top - w) * HALF;
-        /* ledger lines */
-        for (let st = top + 2; st <= w; st += 2) {
-          const ly = staffTop + (top - st) * HALF;
-          out += `<line x1="${x - 10}" y1="${ly}" x2="${x + 10}" y2="${ly}" stroke="${INK}" stroke-width="1.5"/>`;
-        }
-        for (let st = top - 10; st >= w; st -= 2) {
-          const ly = staffTop + (top - st) * HALF;
-          out += `<line x1="${x - 10}" y1="${ly}" x2="${x + 10}" y2="${ly}" stroke="${INK}" stroke-width="1.5"/>`;
-        }
-        /* accidentals sit clear of ledger lines when the note has any */
-        if (nt.acc) out += accidentalGlyph(nt.acc, x - (ledgerCount(w, cfg.clef) ? 17 : 14), y);
-        /* stem: down on/above the middle line, up below it; reaches the middle line when on ledgers */
-        if (w >= mid) {
-          const y2 = Math.max(y + 3.5 * S, midY);
-          out += `<line x1="${x - 5.5}" y1="${y + 1}" x2="${x - 5.5}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>`;
-        } else {
-          const y2 = Math.min(y - 3.5 * S, midY);
-          out += `<line x1="${x + 5.5}" y1="${y - 1}" x2="${x + 5.5}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>`;
-        }
-        out += noteHead(x, y, nt.isTonic);
+    svg += drawStaffNotes(notes, xs, "steps", rhCfg, tTop);
+    svg += drawStaffNotes(notes, xs, "lhSteps", lhCfg, bTop);
+    svg += drawFingering(xs, rh, lh, L);
+    svg += handLabels(L);
+    svg += `</svg>`;
+    return svg;
+  }
+
+  /** Mid-line clef change: a smaller clef placed just before the bar line. */
+  function smallClef(clef, x, staffTop) {
+    const y = clef === "treble" ? staffTop + 3 * S : staffTop + S;
+    const inner = clef === "treble" ? trebleClef(0, 0) : bassClef(0, 0);
+    return `<g transform="translate(${x},${y}) scale(0.72)">${inner}</g>`;
+  }
+
+  /* One-line system: fixed viewBox width, so the staff is the same size on every card. */
+  const LINE_W = 1040;
+  const BAR_LEAD = 24;      /* bar line → first note of the next octave */
+  const BAR_EXTRA = 16;     /* extra room at each bar line (on top of the normal note gap) */
+  const CLEF_EXTRA = 22;    /* extra room when a clef changes at a bar line */
+
+  /** All four octaves on ONE continuous grand-staff system (collapsed card preview).
+      Each octave is a measure; clef changes and 8va/15ma/8vb brackets carry over between them. */
+  function renderLine(systems, L, sig, label) {
+    const x0 = 18, xEnd = LINE_W - 4;
+    const tTop = L.topStaff, bTop = L.botStaff;
+    const first = systems[0];
+
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${LINE_W} ${L.height}" role="img" aria-label="${esc(label)}">`;
+    svg += drawGrandStaff(x0, xEnd, tTop, bTop);
+    svg += clefGlyph(first.rhCfg.clef, x0 + 5, tTop);
+    svg += clefGlyph(first.lhCfg.clef, x0 + 5, bTop);
+    const ksT = drawKeySig(first.rhCfg.clef, tTop, sig, x0 + 37);
+    const ksB = drawKeySig(first.lhCfg.clef, bTop, sig, x0 + 37);
+    svg += ksT.svg + ksB.svg;
+
+    const firstX = Math.max(ksT.end, ksB.end) + 20;
+    const lastX = xEnd - 22;
+    const rhChange = systems.map((s, k) => k > 0 && s.rhCfg.clef !== systems[k - 1].rhCfg.clef);
+    const lhChange = systems.map((s, k) => k > 0 && s.lhCfg.clef !== systems[k - 1].lhCfg.clef);
+    const anyChange = systems.map((_, k) => rhChange[k] || lhChange[k]);
+    const nClef = anyChange.filter(Boolean).length;
+    const total = systems.reduce((a, s) => a + s.notes.length, 0);
+    const gap = (lastX - firstX - (systems.length - 1) * BAR_EXTRA - nClef * CLEF_EXTRA) / (total - 1);
+
+    /* x positions of every note, octave by octave */
+    const segXs = [];
+    let x = firstX;
+    systems.forEach((s, k) => {
+      if (k > 0) {
+        x += gap + BAR_EXTRA + (anyChange[k] ? CLEF_EXTRA : 0);
+        const xb = +(x - BAR_LEAD).toFixed(2);
+        svg += `<line x1="${xb}" y1="${tTop}" x2="${xb}" y2="${bTop + 4 * S}" stroke="${INK}" stroke-width="1.3"/>`;
+        if (rhChange[k]) svg += smallClef(s.rhCfg.clef, xb - 21, tTop);
+        if (lhChange[k]) svg += smallClef(s.lhCfg.clef, xb - 21, bTop);
+      }
+      const xs = [];
+      s.notes.forEach((_, i) => { if (i > 0) x += gap; xs.push(+x.toFixed(2)); });
+      segXs.push(xs);
+    });
+    svg += finalBar(xEnd, tTop, bTop);
+
+    /* ottava brackets: one per run of consecutive octaves sharing the same shift */
+    const runs = (octOf, keep) => {
+      const out = [];
+      systems.forEach((s, k) => {
+        const o = octOf(s);
+        if (!keep(o)) return;
+        const last = out[out.length - 1];
+        if (last && last.o === o && last.end === k - 1) last.end = k;
+        else out.push({ o, start: k, end: k });
       });
       return out;
     };
-    svg += staffNotes("steps", rhCfg, tTop);
-    svg += staffNotes("lhSteps", lhCfg, bTop);
+    const span = r => [segXs[r.start][0] - 12, segXs[r.end][segXs[r.end].length - 1] + 8];
+    runs(s => s.rhCfg.oct, o => o > 0).forEach(r => { const [a, b] = span(r); svg += drawOttava(ottavaLabel(r.o), a, b, L.topOttY, true); });
+    runs(s => s.lhCfg.oct, o => o > 0).forEach(r => { const [a, b] = span(r); svg += drawOttava(ottavaLabel(r.o), a, b, L.botOttAboveY, true); });
+    runs(s => s.lhCfg.oct, o => o < 0).forEach(r => { const [a, b] = span(r); svg += drawOttava(ottavaLabel(r.o), a, b, L.botOttBelowY, false); });
 
-    /* fingering rows — fixed rows outside all ledger lines, so they never collide */
-    const ff = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="${FINGER_FONT}" font-weight="700" text-anchor="middle"`;
-    notes.forEach((nt, i) => {
-      const x = +(firstX + i * gapX).toFixed(2);
-      svg += `<text x="${x}" y="${L.rhFingerY}" ${ff} fill="${RH_COLOR}">${rh[i]}</text>`;
-      svg += `<text x="${x}" y="${L.lhFingerY}" ${ff} fill="${LH_COLOR}">${lh[i]}</text>`;
+    systems.forEach((s, k) => {
+      svg += drawStaffNotes(s.notes, segXs[k], "steps", s.rhCfg, tTop);
+      svg += drawStaffNotes(s.notes, segXs[k], "lhSteps", s.lhCfg, bTop);
+      svg += drawFingering(segXs[k], s.rh, s.lh, L);
     });
-    const lf = `font-family="Source Sans 3,Segoe UI,sans-serif" font-size="10" font-weight="700"`;
-    svg += `<text x="2" y="${L.rhFingerY}" ${lf} fill="${RH_COLOR}">RH</text>`;
-    svg += `<text x="2" y="${L.lhFingerY}" ${lf} fill="${LH_COLOR}">LH</text>`;
-
+    svg += handLabels(L);
     svg += `</svg>`;
     return svg;
   }
@@ -2007,10 +1998,9 @@
 
   const OCTAVE_SLICES = [[0, 7], [7, 14], [14, 21], [21, 29]];
 
-  function renderSheetMusic(scale, seq, rh, lh) {
-    const sig = { count: scale.sigCount, type: scale.accidentalType };
+  function buildSystems(seq, rh, lh) {
     let prevR = null, prevL = null;
-    const systems = OCTAVE_SLICES.map(([a, b], k) => {
+    return OCTAVE_SLICES.map(([a, b], k) => {
       const notes = seq.slice(a, b);
       const rhCfg = chooseNotation(notes.map(n => n.steps), "treble", prevR);
       const lhCfg = chooseNotation(notes.map(n => n.lhSteps), "bass", prevL);
@@ -2019,8 +2009,24 @@
       const label = `Octave ${k + 1}: RH ${f.name}${f.octave}–${t.name}${t.octave}, LH ${f.name}${f.lhOctave}–${t.name}${t.lhOctave}`;
       return { notes, rh: rh.slice(a, b), lh: lh.slice(a, b), rhCfg, lhCfg, label, k, f, t };
     });
-    const L = computeLayout(systems, sig);
+  }
 
+  /** Everything needed to draw one scale in the current minor form. */
+  function prepareScale(scale) {
+    const resolved = resolveScale(scale);
+    const seq = renumberOctaves(scale, resolved);
+    attachAccidentals(seq, scale);
+    const rh = expandRH(resolved.rhOct);
+    const lh = expandLH(resolved.lhOct);
+    const sig = { count: scale.sigCount, type: scale.accidentalType };
+    const systems = buildSystems(seq, rh, lh);
+    const L = computeLayout(systems, sig);
+    return { resolved, seq, rh, lh, sig, systems, L };
+  }
+
+  /** Expanded view: four systems, one octave per row. */
+  function renderSheetMusic(prep) {
+    const { systems, L, sig } = prep;
     const figs = systems.map((s, idx) => {
       const rn = notationNote(s.rhCfg, "treble");
       const ln = notationNote(s.lhCfg, "bass");
@@ -2034,30 +2040,27 @@
       </figure>`;
     }).join("");
 
-    return `<div class="music-wrap"><div class="systems">${figs}</div></div>
+    return `<div class="music-wrap" title="Tap to close"><div class="systems">${figs}</div></div>
     <div class="fingering-legend">
       <span><strong>RH</strong> (green, above) · <strong>LH</strong> (violet, below) — ascending fingering</span>
       <span>LH plays two octaves below RH</span>
       <span>One octave per system · gold noteheads = tonic</span>
       <span><em>8va</em>/<em>15ma</em> = play 1/2 octaves higher than written · <em>8vb</em> = 1 octave lower · clef changes keep ledger lines to a minimum</span>
-    </div>`;
+    </div>
+    <p class="sm-hint">Tap the music, press Esc, or use ✕ to close</p>`;
   }
 
-  function renderFingerStrip(seq, rh, lh) {
-    const blocks = OCTAVE_SLICES.map(([a, b], k) => {
-      const idx = [];
-      for (let i = a; i < b; i++) idx.push(i);
-      const cls = i => (seq[i].isTonic ? ` class="tonic-f"` : "");
-      return `<table class="finger-table" aria-label="Octave ${k + 1} fingering">
-        <caption>Octave ${k + 1}</caption>
-        <tr class="note-row"><th scope="row">Note</th>${idx.map(i => `<td${cls(i)}>${esc(seq[i].name)}</td>`).join("")}</tr>
-        <tr class="rh-row"><th scope="row">RH finger</th>${idx.map(i => `<td${cls(i)}>${rh[i]}</td>`).join("")}</tr>
-        <tr class="oct-row rh-oct"><th scope="row">RH octave</th>${idx.map(i => `<td>${seq[i].octave}</td>`).join("")}</tr>
-        <tr class="lh-row"><th scope="row">LH finger</th>${idx.map(i => `<td${cls(i)}>${lh[i]}</td>`).join("")}</tr>
-        <tr class="oct-row lh-oct"><th scope="row">LH octave</th>${idx.map(i => `<td>${seq[i].lhOctave}</td>`).join("")}</tr>
-      </table>`;
-    }).join("");
-    return `<div class="finger-strip">${blocks}</div>`;
+  /** Collapsed card view: all four octaves on one line; tap/click/Enter/Space opens the expanded view. */
+  function renderOneLine(scale, prep) {
+    const label = `${scale.name}, four octaves ascending on one grand staff`;
+    return `<div class="music-wrap oneline" role="button" tabindex="0" aria-haspopup="dialog"
+        data-expand="${esc(scale.id)}" aria-label="${esc(scale.name)} sheet music (one line). Open larger view">
+        ${renderLine(prep.systems, prep.L, prep.sig, label)}
+      </div>
+      <div class="oneline-foot">
+        <span><b class="rh-t">RH</b> fingering above · <b class="lh-t">LH</b> below · gold = tonic · bar line = octave</span>
+        <span class="expand-hint" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg><span class="hint-touch">Tap to expand</span><span class="hint-mouse">Click to expand</span></span>
+      </div>`;
   }
 
   function navLabel(scale) {
@@ -2112,11 +2115,8 @@
   }
 
   function renderScale(scale) {
-    const resolved = resolveScale(scale);
-    const seq = renumberOctaves(scale, resolved);
-    attachAccidentals(seq, scale);
-    const rh = expandRH(resolved.rhOct);
-    const lh = expandLH(resolved.lhOct);
+    const prep = prepareScale(scale);
+    const { resolved, seq } = prep;
     const title = scale.enharmonic
       ? `${esc(scale.name)} <span class="enharmonic">/ ${esc(scale.enharmonic)}</span>`
       : esc(scale.name);
@@ -2124,25 +2124,7 @@
       ? `<span class="mode-badge major">Major</span>`
       : `<span class="mode-badge minor">${esc(resolved.formLabel || "Minor")}</span>`;
 
-    const sheet = renderSheetMusic(scale, seq, rh, lh);
-    const strip = renderFingerStrip(seq, rh, lh);
-
-    const cell = (n, i) => {
-      const cls = [
-        "note-cell",
-        n.isBlack ? "black" : "white",
-        n.isTonic ? "tonic" : ""
-      ].filter(Boolean).join(" ");
-      return `<div class="${cls}" role="listitem" title="${esc(n.name)} · RH ${esc(n.name)}${n.octave} finger ${rh[i]} · LH ${esc(n.name)}${n.lhOctave} finger ${lh[i]}">
-        <div class="key-visual"></div>
-        <div class="note-name">${esc(n.name)}</div>
-        <div class="oct-pair"><span class="rh-o">${n.octave}</span><span class="lh-o">${n.lhOctave}</span></div>
-        <div class="finger-pair"><span class="rh-f">${rh[i]}</span><span class="lh-f">${lh[i]}</span></div>
-      </div>`;
-    };
-    const cells = OCTAVE_SLICES.map(([a, b]) =>
-      `<div class="pr-oct">${seq.slice(a, b).map((n, j) => cell(n, a + j)).join("")}</div>`
-    ).join("");
+    const sheet = renderOneLine(scale, prep);
 
     const seqText = (octKey) => seq.map(n => {
       const label = `${n.name}${n[octKey]}`;
@@ -2172,14 +2154,7 @@
         ${formNote}
         <div class="section-label">Sheet music · four octaves ascending</div>
         ${sheet}
-
-        <div class="section-label spaced">Fingering chart · all 29 notes</div>
-        ${strip}
         <p class="pattern-hint">One-octave pattern — RH: ${oneOctRH} &nbsp;·&nbsp; LH: ${oneOctLH} (extended across four octaves; RH uses 5 / terminal finger only on the final tonic)</p>
-
-        <div class="section-label spaced">Piano roll</div>
-        <div class="piano-roll" role="list">${cells}</div>
-        <p class="roll-caption">Each key: note name, then <b class="rh-t">RH</b> | <b class="lh-t">LH</b> octave number and finger. Both hands play the same note names — the LH two octaves lower.</p>
 
         <div class="note-sequence">
           <strong>Full ascending sequence (4 octaves):</strong>
@@ -2496,6 +2471,71 @@
 
   renderAll();
   renderCircleOfFifths();
+
+  /* Expanded sheet music (tap the one-line staff). Native <dialog> gives Escape, focus
+     containment and the top layer; a small fallback covers browsers without showModal. */
+  (function initSheetModal() {
+    const modal = document.getElementById("sheet-modal");
+    const body = document.getElementById("sheet-modal-body");
+    const titleEl = document.getElementById("sheet-modal-title");
+    const subEl = document.getElementById("sheet-modal-sub");
+    const closeBtn = document.getElementById("sheet-modal-close");
+    const container = document.getElementById("scales-container");
+    if (!modal || !body || !container) return;
+    const hasDialog = typeof modal.showModal === "function";
+    let returnFocus = null;
+
+    function isOpen() { return modal.hasAttribute("open"); }
+
+    function openSheet(id) {
+      const scale = scaleById(id);
+      if (!scale || isOpen()) return;
+      const prep = prepareScale(scale);
+      titleEl.textContent = scale.name + (scale.enharmonic ? " / " + scale.enharmonic : "");
+      subEl.textContent = (prep.resolved.formLabel || "Major") + " · " + scale.sigShort + " · four octaves, one per row";
+      body.innerHTML = renderSheetMusic(prep);
+      returnFocus = document.activeElement;
+      document.documentElement.classList.add("modal-open");
+      if (hasDialog) modal.showModal(); else modal.setAttribute("open", "");
+      body.scrollTop = 0;
+      closeBtn.focus({ preventScroll: true });
+    }
+
+    function onClosed() {
+      document.documentElement.classList.remove("modal-open");
+      body.innerHTML = "";
+      if (returnFocus && document.contains(returnFocus)) returnFocus.focus({ preventScroll: true });
+      returnFocus = null;
+    }
+
+    function closeSheet() {
+      if (!isOpen()) return;
+      if (hasDialog) modal.close();          /* fires "close" → onClosed */
+      else { modal.removeAttribute("open"); onClosed(); }
+    }
+
+    if (hasDialog) modal.addEventListener("close", onClosed);
+
+    container.addEventListener("click", e => {
+      const t = e.target.closest("[data-expand]");
+      if (t) openSheet(t.getAttribute("data-expand"));
+    });
+    container.addEventListener("keydown", e => {
+      if ((e.key === "Enter" || e.key === " " || e.key === "Spacebar") && e.target.matches("[data-expand]")) {
+        e.preventDefault();
+        openSheet(e.target.getAttribute("data-expand"));
+      }
+    });
+
+    closeBtn.addEventListener("click", closeSheet);
+    /* second tap on the music, or a tap on the backdrop, closes */
+    modal.addEventListener("click", e => {
+      if (e.target === modal || e.target.closest(".sm-body .music-wrap")) closeSheet();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && isOpen()) { e.preventDefault(); closeSheet(); }
+    });
+  })();
 
   /* Back-to-circle button: hidden while the circle of fifths is on screen. */
   (function initBackToCircle() {
