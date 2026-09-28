@@ -727,7 +727,7 @@
 
   .auth-link:hover, .auth-link:focus-visible { color: var(--ink); outline: none; }
   .auth-msg { font-size: 0.74rem; font-style: italic; }
-  .auth-msg.err { color: #9a3b1f; font-style: normal; }
+  .auth-msg.err { color: #9a3b1f; font-style: normal; flex-basis: 100%; text-align: right; overflow-wrap: anywhere; }
 
   /* —— My notes (per scale, synced to the signed-in Google account) —— */
   .notes-box {
@@ -781,6 +781,32 @@
   .scale-notes:focus { outline: none; border-color: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-pale); }
   .scale-notes:disabled { background: var(--cream); border-style: dashed; cursor: not-allowed; }
   .notes-print { display: none; }
+
+  /* Sign-in right under each notes box (signed out only) */
+  .notes-signin-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.7rem; margin-top: 0.55rem; }
+  .notes-signin-row[hidden] { display: none !important; }
+  .notes-signin {
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.5rem 1.05rem 0.5rem 0.75rem;
+    border-color: var(--accent-soft);
+    background: #fff;
+  }
+  .notes-signin svg { width: 1.15rem; height: 1.15rem; }
+  .notes-signin-hint { font-size: 0.74rem; color: var(--ink-soft); font-style: italic; }
+  .notes-error {
+    margin-top: 0.45rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #e3b8a6;
+    border-radius: 6px;
+    background: #fdf1ec;
+    color: #9a3b1f;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .notes-error[hidden] { display: none !important; }
+  .notes-error code, .auth-msg code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.95em; font-weight: 600; }
 
   footer {
     text-align: center;
@@ -1069,7 +1095,7 @@
     .order-toggle, .auth-bar { display: none; }
     .notes-box { break-inside: avoid; }
     .notes-box.is-empty { display: none; }
-    .notes-status, .scale-notes { display: none; }
+    .notes-status, .scale-notes, .notes-signin-row, .notes-error { display: none !important; }
     .notes-print {
       display: block;
       white-space: pre-wrap;
@@ -1139,6 +1165,9 @@
     .auth-bar { justify-content: center; margin: -1.5rem auto 1rem; }
     .auth-who { max-width: 9.5rem; }
     .scale-notes { font-size: 16px; }   /* 16px+ stops iOS Safari zooming in on focus */
+    .notes-signin { width: 100%; justify-content: center; font-size: 0.95rem; padding: 0.65rem 1rem; }
+    .notes-signin-hint { width: 100%; text-align: center; }
+    .auth-msg.err { text-align: center; }
   }
 </style>
 </head>
@@ -1146,7 +1175,7 @@
 
 <header id="top">
   <div class="auth-bar" id="auth-bar">
-    <button type="button" class="auth-btn" id="auth-signin" disabled title="Loading sign-in…">
+    <button type="button" class="auth-btn" id="auth-signin" title="Sign in to keep your notes in sync on all your devices">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
       <span>Sign in with Google to sync notes</span>
     </button>
@@ -1649,10 +1678,16 @@
     return notesState.mode === "signedIn" && notesState.loaded;
   }
 
+  /* The "Sign in with Google" buttons show whenever you're not signed in — also while the
+     sign-in code is still loading or if it failed to load (tapping then explains why). */
+  function notesSigninShown() {
+    return notesState.mode !== "signedIn";
+  }
+
   function notesPlaceholder() {
     if (notesState.mode === "signedIn") return notesState.loaded ? "Practice notes, tempo, tricky spots…" : "Loading your notes…";
-    if (notesState.mode === "signedOut") return "Sign in to add notes";
-    if (notesState.mode === "unavailable") return "Notes unavailable offline";
+    if (notesState.mode === "signedOut") return "Tap “Sign in with Google” below to add notes";
+    if (notesState.mode === "unavailable") return "Sign-in couldn't load — see the message below";
     return "Loading notes…";
   }
 
@@ -2514,6 +2549,11 @@
           <textarea class="scale-notes" id="notes-${esc(scale.id)}" data-note-id="${esc(id)}" rows="3"
             maxlength="${NOTES_MAX}" spellcheck="true" autocomplete="off"
             placeholder="${esc(notesPlaceholder())}" aria-label="My notes for ${esc(scale.name)}${shared}"${notesEditable() ? "" : " disabled"}>${esc(text)}</textarea>
+          <div class="notes-signin-row"${notesSigninShown() ? "" : " hidden"}>
+            <button type="button" class="auth-btn notes-signin"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Sign in with Google</span></button>
+            <span class="notes-signin-hint">to add notes that sync across your devices</span>
+          </div>
+          <div class="notes-error" role="alert" hidden></div>
           <div class="notes-print">${esc(text)}</div>
         </div>`;
   }
@@ -2950,6 +2990,7 @@
     const msgEl = document.getElementById("auth-msg");
     const statusTimers = new Map();
     let msgTimer = null;
+    let signinBox = null;           /* notes box whose "Sign in" was tapped */
 
     const textareaFor = id => container.querySelector(`textarea[data-note-id="${id}"]`);
 
@@ -2963,6 +3004,30 @@
       st.classList.toggle("err", !!isError);
       st.classList.toggle("show", !!text);
       if (text === "Saved") statusTimers.set(id, setTimeout(() => st.classList.remove("show"), 2000));
+      const errEl = ta.closest(".notes-box").querySelector(".notes-error");
+      if (isError) showBoxError(errEl, "Couldn't save this note.", detail || "unknown");
+      else if (text === "Saved" && errEl) { errEl.hidden = true; errEl.textContent = ""; }
+    }
+
+    /** Short, visible error with the Firebase error code, so it can be reported. */
+    function fillError(el, text, code) {
+      el.textContent = "";
+      el.append(text + (code ? " Error code: " : ""));
+      if (code) {
+        const c = document.createElement("code");
+        c.textContent = String(code).slice(0, 90);
+        el.append(c);
+      }
+    }
+
+    function showBoxError(el, text, code) {
+      if (!el) return;
+      fillError(el, text, code);
+      el.hidden = false;
+    }
+
+    function clearBoxErrors() {
+      container.querySelectorAll(".notes-error").forEach(el => { el.hidden = true; el.textContent = ""; });
     }
 
     function paintNote(id) {
@@ -2984,14 +3049,34 @@
         ta.disabled = !editable;
         ta.placeholder = ph;
       });
+      const showSignin = notesSigninShown();
+      /* Showing/hiding the 24 sign-in rows changes the page height; keep the box the reader is
+         looking at (the one they tapped "Sign in" under) in place — Safari has no scroll anchoring. */
+      const rowsChange = [...container.querySelectorAll(".notes-signin-row")].some(r => r.hidden === showSignin);
+      let anchor = null, anchorTop = 0;
+      if (rowsChange) {
+        anchor = (signinBox && signinBox.isConnected) ? signinBox
+          : [...container.querySelectorAll(".notes-box")].find(b => b.getBoundingClientRect().bottom > 0) || null;
+        if (anchor) anchorTop = anchor.getBoundingClientRect().top;
+      }
       container.querySelectorAll(".notes-box").forEach(box => {
         paintNote(box.getAttribute("data-note-box"));
+        const row = box.querySelector(".notes-signin-row");
+        if (row) row.hidden = !showSignin;
+        const b = box.querySelector(".notes-signin");
+        if (b) b.setAttribute("aria-busy", notesState.api ? "false" : "true");
       });
 
+      if (anchor) {
+        const d = anchor.getBoundingClientRect().top - anchorTop;
+        if (Math.abs(d) > 1) window.scrollBy(0, d);
+      }
+      if (!showSignin) signinBox = null;
+
       const m = notesState.mode;
-      btnIn.hidden = !(m === "signedOut" || m === "loading");
-      btnIn.disabled = !notesState.api;
-      btnIn.title = notesState.api ? "Sign in to keep your notes in sync on all your devices" : "Loading sign-in…";
+      btnIn.hidden = m === "signedIn";
+      btnIn.disabled = false;
+      btnIn.setAttribute("aria-busy", notesState.api ? "false" : "true");
       userBox.hidden = m !== "signedIn";
       if (m === "signedIn" && notesState.user) {
         const u = notesState.user;
@@ -2999,13 +3084,15 @@
         whoEl.textContent = first || u.email || "Signed in";
         whoEl.title = u.email ? `Signed in as ${u.email}` : "";
       }
-      if (m === "unavailable") showMsg("Notes unavailable offline", false, true);
-      else if (msgEl.dataset.sticky) hideMsg();
+      if (m === "unavailable") { showMsg(UNAVAIL_TEXT, true, true, notesState.loadError || "sdk-not-loaded"); msgEl.dataset.unavail = "1"; }
+      else if (msgEl.dataset.unavail) hideMsg();
     }
 
-    function showMsg(text, isError, sticky) {
+    function showMsg(text, isError, sticky, code) {
       clearTimeout(msgTimer);
-      msgEl.textContent = text;
+      fillError(msgEl, text, code);
+      delete msgEl.dataset.unavail;
+      if (isError) sticky = true;          /* errors stay visible so the code can be read and reported */
       msgEl.classList.toggle("err", !!isError);
       msgEl.hidden = false;
       if (sticky) msgEl.dataset.sticky = "1"; else delete msgEl.dataset.sticky;
@@ -3017,6 +3104,7 @@
       msgEl.hidden = true;
       msgEl.textContent = "";
       delete msgEl.dataset.sticky;
+      delete msgEl.dataset.unavail;
     }
 
     function friendlyAuthError(err) {
@@ -3029,7 +3117,14 @@
         "auth/user-disabled": "This account has been disabled.",
         "auth/web-storage-unsupported": "This browser is blocking storage, so sign-in can't work here."
       };
-      return map[code] || ("Sign-in didn't work" + (code ? ` (${code.replace("auth/", "")})` : "") + ". Please try again.");
+      if (/^auth\/(invalid-api-key|api-key-not-valid)/.test(code)) map[code] = "Sign-in is misconfigured on this page (API key).";
+      return { text: map[code] || "Sign-in didn't work. Please try again.", code: code || (err && err.message) || "unknown" };
+    }
+
+    function showAuthError(err, box) {
+      const f = friendlyAuthError(err);
+      showMsg(f.text, true, true, f.code);
+      if (box) showBoxError(box.querySelector(".notes-error"), f.text, f.code);
     }
 
     /* ---- saving ---- */
@@ -3128,24 +3223,47 @@
     });
 
     /* ---- sign in / out ---- */
-    btnIn.addEventListener("click", () => {
+    const UNAVAIL_TEXT = "Sign-in couldn't load (offline, or blocked by a content blocker). Reload the page to try again.";
+
+    function startSignIn(box) {
       const api = notesState.api;
-      if (!api) return;
+      if (!api) {
+        const errEl = box && box.querySelector(".notes-error");
+        if (notesState.mode === "unavailable") {
+          showMsg(UNAVAIL_TEXT, true, true, notesState.loadError || "sdk-not-loaded");
+          showBoxError(errEl, UNAVAIL_TEXT, notesState.loadError || "sdk-not-loaded");
+        } else {
+          showMsg("Sign-in is still loading — tap again in a moment.", false, false);
+          if (errEl) { errEl.hidden = false; fillError(errEl, "Sign-in is still loading — tap again in a moment.", ""); }
+        }
+        return;
+      }
       hideMsg();
+      clearBoxErrors();
+      signinBox = box;
       let p;
       try { p = api.signIn(); }   /* called synchronously in the tap so the popup isn't blocked */
       catch (err) { p = Promise.reject(err); }
       Promise.resolve(p).catch(err => {
         console.warn("[notes] sign-in failed", err);
-        showMsg(friendlyAuthError(err), true);
+        showAuthError(err, box);
       });
-    });
+    }
+
+    btnIn.addEventListener("click", () => startSignIn(null));
+    /* Per-box "Sign in with Google" (capture phase: the box itself stops clicks from bubbling). */
+    container.addEventListener("click", e => {
+      const b = e.target.closest && e.target.closest(".notes-signin");
+      if (!b || !container.contains(b)) return;
+      e.stopPropagation();
+      startSignIn(b.closest(".notes-box"));
+    }, true);
 
     btnOut.addEventListener("click", () => {
       const api = notesState.api;
       if (!api) return;
       const done = Promise.race([flushSaves(), new Promise(r => setTimeout(r, 3000))]);
-      done.then(() => api.signOut()).catch(err => showMsg("Couldn't sign out — please try again.", true));
+      done.then(() => api.signOut()).catch(err => showMsg("Couldn't sign out — please try again.", true, true, err && err.code));
     });
 
     /* ---- bridge for the Firebase module ---- */
@@ -3153,7 +3271,10 @@
       /** Firebase is loaded; api = { signIn(), signOut(), save(docId, text) -> Promise }. */
       ready(api) {
         notesState.api = api;
-        if (notesState.mode === "unavailable") notesState.mode = "loading";
+        if (notesState.mode === "unavailable") {
+          notesState.mode = "loading";
+          container.querySelectorAll(".notes-error").forEach(el => { el.hidden = true; el.textContent = ""; });
+        }
         paintMode();
       },
       /** Auth state: null when signed out, else { uid, name, email }. */
@@ -3169,6 +3290,8 @@
           if (prevUid !== user.uid) clearNotes();
           notesState.user = user;
           notesState.mode = "signedIn";
+          if (msgEl.classList.contains("err")) hideMsg();
+          clearBoxErrors();
           notesState.loaded = false;
           /* Normally the first snapshot arrives in well under a second; don't lock the boxes forever if it doesn't. */
           notesState.loadTimer = setTimeout(() => {
@@ -3203,17 +3326,18 @@
       syncError(err) {
         if (notesState.mode !== "signedIn") return;
         console.warn("[notes] sync error", err);
-        showMsg("Couldn't load your notes" + (err && err.code ? ` (${err.code})` : "") + ".", true);
+        showMsg("Couldn't load your notes.", true, true, (err && (err.code || err.message)) || "unknown");
         if (!notesState.loaded) { notesState.loaded = true; paintMode(); }
       },
       authError(err) {
         console.warn("[notes] sign-in error", err);
-        showMsg(friendlyAuthError(err), true);
+        showAuthError(err, null);
       },
       /** Firebase couldn't load (offline / blocked): the page keeps working, notes are unavailable. */
-      unavailable() {
+      unavailable(err) {
         if (notesState.api) return;
         notesState.mode = "unavailable";
+        notesState.loadError = err ? String(err.code || err.message || err).slice(0, 90) : (notesState.loadError || "sdk-load-timeout");
         paintMode();
       },
       _state: notesState,
@@ -3250,7 +3374,7 @@
 </script>
 <script nomodule>
   /* Very old browser without ES modules: the page works, notes can't sync. */
-  if (window.__scalesNotes) window.__scalesNotes.unavailable();
+  if (window.__scalesNotes) window.__scalesNotes.unavailable("browser-too-old");
 </script>
 <script type="module">
 /* Firebase sync for "My notes". Loaded from the gstatic CDN with dynamic import(), so if it
@@ -3259,7 +3383,7 @@
 const FIREBASE_VERSION = "11.10.0";
 const CDN = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/`;
 const firebaseConfig = {
-  apiKey: "AIzaSyDUqLGMm5o1jo00K1Yd1MX6pnjysStTJpI",
+  apiKey: "AIzaSyDUqlGMm5o1jo00KlYd1MX6pnjysStTJpI",
   authDomain: "scales-notes.firebaseapp.com",
   projectId: "scales-notes",
   storageBucket: "scales-notes.firebasestorage.app",
@@ -3281,7 +3405,7 @@ const bridge = window.__scalesNotes;
 
 (async function startNotesSync() {
   if (!bridge) return;
-  const slowT = setTimeout(() => bridge.unavailable(), 15000);
+  const slowT = setTimeout(() => bridge.unavailable("sdk-load-timeout"), 15000);
   let appMod, authMod, fsMod;
   try {
     [appMod, authMod, fsMod] = await Promise.all([
@@ -3292,7 +3416,7 @@ const bridge = window.__scalesNotes;
   } catch (err) {
     clearTimeout(slowT);
     console.warn("[notes] Firebase could not load; notes unavailable.", err);
-    bridge.unavailable();
+    bridge.unavailable("sdk-load-failed: " + ((err && err.message) || err));
     return;
   }
   clearTimeout(slowT);
@@ -3365,7 +3489,7 @@ const bridge = window.__scalesNotes;
     });
   } catch (err) {
     console.warn("[notes] Firebase setup failed; notes unavailable.", err);
-    bridge.unavailable();
+    bridge.unavailable("sdk-setup-failed: " + ((err && (err.code || err.message)) || err));
   }
 })();
 </script>
