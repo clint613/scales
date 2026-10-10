@@ -2649,9 +2649,9 @@
     { majorId: "d",   minorId: "b-min",  majLabel: "D",    minLabel: "b",    sig: "2♯",    sigFull: "2 sharps" },
     { majorId: "a",   minorId: "fs-min", majLabel: "A",    minLabel: "f♯",   sig: "3♯",    sigFull: "3 sharps" },
     { majorId: "e",   minorId: "cs-min", majLabel: "E",    minLabel: "c♯",   sig: "4♯",    sigFull: "4 sharps" },
-    { majorId: "b",   minorId: "gs-min", majLabel: "B",    minLabel: "g♯",   sig: "5♯",    sigFull: "5 sharps (C♭: 7♭)" },
+    { majorId: "b",   minorId: "gs-min", majLabel: "B/C♭", minLabel: "g♯/a♭",   sig: "5♯",    sigFull: "5 sharps (C♭: 7♭)" },
     { majorId: "fs",  minorId: "ds-min", majLabel: "F♯/G♭",minLabel: "d♯/e♭",sig: "6♯/6♭", sigFull: "6 sharps / 6 flats" },
-    { majorId: "db",  minorId: "bb-min", majLabel: "D♭",   minLabel: "b♭",   sig: "5♭",    sigFull: "5 flats (C♯: 7♯)" },
+    { majorId: "db",  minorId: "bb-min", majLabel: "D♭/C♯",minLabel: "b♭/a♯",   sig: "5♭",    sigFull: "5 flats (C♯: 7♯)" },
     { majorId: "ab",  minorId: "f-min",  majLabel: "A♭",   minLabel: "f",    sig: "4♭",    sigFull: "4 flats" },
     { majorId: "eb",  minorId: "c-min",  majLabel: "E♭",   minLabel: "c",    sig: "3♭",    sigFull: "3 flats" },
     { majorId: "bb",  minorId: "g-min",  majLabel: "B♭",   minLabel: "g",    sig: "2♭",    sigFull: "2 flats" },
@@ -2659,6 +2659,14 @@
   ];
 
   let cofSelectedId = null;
+
+  /* Enharmonic labels: first spelling on top, second smaller on a line below. */
+  function cofLabelHtml(label, pos) {
+    const parts = String(label).split("/");
+    if (parts.length < 2) return esc(label);
+    const x = pos.x.toFixed(1);
+    return `<tspan x="${x}" dy="-0.42em">${esc(parts[0])}</tspan><tspan class="cof-enh" x="${x}" dy="1.05em" font-size="0.72em">${esc(parts[1])}</tspan>`;
+  }
 
   function polar(cx, cy, r, deg) {
     const rad = (deg * Math.PI) / 180;
@@ -2818,8 +2826,8 @@
         <path class="cof-minor-path" d="${minPath}"/>
         <path class="cof-hit-major" d="${majPath}" tabindex="0" role="button" aria-label="Go to ${esc(majName)}" data-kind="major" data-id="${esc(entry.majorId)}"/>
         <path class="cof-hit-minor" d="${minPath}" tabindex="0" role="button" aria-label="Go to ${esc(minName)}" data-kind="minor" data-id="${esc(entry.minorId)}"/>
-        <text class="cof-label cof-label-major" x="${majPos.x.toFixed(1)}" y="${majPos.y.toFixed(1)}">${esc(entry.majLabel)}</text>
-        <text class="cof-label cof-label-minor" x="${minPos.x.toFixed(1)}" y="${minPos.y.toFixed(1)}">${esc(entry.minLabel)}</text>
+        <text class="cof-label cof-label-major" x="${majPos.x.toFixed(1)}" y="${majPos.y.toFixed(1)}">${cofLabelHtml(entry.majLabel, majPos)}</text>
+        <text class="cof-label cof-label-minor" x="${minPos.x.toFixed(1)}" y="${minPos.y.toFixed(1)}">${cofLabelHtml(entry.minLabel, minPos)}</text>
         <text class="cof-sig" x="${sigPos.x.toFixed(1)}" y="${sigPos.y.toFixed(1)}">${esc(entry.sig)}</text>
       </g>`;
     });
