@@ -2665,7 +2665,7 @@
     const parts = String(label).split("/");
     if (parts.length < 2) return esc(label);
     const x = pos.x.toFixed(1);
-    return `<tspan x="${x}" dy="-0.42em">${esc(parts[0])}</tspan><tspan class="cof-enh" x="${x}" dy="1.05em" font-size="0.72em">${esc(parts[1])}</tspan>`;
+    return `<tspan x="${x}" dy="-0.42em">${esc(parts[0])} /</tspan><tspan class="cof-enh" x="${x}" dy="1.05em" font-size="0.72em">${esc(parts[1])}</tspan>`;
   }
 
   function polar(cx, cy, r, deg) {
@@ -2744,20 +2744,36 @@
       const want = target();
       if (Math.abs(window.scrollY - want) > 2) window.scrollTo({ top: want, behavior: "auto" });
     };
-    let n = 0;
+    let n = 0, settled = false;
     const settle = () => {
       if (token !== cardJumpToken) return;
       const before = window.scrollY;
       window.setTimeout(() => {
         if (token !== cardJumpToken) return;
-        if (Math.abs(window.scrollY - before) < 1 || n > 20) { fix(); [250, 600, 1200].forEach(t => window.setTimeout(fix, t)); }
+        if (Math.abs(window.scrollY - before) < 1 || n > 20) { settled = true; fix(); [250, 600, 1200].forEach(t => window.setTimeout(fix, t)); }
         else { n++; settle(); }
       }, 120);
     };
     settle();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fix);
-    const stop = () => { cardJumpToken++; };
-    ["wheel", "touchstart", "keydown"].forEach(ev => window.addEventListener(ev, stop, { once: true, passive: true }));
+    /* Keep correcting while the card or anything above it resizes (staves, fonts, dropdowns). */
+    let ro = null, roTimer = 0;
+    if ("ResizeObserver" in window) {
+      ro = new ResizeObserver(() => {
+        if (token !== cardJumpToken || !settled) return;
+        clearTimeout(roTimer); roTimer = window.setTimeout(fix, 60);
+      });
+      let n = el;
+      while (n && n !== document.body) {
+        ro.observe(n);
+        for (let p = n.previousElementSibling; p; p = p.previousElementSibling) ro.observe(p);
+        n = n.parentElement;
+      }
+    }
+    const done = () => { if (ro) { ro.disconnect(); ro = null; } };
+    window.setTimeout(() => { fix(); window.setTimeout(done, 400); }, 2500);
+    const stop = () => { cardJumpToken++; done(); };
+    ["wheel", "touchstart", "keydown", "pointerdown"].forEach(ev => window.addEventListener(ev, stop, { once: true, passive: true }));
   }
 
   function showCofTooltip(entry, kind, clientX, clientY) {
@@ -3413,6 +3429,7 @@
     }, { threshold: 0 }).observe(section);
     btn.addEventListener("click", e => {
       e.preventDefault();
+      cardJumpToken++; /* cancel any pending card-jump corrections */
       section.scrollIntoView({ behavior: "smooth", block: "start" });
       /* keyboard activation: move focus into the circle */
       const first = section.querySelector(".cof-hit-major");
