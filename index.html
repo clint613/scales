@@ -674,6 +674,7 @@
     max-width: 72rem;
     min-height: 1.95rem;
     margin: -1.65rem auto 1rem;
+    padding-right: 5rem; /* clear always-visible metronome + circle bubbles at top-right */
     font-size: 0.8rem;
     color: var(--ink-soft);
   }
@@ -1148,6 +1149,256 @@
   .to-cof:hover, .to-cof:focus-visible { opacity: 1; border-color: var(--accent-soft); outline: none; }
   .to-cof svg { width: 0.95rem; height: 0.95rem; display: block; }
 
+
+  /* —— Metronome bubble (always visible, left of .to-cof) —— */
+  .metro-btn {
+    position: fixed;
+    right: calc(0.6rem + 1.75rem + 0.4rem);
+    top: 0.6rem;
+    z-index: 1000;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(251, 248, 241, 0.92);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px var(--shadow);
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.9;
+    transition: opacity 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+  .metro-btn:hover, .metro-btn:focus-visible { opacity: 1; border-color: var(--accent-soft); outline: none; }
+  .metro-btn[aria-expanded="true"], .metro-btn.running {
+    background: var(--accent);
+    color: var(--ivory);
+    border-color: var(--accent);
+    opacity: 1;
+  }
+  .metro-btn svg { width: 0.95rem; height: 0.95rem; display: block; }
+
+  .metro-panel {
+    position: fixed;
+    top: calc(0.6rem + 1.75rem + 0.35rem);
+    right: 0.6rem;
+    z-index: 1001;
+    width: min(17.5rem, calc(100vw - 1.2rem));
+    background: var(--ivory);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 28px var(--shadow);
+    padding: 0.75rem 0.85rem 0.85rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.55rem;
+    font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+  }
+  .metro-panel.open { display: flex; }
+
+  .metro-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .metro-row.spread { justify-content: space-between; }
+
+  .metro-beat {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.05s linear, transform 0.05s linear;
+  }
+  .metro-beat.on {
+    background: var(--accent);
+    transform: scale(1.25);
+  }
+  .metro-beat.accent {
+    background: #b33a2b;
+  }
+
+  .metro-title {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+  }
+
+  .metro-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.3rem;
+  }
+  .metro-close:hover, .metro-close:focus-visible { color: var(--ink); outline: none; background: var(--parchment); }
+
+  .metro-start {
+    flex: 1;
+    appearance: none;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--ivory);
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+  .metro-start:hover, .metro-start:focus-visible { filter: brightness(1.05); outline: none; }
+  .metro-start[aria-pressed="true"] {
+    background: #6e3a2a;
+    border-color: #6e3a2a;
+  }
+
+  .metro-bpm-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+  .metro-bpm {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 700;
+    font-size: 2rem;
+    min-width: 3.2rem;
+    text-align: center;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .metro-bpm-unit {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .metro-step {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    color: var(--ink);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .metro-step:hover, .metro-step:focus-visible { border-color: var(--accent-soft); outline: none; background: var(--parchment); }
+  .metro-step:active { background: var(--accent-pale); }
+
+  .metro-slider {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .metro-tap, .metro-select {
+    flex: 1;
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+  }
+  .metro-tap:hover, .metro-tap:focus-visible,
+  .metro-select:hover, .metro-select:focus-visible { border-color: var(--accent-soft); outline: none; }
+  .metro-select { cursor: pointer; min-width: 0; }
+  .metro-select:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: var(--parchment);
+  }
+
+  .metro-label {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .metro-lights {
+    display: flex;
+    align-items: center;
+    gap: 0.28rem;
+    flex-shrink: 0;
+  }
+  .metro-beat.poly {
+    background: #6a7a9a;
+  }
+  .metro-beat.poly.on {
+    background: #3d5a8b;
+  }
+
+  .metro-more-toggle {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.15rem 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .metro-more-toggle:hover, .metro-more-toggle:focus-visible { color: var(--ink); outline: none; }
+  .metro-more-toggle .chev {
+    display: inline-block;
+    transition: transform 0.15s ease;
+    font-size: 0.7rem;
+  }
+  .metro-more-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+
+  .metro-more {
+    display: none;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-top: 0.15rem;
+    border-top: 1px solid var(--border);
+  }
+  .metro-more.open { display: flex; }
+
+  .metro-field {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .metro-field .metro-label { min-width: 4.6rem; }
+  .metro-hint {
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    line-height: 1.3;
+  }
+
+  @media print { .metro-btn, .metro-panel { display: none !important; } }
+
   @media print { .to-cof, .sheet-modal, .expand-hint { display: none; } }
 
   @media (max-width: 600px) {
@@ -1158,11 +1409,13 @@
     .nav-wrap { position: static; }
     .key-sig { font-size: 0.8rem; }
     .to-cof { right: 0.4rem; top: 0.4rem; width: 1.6rem; height: 1.6rem; }
+    .metro-btn { right: calc(0.4rem + 1.6rem + 0.35rem); top: 0.4rem; width: 1.6rem; height: 1.6rem; }
+    .metro-panel { top: calc(0.4rem + 1.6rem + 0.3rem); right: 0.4rem; width: min(17.5rem, calc(100vw - 0.8rem)); }
     .sm-body { padding: 0.6rem 0.45rem 1rem; }
     .sm-body .music-wrap { padding: 0.45rem 0.3rem 0.4rem; }
     .scale-header h2 { font-size: 1.35rem; }
     .order-toggle button { padding: 0.3rem 0.55rem; font-size: 0.72rem; }
-    .auth-bar { justify-content: center; margin: -1.5rem auto 1rem; }
+    .auth-bar { justify-content: center; margin: -1.5rem auto 1rem; padding-right: 0; }
     .auth-who { max-width: 9.5rem; }
     .scale-notes { font-size: 16px; }   /* 16px+ stops iOS Safari zooming in on focus */
     .notes-signin { width: 100%; justify-content: center; font-size: 0.95rem; padding: 0.65rem 1rem; }
@@ -1243,6 +1496,78 @@
     <path d="M12 3v4.8M12 16.2V21M3 12h4.8M16.2 12H21M5.6 5.6l3.4 3.4M15 15l3.4 3.4M18.4 5.6 15 9M9 15l-3.4 3.4"/>
   </svg>
 </a>
+
+<button type="button" class="metro-btn" id="metro-btn" aria-label="Metronome" aria-expanded="false" aria-controls="metro-panel" title="Metronome">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 3 6.5 21h11L12 3z"/>
+    <path d="M10.2 14h3.6"/>
+    <path d="M12 8.2 15.4 5.6"/>
+  </svg>
+</button>
+<div class="metro-panel" id="metro-panel" role="dialog" aria-label="Metronome" hidden>
+  <div class="metro-row">
+    <span class="metro-lights" aria-hidden="true">
+      <span class="metro-beat" id="metro-beat"></span>
+      <span class="metro-beat poly" id="metro-beat-poly" hidden></span>
+    </span>
+    <span class="metro-title">Metronome</span>
+    <button type="button" class="metro-close" id="metro-close" aria-label="Close metronome">&times;</button>
+  </div>
+  <button type="button" class="metro-start" id="metro-start" aria-pressed="false">Start</button>
+  <div class="metro-bpm-wrap">
+    <button type="button" class="metro-step" id="metro-dec" aria-label="Slower">−</button>
+    <div>
+      <div class="metro-bpm" id="metro-bpm" aria-live="polite">100</div>
+      <div class="metro-bpm-unit" id="metro-bpm-unit">BPM · quarter</div>
+    </div>
+    <button type="button" class="metro-step" id="metro-inc" aria-label="Faster">+</button>
+  </div>
+  <input type="range" class="metro-slider" id="metro-slider" min="30" max="240" step="1" value="100" aria-label="Tempo in beats per minute">
+  <div class="metro-row">
+    <button type="button" class="metro-tap" id="metro-tap">Tap tempo</button>
+  </div>
+  <button type="button" class="metro-more-toggle" id="metro-more-toggle" aria-expanded="false" aria-controls="metro-more">
+    <span class="chev" aria-hidden="true">▸</span> More
+  </button>
+  <div class="metro-more" id="metro-more" hidden>
+    <div class="metro-field">
+      <label class="metro-label" for="metro-timesig">Meter</label>
+      <select class="metro-select" id="metro-timesig" aria-label="Time signature">
+        <option value="off">Off</option>
+        <option value="2/4">2/4</option>
+        <option value="3/4">3/4</option>
+        <option value="4/4" selected>4/4</option>
+        <option value="5/4">5/4</option>
+        <option value="6/8">6/8</option>
+        <option value="7/8">7/8</option>
+        <option value="9/8">9/8</option>
+        <option value="12/8">12/8</option>
+      </select>
+    </div>
+    <p class="metro-hint" id="metro-unit-hint">BPM is the quarter-note pulse. Accents mark the bar.</p>
+    <div class="metro-field">
+      <label class="metro-label" for="metro-subdiv">Subdiv</label>
+      <select class="metro-select" id="metro-subdiv" aria-label="Subdivision">
+        <option value="1" selected>Quarter (none)</option>
+        <option value="2">Eighths</option>
+        <option value="3">Triplets</option>
+        <option value="4">Sixteenths</option>
+        <option value="5">Quintuplets</option>
+      </select>
+    </div>
+    <div class="metro-field">
+      <label class="metro-label" for="metro-poly">Poly</label>
+      <select class="metro-select" id="metro-poly" aria-label="Polyrhythm">
+        <option value="off" selected>Off</option>
+        <option value="3:2">3:2</option>
+        <option value="4:3">4:3</option>
+        <option value="3:4">3:4</option>
+        <option value="5:4">5:4</option>
+        <option value="2:3">2:3</option>
+      </select>
+    </div>
+  </div>
+</div>
 
 <dialog class="sheet-modal" id="sheet-modal" aria-labelledby="sheet-modal-title">
   <div class="sm-bar">
@@ -3449,6 +3774,541 @@
   /* Very old browser without ES modules: the page works, notes can't sync. */
   if (window.__scalesNotes) window.__scalesNotes.unavailable("browser-too-old");
 </script>
+
+<script>
+(function () {
+  "use strict";
+  var LS_BPM = "scales-metro-bpm";
+  var LS_TIMESIG = "scales-metro-timesig";
+  var LS_SUBDIV = "scales-metro-subdiv";
+  var LS_POLY = "scales-metro-poly";
+  var LS_METER_LEGACY = "scales-metro-meter";
+  var LOOKAHEAD_MS = 25;
+  var SCHEDULE_AHEAD = 0.12;
+  var MIN_BPM = 30;
+  var MAX_BPM = 240;
+  var TIMESIGS = ["off", "2/4", "3/4", "4/4", "5/4", "6/8", "7/8", "9/8", "12/8"];
+  var SUBDIVS = [1, 2, 3, 4, 5];
+  var POLYS = ["off", "3:2", "4:3", "3:4", "5:4", "2:3"];
+
+  var btn = document.getElementById("metro-btn");
+  var panel = document.getElementById("metro-panel");
+  var closeBtn = document.getElementById("metro-close");
+  var startBtn = document.getElementById("metro-start");
+  var bpmEl = document.getElementById("metro-bpm");
+  var bpmUnitEl = document.getElementById("metro-bpm-unit");
+  var slider = document.getElementById("metro-slider");
+  var tapBtn = document.getElementById("metro-tap");
+  var timesigSel = document.getElementById("metro-timesig");
+  var subdivSel = document.getElementById("metro-subdiv");
+  var polySel = document.getElementById("metro-poly");
+  var moreToggle = document.getElementById("metro-more-toggle");
+  var moreEl = document.getElementById("metro-more");
+  var unitHint = document.getElementById("metro-unit-hint");
+  var beatEl = document.getElementById("metro-beat");
+  var beatPolyEl = document.getElementById("metro-beat-poly");
+  if (!btn || !panel) return;
+
+  function clampBpm(n) {
+    n = Math.round(Number(n) || 0);
+    if (n < MIN_BPM) return MIN_BPM;
+    if (n > MAX_BPM) return MAX_BPM;
+    return n;
+  }
+
+  function meterInfo(ts) {
+    /* clicksPerBar at the BPM unit; accent(i) -> strong|medium|weak|null */
+    switch (ts) {
+      case "2/4":
+        return { clicksPerBar: 2, unit: "quarter",
+          accent: function (i) { return i === 0 ? "strong" : "weak"; } };
+      case "3/4":
+        return { clicksPerBar: 3, unit: "quarter",
+          accent: function (i) { return i === 0 ? "strong" : "weak"; } };
+      case "4/4":
+        return { clicksPerBar: 4, unit: "quarter",
+          accent: function (i) { return i === 0 ? "strong" : (i === 2 ? "medium" : "weak"); } };
+      case "5/4":
+        return { clicksPerBar: 5, unit: "quarter",
+          accent: function (i) { return i === 0 ? "strong" : (i === 3 ? "medium" : "weak"); } };
+      case "6/8":
+        return { clicksPerBar: 6, unit: "eighth",
+          accent: function (i) { return i === 0 ? "strong" : (i === 3 ? "medium" : "weak"); } };
+      case "7/8":
+        /* 2+2+3 */
+        return { clicksPerBar: 7, unit: "eighth",
+          accent: function (i) {
+            if (i === 0) return "strong";
+            if (i === 2 || i === 4) return "medium";
+            return "weak";
+          } };
+      case "9/8":
+        return { clicksPerBar: 9, unit: "eighth",
+          accent: function (i) {
+            if (i === 0) return "strong";
+            if (i === 3 || i === 6) return "medium";
+            return "weak";
+          } };
+      case "12/8":
+        return { clicksPerBar: 12, unit: "eighth",
+          accent: function (i) {
+            if (i === 0) return "strong";
+            if (i === 3 || i === 6 || i === 9) return "medium";
+            return "weak";
+          } };
+      default:
+        return { clicksPerBar: 1, unit: "beat", accent: function () { return null; } };
+    }
+  }
+
+  function parsePoly(p) {
+    if (!p || p === "off") return null;
+    var parts = String(p).split(":");
+    var a = parseInt(parts[0], 10), b = parseInt(parts[1], 10);
+    if (!(a > 0 && b > 0)) return null;
+    return { a: a, b: b };
+  }
+
+  /* Pure planners for tests + scheduling math */
+  function planClickTimes(bpmVal, count, startTime) {
+    var interval = 60 / bpmVal;
+    var times = [];
+    for (var i = 0; i < count; i++) times.push(startTime + i * interval);
+    return times;
+  }
+
+  function planSubdivTimes(bpmVal, subdiv, beats, startTime) {
+    var beat = 60 / bpmVal;
+    var times = [];
+    var n = Math.max(1, subdiv | 0);
+    for (var i = 0; i < beats; i++) {
+      for (var k = 0; k < n; k++) {
+        if (k === 0) continue; /* beat itself is the main click */
+        times.push(startTime + i * beat + (k * beat) / n);
+      }
+    }
+    return times;
+  }
+
+  function planPolyTimes(ratio, bpmVal, startTime, cycles) {
+    var parsed = typeof ratio === "string" ? parsePoly(ratio) : ratio;
+    if (!parsed) return { main: [], poly: [], cycle: 0 };
+    var beat = 60 / bpmVal;
+    var cycle = parsed.b * beat;
+    var main = [], poly = [];
+    var cyc = cycles || 1;
+    for (var c = 0; c < cyc; c++) {
+      var base = startTime + c * cycle;
+      for (var i = 0; i < parsed.b; i++) main.push(base + i * beat);
+      for (var j = 0; j < parsed.a; j++) poly.push(base + j * (cycle / parsed.a));
+    }
+    return { main: main, poly: poly, cycle: cycle, a: parsed.a, b: parsed.b };
+  }
+
+  function loadBpm() {
+    try { return clampBpm(localStorage.getItem(LS_BPM) || 100); }
+    catch (e) { return 100; }
+  }
+  function loadTimesig() {
+    try {
+      var v = localStorage.getItem(LS_TIMESIG);
+      if (TIMESIGS.indexOf(v) >= 0) return v;
+      /* migrate legacy meter ints */
+      var legacy = parseInt(localStorage.getItem(LS_METER_LEGACY), 10);
+      var map = { 0: "off", 2: "2/4", 3: "3/4", 4: "4/4", 6: "6/8" };
+      if (map[legacy]) return map[legacy];
+    } catch (e) {}
+    return "4/4";
+  }
+  function loadSubdiv() {
+    try {
+      var v = parseInt(localStorage.getItem(LS_SUBDIV), 10);
+      if (SUBDIVS.indexOf(v) >= 0) return v;
+    } catch (e) {}
+    return 1;
+  }
+  function loadPoly() {
+    try {
+      var v = localStorage.getItem(LS_POLY);
+      if (POLYS.indexOf(v) >= 0) return v;
+    } catch (e) {}
+    return "off";
+  }
+
+  var bpm = loadBpm();
+  var timesig = loadTimesig();
+  var subdiv = loadSubdiv();
+  var poly = loadPoly();
+  var running = false;
+  var audioCtx = null;
+  var timerId = null;
+  var origin = 0;
+  var unlocked = false;
+  var flashTimers = [];
+  var tapTimes = [];
+  var holdTimer = null;
+  var holdInterval = null;
+  var scheduledThrough = 0;
+
+  function savePrefs() {
+    try {
+      localStorage.setItem(LS_BPM, String(bpm));
+      localStorage.setItem(LS_TIMESIG, timesig);
+      localStorage.setItem(LS_SUBDIV, String(subdiv));
+      localStorage.setItem(LS_POLY, poly);
+    } catch (e) {}
+  }
+
+  function unitLabel() {
+    return meterInfo(timesig).unit;
+  }
+
+  function syncUi() {
+    bpmEl.textContent = String(bpm);
+    slider.value = String(bpm);
+    bpmUnitEl.textContent = "BPM · " + unitLabel();
+    timesigSel.value = timesig;
+    subdivSel.value = String(subdiv);
+    polySel.value = poly;
+    startBtn.textContent = running ? "Stop" : "Start";
+    startBtn.setAttribute("aria-pressed", running ? "true" : "false");
+    btn.classList.toggle("running", running);
+    var polyOn = poly !== "off";
+    subdivSel.disabled = polyOn;
+    beatPolyEl.hidden = !polyOn;
+    if (timesig === "off") {
+      unitHint.textContent = "BPM is the click pulse. No bar accents.";
+    } else if (unitLabel() === "eighth") {
+      unitHint.textContent = "BPM is the eighth-note pulse. Accents mark compound groups.";
+    } else {
+      unitHint.textContent = "BPM is the quarter-note pulse. Accents mark the bar.";
+    }
+  }
+
+  function setBpm(n, fromSlider) {
+    bpm = clampBpm(n);
+    if (!fromSlider) slider.value = String(bpm);
+    bpmEl.textContent = String(bpm);
+    bpmUnitEl.textContent = "BPM · " + unitLabel();
+    savePrefs();
+  }
+  function setTimesig(v) {
+    timesig = TIMESIGS.indexOf(v) >= 0 ? v : "4/4";
+    savePrefs();
+    syncUi();
+  }
+  function setSubdiv(v) {
+    v = parseInt(v, 10);
+    subdiv = SUBDIVS.indexOf(v) >= 0 ? v : 1;
+    savePrefs();
+    syncUi();
+  }
+  function setPoly(v) {
+    poly = POLYS.indexOf(v) >= 0 ? v : "off";
+    savePrefs();
+    syncUi();
+  }
+
+  function ensureCtx() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!audioCtx) audioCtx = new AC();
+    return audioCtx;
+  }
+
+  function unlockAudio() {
+    var ctx = ensureCtx();
+    if (!ctx) return Promise.reject(new Error("no-audio"));
+    var p = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+    return p.then(function () {
+      if (unlocked) return;
+      try {
+        var buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+        var src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start(0);
+        unlocked = true;
+      } catch (e) { unlocked = true; }
+    });
+  }
+
+  function playTone(time, freq, peak, dur) {
+    var ctx = audioCtx;
+    if (!ctx) return;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(peak, time + 0.001);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(time);
+    osc.stop(time + dur + 0.02);
+  }
+
+  function flash(el, accentClass, time) {
+    var ctx = audioCtx;
+    if (!ctx || !el) return;
+    var delay = Math.max(0, (time - ctx.currentTime) * 1000);
+    var t = setTimeout(function () {
+      el.classList.add("on");
+      if (accentClass) el.classList.add(accentClass);
+      setTimeout(function () {
+        el.classList.remove("on", "accent");
+      }, 80);
+    }, delay);
+    flashTimers.push(t);
+  }
+
+  function scheduleMain(time, accent) {
+    var freq = accent === "strong" ? 1500 : (accent === "medium" ? 1200 : 1000);
+    var peak = accent === "strong" ? 0.36 : (accent === "medium" ? 0.28 : 0.2);
+    var dur = accent === "strong" ? 0.055 : 0.04;
+    playTone(time, freq, peak, dur);
+    flash(beatEl, accent === "strong" ? "accent" : null, time);
+  }
+
+  function scheduleSub(time) {
+    playTone(time, 700, 0.08, 0.025);
+  }
+
+  function schedulePolyClick(time) {
+    playTone(time, 1900, 0.22, 0.035);
+    flash(beatPolyEl, null, time);
+  }
+
+  function near(a, b) { return Math.abs(a - b) < 1e-9; }
+
+  function scheduleWindow(from, to) {
+    var beat = 60 / bpm;
+    if (!(beat > 0)) return;
+    var info = meterInfo(timesig);
+    var polyRatio = parsePoly(poly);
+    var i0 = Math.max(0, Math.floor((from - origin) / beat) - 1);
+    var i1 = Math.ceil((to - origin) / beat) + 1;
+
+    for (var i = i0; i <= i1; i++) {
+      var t = origin + i * beat;
+      if (t < from - 1e-9 || t >= to) continue;
+      var barPos = info.clicksPerBar > 0 ? ((i % info.clicksPerBar) + info.clicksPerBar) % info.clicksPerBar : 0;
+      var accent = timesig === "off" ? null : info.accent(barPos);
+      scheduleMain(t, accent);
+
+      if (!polyRatio && subdiv > 1) {
+        for (var k = 1; k < subdiv; k++) {
+          var st = t + (k * beat) / subdiv;
+          if (st >= from - 1e-9 && st < to) scheduleSub(st);
+        }
+      }
+    }
+
+    if (polyRatio) {
+      var cycle = polyRatio.b * beat;
+      var c0 = Math.max(0, Math.floor((from - origin) / cycle) - 1);
+      var c1 = Math.ceil((to - origin) / cycle) + 1;
+      for (var c = c0; c <= c1; c++) {
+        for (var j = 0; j < polyRatio.a; j++) {
+          var pt = origin + c * cycle + j * (cycle / polyRatio.a);
+          if (pt < from - 1e-9 || pt >= to) continue;
+          /* Skip when it lands on a main beat — main already sounded; still flash poly light */
+          var mainIdx = Math.round((pt - origin) / beat);
+          var mainT = origin + mainIdx * beat;
+          if (near(pt, mainT)) {
+            flash(beatPolyEl, null, pt);
+          } else {
+            schedulePolyClick(pt);
+          }
+        }
+      }
+    }
+  }
+
+  function scheduler() {
+    if (!running || !audioCtx) return;
+    var now = audioCtx.currentTime;
+    var to = now + SCHEDULE_AHEAD;
+    if (scheduledThrough < now) scheduledThrough = now;
+    if (to > scheduledThrough) {
+      scheduleWindow(scheduledThrough, to);
+      scheduledThrough = to;
+    }
+    timerId = setTimeout(scheduler, LOOKAHEAD_MS);
+  }
+
+  function clearFlashTimers() {
+    for (var i = 0; i < flashTimers.length; i++) clearTimeout(flashTimers[i]);
+    flashTimers = [];
+    beatEl.classList.remove("on", "accent");
+    beatPolyEl.classList.remove("on", "accent");
+  }
+
+  function stopMetronome() {
+    running = false;
+    if (timerId !== null) { clearTimeout(timerId); timerId = null; }
+    clearFlashTimers();
+    scheduledThrough = 0;
+    syncUi();
+  }
+
+  function startMetronome() {
+    return unlockAudio().then(function () {
+      if (running) return;
+      if (timerId !== null) { clearTimeout(timerId); timerId = null; }
+      running = true;
+      origin = audioCtx.currentTime + 0.06;
+      scheduledThrough = origin;
+      syncUi();
+      scheduler();
+    }).catch(function () {
+      stopMetronome();
+    });
+  }
+
+  function toggleRun() {
+    if (running) stopMetronome();
+    else startMetronome();
+  }
+
+  function openPanel() {
+    panel.hidden = false;
+    panel.classList.add("open");
+    btn.setAttribute("aria-expanded", "true");
+  }
+  function closePanel() {
+    panel.classList.remove("open");
+    panel.hidden = true;
+    btn.setAttribute("aria-expanded", "false");
+  }
+  function togglePanel() {
+    if (panel.classList.contains("open")) closePanel();
+    else openPanel();
+  }
+
+  function openMore() {
+    moreEl.hidden = false;
+    moreEl.classList.add("open");
+    moreToggle.setAttribute("aria-expanded", "true");
+  }
+  function closeMore() {
+    moreEl.classList.remove("open");
+    moreEl.hidden = true;
+    moreToggle.setAttribute("aria-expanded", "false");
+  }
+
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    togglePanel();
+  });
+  closeBtn.addEventListener("click", function () { closePanel(); });
+  startBtn.addEventListener("click", function () { toggleRun(); });
+  slider.addEventListener("input", function () { setBpm(slider.value, true); });
+
+  function holdStep(dir) {
+    setBpm(bpm + dir);
+    holdTimer = setTimeout(function () {
+      holdInterval = setInterval(function () { setBpm(bpm + dir); }, 60);
+    }, 350);
+  }
+  function clearHold() {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    if (holdInterval) { clearInterval(holdInterval); holdInterval = null; }
+  }
+  [["metro-dec", -1], ["metro-inc", 1]].forEach(function (pair) {
+    var el = document.getElementById(pair[0]);
+    var dir = pair[1];
+    el.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      holdStep(dir);
+    });
+    el.addEventListener("pointerup", clearHold);
+    el.addEventListener("pointerleave", clearHold);
+    el.addEventListener("pointercancel", clearHold);
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setBpm(bpm + dir); }
+    });
+  });
+
+  timesigSel.addEventListener("change", function () { setTimesig(timesigSel.value); });
+  subdivSel.addEventListener("change", function () { setSubdiv(subdivSel.value); });
+  polySel.addEventListener("change", function () { setPoly(polySel.value); });
+
+  moreToggle.addEventListener("click", function () {
+    if (moreEl.classList.contains("open")) closeMore();
+    else openMore();
+  });
+
+  tapBtn.addEventListener("click", function () {
+    var now = performance.now();
+    tapTimes.push(now);
+    if (tapTimes.length > 6) tapTimes.shift();
+    if (tapTimes.length >= 2) {
+      var gaps = [];
+      for (var i = 1; i < tapTimes.length; i++) gaps.push(tapTimes[i] - tapTimes[i - 1]);
+      var avg = gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length;
+      if (avg > 0) setBpm(60000 / avg);
+    }
+    clearTimeout(tapBtn._reset);
+    tapBtn._reset = setTimeout(function () { tapTimes = []; }, 2000);
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!panel.classList.contains("open")) return;
+    if (panel.contains(e.target) || btn.contains(e.target)) return;
+    closePanel();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && panel.classList.contains("open")) {
+      closePanel();
+      return;
+    }
+    if (e.code === "Space" && panel.classList.contains("open")) {
+      var tag = (e.target && e.target.tagName) || "";
+      if (/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(tag) || (e.target && e.target.isContentEditable)) return;
+      e.preventDefault();
+      toggleRun();
+    }
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stopMetronome();
+  });
+
+  setBpm(bpm);
+  syncUi();
+  closeMore();
+  closePanel();
+
+  window.__metro = {
+    planClickTimes: planClickTimes,
+    planSubdivTimes: planSubdivTimes,
+    planPolyTimes: planPolyTimes,
+    meterInfo: meterInfo,
+    getBpm: function () { return bpm; },
+    getTimesig: function () { return timesig; },
+    getSubdiv: function () { return subdiv; },
+    getPoly: function () { return poly; },
+    getMeter: function () { return timesig; }, /* back-compat for older tests */
+    isRunning: function () { return running; },
+    setBpm: setBpm,
+    setTimesig: setTimesig,
+    setSubdiv: setSubdiv,
+    setPoly: setPoly,
+    setMeter: function (n) {
+      var map = { 0: "off", 2: "2/4", 3: "3/4", 4: "4/4", 6: "6/8" };
+      setTimesig(map[n] || "4/4");
+    },
+    start: startMetronome,
+    stop: stopMetronome,
+    open: openPanel,
+    close: closePanel,
+    openMore: openMore
+  };
+})();
+</script>
+
 <script type="module">
 /* Firebase sync for "My notes". Loaded from the gstatic CDN with dynamic import(), so if it
    fails (offline, blocked, CDN down) only the notes are affected — the rest of the page has
