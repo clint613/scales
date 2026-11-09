@@ -6084,6 +6084,7 @@ const bridge = window.__scalesNotes;
     let notes = []; /* {key, letter, x, line} */
     let staffTop = 0, gap = 10, hitX = 140;
     let lastTs = 0;
+    let answerHlTimer = 0;
 
     function staffYForKey(key) {
       const map = {
