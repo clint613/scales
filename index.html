@@ -1268,15 +1268,33 @@
     gap: 0.35rem;
   }
   .metro-bpm {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 3.6rem;
+    min-width: 3.6rem;
+    margin: 0 auto;
+    padding: 0.15rem 0.1rem 0.2rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0.2rem;
+    background: transparent;
     font-family: "Cormorant Garamond", Georgia, serif;
     font-weight: 700;
-    font-size: 2rem;
-    min-width: 3.2rem;
+    font-size: 2rem; /* >= 16px — stops iOS focus zoom */
     text-align: center;
     line-height: 1;
     color: var(--ink);
     font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
   }
+  .metro-bpm:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+    background: rgba(232, 217, 168, 0.35);
+  }
+  .metro-bpm::-webkit-outer-spin-button,
+  .metro-bpm::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .metro-bpm-unit {
     font-size: 0.72rem;
     color: var(--ink-soft);
@@ -1563,7 +1581,7 @@
   <div class="metro-bpm-wrap">
     <button type="button" class="metro-step" id="metro-dec" aria-label="Slower">−</button>
     <div>
-      <div class="metro-bpm" id="metro-bpm" aria-live="polite">100</div>
+      <input type="text" class="metro-bpm" id="metro-bpm" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" maxlength="3" value="100" aria-label="Tempo in beats per minute" autocomplete="off">
       <div class="metro-bpm-unit" id="metro-bpm-unit">BPM · quarter</div>
     </div>
     <button type="button" class="metro-step" id="metro-inc" aria-label="Faster">+</button>
@@ -4202,7 +4220,7 @@
   }
 
   function syncUi() {
-    bpmEl.textContent = String(bpm);
+    if (document.activeElement !== bpmEl) bpmEl.value = String(bpm);
     slider.value = String(bpm);
     bpmUnitEl.textContent = "BPM · " + unitLabel();
     timesigSel.value = timesig;
@@ -4227,10 +4245,28 @@
     syncSubdivTiles();
   }
 
+  function reanchorTempo(nextBpm) {
+    /* Keep the next beat time, then continue at the new spacing (no full restart). */
+    if (!running || !audioCtx || !(nextBpm > 0) || nextBpm === bpm) return;
+    var oldBeat = 60 / bpm;
+    if (!(oldBeat > 0)) return;
+    var now = audioCtx.currentTime;
+    var nextIdx = Math.ceil((Math.max(scheduledThrough, now) - origin) / oldBeat - 1e-12);
+    if (nextIdx < 0) nextIdx = 0;
+    var nextBeatAt = origin + nextIdx * oldBeat;
+    if (nextBeatAt < now + 0.03) nextBeatAt = now + 0.05;
+    origin = nextBeatAt;
+    scheduledThrough = nextBeatAt;
+    clearFlashTimers();
+  }
+
   function setBpm(n, fromSlider) {
-    bpm = clampBpm(n);
+    var next = clampBpm(n);
+    reanchorTempo(next);
+    bpm = next;
     if (!fromSlider) slider.value = String(bpm);
-    bpmEl.textContent = String(bpm);
+    if (document.activeElement !== bpmEl) bpmEl.value = String(bpm);
+    else bpmEl.value = String(bpm); /* commit path also refreshes */
     bpmUnitEl.textContent = "BPM · " + unitLabel();
     savePrefs();
   }
@@ -4478,6 +4514,44 @@
   closeBtn.addEventListener("click", function () { closePanel(); });
   startBtn.addEventListener("click", function () { toggleRun(); });
   slider.addEventListener("input", function () { setBpm(slider.value, true); });
+
+  var bpmEditSnapshot = null;
+  function commitBpmInput() {
+    var raw = String(bpmEl.value || "").replace(/\D/g, "");
+    if (!raw) {
+      bpmEl.value = String(bpm);
+      bpmEditSnapshot = null;
+      return;
+    }
+    setBpm(parseInt(raw, 10), false);
+    bpmEl.value = String(bpm);
+    bpmEditSnapshot = null;
+  }
+  function revertBpmInput() {
+    bpmEl.value = bpmEditSnapshot != null ? bpmEditSnapshot : String(bpm);
+    bpmEditSnapshot = null;
+  }
+  bpmEl.addEventListener("focus", function () {
+    bpmEditSnapshot = String(bpm);
+    try { bpmEl.select(); } catch (e) {}
+  });
+  bpmEl.addEventListener("input", function () {
+    var cleaned = String(bpmEl.value || "").replace(/\D/g, "");
+    if (cleaned !== bpmEl.value) bpmEl.value = cleaned;
+  });
+  bpmEl.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitBpmInput();
+      bpmEl.blur();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      revertBpmInput();
+      bpmEl.blur();
+    }
+  });
+  bpmEl.addEventListener("blur", function () { commitBpmInput(); });
 
   function holdStep(dir) {
     setBpm(bpm + dir);
