@@ -1350,6 +1350,17 @@
   .metro-beat.poly.on {
     background: #3d5a8b;
   }
+  .metro-beat.sub.on {
+    background: var(--accent-soft);
+    transform: scale(1.08);
+  }
+  .metro-mode-hint {
+    font-size: 0.68rem;
+    color: #6e3a2a;
+    line-height: 1.3;
+    min-height: 0;
+  }
+  .metro-mode-hint:empty { display: none; }
 
   .metro-more-toggle {
     appearance: none;
@@ -1566,6 +1577,7 @@
         <option value="2:3">2:3</option>
       </select>
     </div>
+    <p class="metro-mode-hint" id="metro-mode-hint" role="status" aria-live="polite"></p>
   </div>
 </div>
 
@@ -3807,7 +3819,10 @@
   var unitHint = document.getElementById("metro-unit-hint");
   var beatEl = document.getElementById("metro-beat");
   var beatPolyEl = document.getElementById("metro-beat-poly");
+  var modeHint = document.getElementById("metro-mode-hint");
   if (!btn || !panel) return;
+  var toneLog = [];
+  var modeHintTimer = null;
 
   function clampBpm(n) {
     n = Math.round(Number(n) || 0);
@@ -3963,6 +3978,18 @@
     return meterInfo(timesig).unit;
   }
 
+  function showModeHint(msg) {
+    if (!modeHint) return;
+    modeHint.textContent = msg || "";
+    if (modeHintTimer) { clearTimeout(modeHintTimer); modeHintTimer = null; }
+    if (msg) {
+      modeHintTimer = setTimeout(function () {
+        modeHint.textContent = "";
+        modeHintTimer = null;
+      }, 4000);
+    }
+  }
+
   function syncUi() {
     bpmEl.textContent = String(bpm);
     slider.value = String(bpm);
@@ -3970,11 +3997,11 @@
     timesigSel.value = timesig;
     subdivSel.value = String(subdiv);
     polySel.value = poly;
+    subdivSel.disabled = false;
     startBtn.textContent = running ? "Stop" : "Start";
     startBtn.setAttribute("aria-pressed", running ? "true" : "false");
     btn.classList.toggle("running", running);
     var polyOn = poly !== "off";
-    subdivSel.disabled = polyOn;
     beatPolyEl.hidden = !polyOn;
     if (timesig === "off") {
       unitHint.textContent = "BPM is the click pulse. No bar accents.";
@@ -4000,13 +4027,27 @@
   function setSubdiv(v) {
     v = parseInt(v, 10);
     subdiv = SUBDIVS.indexOf(v) >= 0 ? v : 1;
-    savePrefs();
-    syncUi();
+    if (subdiv > 1 && poly !== "off") {
+      poly = "off";
+      savePrefs();
+      syncUi();
+      showModeHint("Polyrhythm turned off so subdivisions can play.");
+    } else {
+      savePrefs();
+      syncUi();
+    }
   }
   function setPoly(v) {
     poly = POLYS.indexOf(v) >= 0 ? v : "off";
-    savePrefs();
-    syncUi();
+    if (poly !== "off" && subdiv > 1) {
+      subdiv = 1;
+      savePrefs();
+      syncUi();
+      showModeHint("Subdivisions turned off while polyrhythm is on.");
+    } else {
+      savePrefs();
+      syncUi();
+    }
   }
 
   function ensureCtx() {
@@ -4033,7 +4074,9 @@
     });
   }
 
-  function playTone(time, freq, peak, dur) {
+  function playTone(time, freq, peak, dur, kind) {
+    toneLog.push({ time: time, freq: freq, peak: peak, dur: dur, kind: kind || "tone" });
+    if (toneLog.length > 400) toneLog.shift();
     var ctx = audioCtx;
     if (!ctx) return;
     var osc = ctx.createOscillator();
@@ -4041,7 +4084,7 @@
     osc.type = "square";
     osc.frequency.setValueAtTime(freq, time);
     gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(peak, time + 0.001);
+    gain.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0001), time + 0.001);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -4050,15 +4093,15 @@
   }
 
   function flash(el, accentClass, time) {
-    var ctx = audioCtx;
-    if (!ctx || !el) return;
-    var delay = Math.max(0, (time - ctx.currentTime) * 1000);
+    if (!el) return;
+    var delay = 0;
+    if (audioCtx) delay = Math.max(0, (time - audioCtx.currentTime) * 1000);
     var t = setTimeout(function () {
       el.classList.add("on");
       if (accentClass) el.classList.add(accentClass);
       setTimeout(function () {
-        el.classList.remove("on", "accent");
-      }, 80);
+        el.classList.remove("on", "accent", "sub");
+      }, accentClass === "sub" ? 55 : 80);
     }, delay);
     flashTimers.push(t);
   }
@@ -4067,16 +4110,18 @@
     var freq = accent === "strong" ? 1500 : (accent === "medium" ? 1200 : 1000);
     var peak = accent === "strong" ? 0.36 : (accent === "medium" ? 0.28 : 0.2);
     var dur = accent === "strong" ? 0.055 : 0.04;
-    playTone(time, freq, peak, dur);
+    playTone(time, freq, peak, dur, "main");
     flash(beatEl, accent === "strong" ? "accent" : null, time);
   }
 
+  /* ~800 Hz, ~half the weak-beat gain — distinct from the main click */
   function scheduleSub(time) {
-    playTone(time, 700, 0.08, 0.025);
+    playTone(time, 800, 0.12, 0.035, "sub");
+    flash(beatEl, "sub", time);
   }
 
   function schedulePolyClick(time) {
-    playTone(time, 1900, 0.22, 0.035);
+    playTone(time, 1900, 0.22, 0.035, "poly");
     flash(beatPolyEl, null, time);
   }
 
@@ -4087,16 +4132,20 @@
     if (!(beat > 0)) return;
     var info = meterInfo(timesig);
     var polyRatio = parsePoly(poly);
+    /* Look back one beat so subdivisions that fall in this window
+       (after a main beat that was already scheduled) still get booked. */
     var i0 = Math.max(0, Math.floor((from - origin) / beat) - 1);
     var i1 = Math.ceil((to - origin) / beat) + 1;
 
     for (var i = i0; i <= i1; i++) {
       var t = origin + i * beat;
-      if (t < from - 1e-9 || t >= to) continue;
-      var barPos = info.clicksPerBar > 0 ? ((i % info.clicksPerBar) + info.clicksPerBar) % info.clicksPerBar : 0;
-      var accent = timesig === "off" ? null : info.accent(barPos);
-      scheduleMain(t, accent);
+      if (t >= from - 1e-9 && t < to) {
+        var barPos = info.clicksPerBar > 0 ? ((i % info.clicksPerBar) + info.clicksPerBar) % info.clicksPerBar : 0;
+        var accent = timesig === "off" ? null : info.accent(barPos);
+        scheduleMain(t, accent);
+      }
 
+      /* Subdivs belong to beat i even when the main click was in an earlier window. */
       if (!polyRatio && subdiv > 1) {
         for (var k = 1; k < subdiv; k++) {
           var st = t + (k * beat) / subdiv;
@@ -4304,7 +4353,14 @@
     stop: stopMetronome,
     open: openPanel,
     close: closePanel,
-    openMore: openMore
+    openMore: openMore,
+    drainToneLog: function () { var t = toneLog.slice(); toneLog.length = 0; return t; },
+    /* Deterministic scheduler probe (no AudioContext required). */
+    scheduleWindowForTest: function (from, to, originTime) {
+      origin = originTime;
+      scheduledThrough = from;
+      scheduleWindow(from, to);
+    }
   };
 })();
 </script>
