@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The 24 Major &amp; Minor Scales — Classical Study Guide</title>
+<title>Piano Skills — Scales &amp; Sight Reading</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
 <style>
   :root {
     --cream: #f7f3ea;
@@ -231,6 +232,7 @@
   }
 
   .scale-card {
+    scroll-margin-top: 6.5rem;
     background: var(--ivory);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -241,6 +243,7 @@
   }
 
   .scale-header {
+    scroll-margin-top: 6.5rem;
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -1551,6 +1554,252 @@
     .notes-signin-hint { width: 100%; text-align: center; }
     .auth-msg.err { text-align: center; }
   }
+
+
+/* ===== Sight Reading tabs & panel ===== */
+.skill-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem 0;
+  max-width: 56rem;
+  margin: 0 auto;
+  background: transparent;
+}
+.skill-tab {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  padding: 0.55rem 1.2rem 0.65rem;
+  border-radius: 0.55rem 0.55rem 0 0;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.skill-tab:hover { color: var(--ink); }
+.skill-tab.active {
+  color: var(--accent);
+  background: var(--ivory);
+  border-color: var(--border);
+  border-bottom-color: var(--ivory);
+}
+html {
+  /* Keep scrollIntoView / jump targets clear of the sticky Scales/Sight tabs */
+  scroll-padding-top: 6.5rem;
+}
+.skill-tab-bar {
+  position: sticky;
+  top: 0;
+  z-index: 55;
+  background: rgba(251, 248, 241, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.cof-section, #cof-wrap {
+  scroll-margin-top: 6.5rem;
+}
+.skill-tab-hint {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  padding: 0.3rem 1rem 0.65rem;
+}
+#panel-scales[hidden], #panel-sight[hidden] { display: none !important; }
+#panel-sight {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.1rem 1rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.sr-card {
+  background: var(--ivory);
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  box-shadow: 0 2px 12px var(--shadow);
+  overflow: hidden;
+}
+.sr-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding: 0.9rem 1.1rem 0.7rem;
+  background: linear-gradient(90deg, var(--parchment), var(--ivory));
+  border-bottom: 1px solid var(--border);
+}
+.sr-card-head h2 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.sr-card-meta { font-size: 0.78rem; color: var(--ink-soft); }
+.sr-card-body { padding: 1rem 1.1rem 1.1rem; }
+.sr-progress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) minmax(5rem, 1.4fr);
+  gap: 0.65rem;
+  align-items: center;
+}
+.sr-stat {
+  text-align: center;
+  padding: 0.55rem 0.4rem;
+  background: var(--cream);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+.sr-stat-num {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.sr-stat-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin-top: 0.15rem;
+}
+.sr-chips { display: flex; flex-wrap: wrap; gap: 0.45rem 0.65rem; margin-bottom: 0.85rem; }
+.sr-chip-group { display: flex; flex-direction: column; gap: 0.25rem; }
+.sr-chip-label {
+  font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--ink-soft);
+}
+.sr-chip-row { display: flex; flex-wrap: wrap; gap: 0.28rem; }
+.sr-chip {
+  appearance: none; border: 1px solid var(--border); background: var(--cream);
+  color: var(--ink); font: inherit; font-size: 0.78rem; font-weight: 500;
+  padding: 0.28rem 0.55rem; border-radius: 999px; cursor: pointer;
+}
+.sr-chip.active { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
+.sr-source { font-size: 0.78rem; color: var(--ink-soft); font-style: italic; margin: -0.25rem 0 0.7rem; }
+.sr-staff-frame {
+  background: #fffef9; border: 1px solid var(--border); border-radius: 0.55rem;
+  padding: 0.5rem 0.3rem 0.2rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+#sr-drill-staff { width: 100%; min-height: 180px; }
+#sr-drill-staff svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+#sr-drill-staff .sr-hl { fill: var(--accent) !important; }
+#sr-drill-staff .sr-hl-glow { fill: rgba(139,105,20,0.2); }
+.sr-controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-top: 0.85rem;
+}
+.sr-btn {
+  appearance: none; border: 1px solid var(--accent); background: var(--accent);
+  color: var(--ivory); font: inherit; font-weight: 600; font-size: 0.9rem;
+  padding: 0.5rem 0.95rem; border-radius: 0.5rem; cursor: pointer;
+}
+.sr-btn.secondary { background: var(--cream); color: var(--ink); border-color: var(--border); }
+.sr-btn.mic-btn { background: var(--cream); color: var(--ink); border-color: var(--border); display: inline-flex; align-items: center; gap: 0.35rem; }
+.sr-btn.mic-btn.on { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
+.sr-btn:hover { filter: brightness(1.05); }
+.sr-tempo { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--ink-soft); }
+.sr-tempo input[type=range] { width: 7rem; accent-color: var(--accent); }
+.sr-tempo-val {
+  font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700;
+  font-size: 1.15rem; color: var(--ink); min-width: 2.5rem;
+}
+.sr-flash-layout {
+  display: grid; grid-template-columns: minmax(7.5rem, 11rem) 1fr; gap: 1rem; align-items: center;
+}
+#sr-flash-staff {
+  background: #fffef9; border: 1px solid var(--border); border-radius: 0.5rem;
+  min-height: 110px; display: flex; align-items: center; justify-content: center;
+}
+.sr-letters {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.35rem;
+}
+.sr-letter {
+  appearance: none; aspect-ratio: 1; border: 1px solid var(--border); background: var(--cream);
+  border-radius: 0.45rem; font: inherit; font-weight: 700; font-size: 1rem; color: var(--ink); cursor: pointer;
+}
+.sr-letter:hover, .sr-letter.hot { background: var(--accent-pale); border-color: var(--accent-soft); }
+.sr-letter.ok { background: #d4e8d4; border-color: #6a9a6a; }
+.sr-letter.bad { background: #f0d4d0; border-color: #b07060; }
+.sr-flash-stats { display: flex; gap: 1rem; font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.55rem; }
+.sr-flash-stats strong { color: var(--ink); }
+.sr-mic-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 0.85rem;
+  margin-top: 0.75rem; padding-top: 0.7rem; border-top: 1px dashed var(--border);
+}
+.sr-hearing { font-size: 0.82rem; color: var(--ink-soft); }
+.sr-hearing strong {
+  color: var(--accent); font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.1rem; font-weight: 700;
+}
+.sr-hearing.live strong { color: #2a6b3a; }
+.sr-match { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--ink-soft); }
+.sr-match select {
+  font: inherit; font-size: 0.75rem; border: 1px solid var(--border);
+  background: var(--cream); border-radius: 0.35rem; padding: 0.15rem 0.35rem; color: var(--ink);
+}
+.sr-kb {
+  display: flex; gap: 2px; margin-top: 0.55rem; height: 42px; user-select: none;
+}
+.sr-kb-key {
+  flex: 1; border: 1px solid var(--border); border-radius: 0 0 4px 4px; background: #fffef9;
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px;
+  font-size: 0.62rem; font-weight: 600; color: var(--ink-soft); position: relative;
+}
+.sr-kb-key.black {
+  flex: 0.62; background: var(--ink); color: var(--accent-pale); margin: 0 -4px;
+  height: 62%; z-index: 1; border-color: var(--ink); align-items: flex-start;
+  padding-top: 4px; border-radius: 0 0 3px 3px;
+}
+.sr-kb-key.lit {
+  background: var(--accent-pale); border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(139,105,20,0.25);
+}
+.sr-kb-key.black.lit { background: var(--accent); color: var(--ivory); }
+.sr-runner-hud {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 0.5rem 1rem; margin-bottom: 0.7rem; font-size: 0.82rem;
+}
+.sr-runner-hud strong { color: var(--ink); font-weight: 600; }
+.sr-hearts { letter-spacing: 0.12em; color: #9a3b1f; font-size: 1rem; }
+.sr-speed-pill {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  background: var(--accent-pale); border: 1px solid var(--accent-soft); color: var(--accent);
+  font-weight: 600; font-size: 0.78rem; padding: 0.2rem 0.55rem; border-radius: 999px;
+}
+.sr-runner-stage {
+  position: relative; background: #fffef9; border: 1px solid var(--border);
+  border-radius: 0.55rem; height: 148px; overflow: hidden;
+}
+#sr-runner-vf { width: 100%; height: 100%; }
+#sr-runner-vf svg { display: block; width: 100%; height: 100%; }
+.sr-hit-line {
+  position: absolute; left: 22%; top: 8%; bottom: 8%; width: 2px;
+  background: var(--accent); box-shadow: 0 0 0 3px rgba(139,105,20,0.18);
+  z-index: 2; pointer-events: none;
+}
+.sr-hit-label {
+  position: absolute; left: 22%; top: 4px; transform: translateX(-50%);
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--accent); z-index: 3;
+}
+.sr-runner-hint { margin-top: 0.55rem; font-size: 0.75rem; color: var(--ink-soft); }
+.sr-mic-limits { margin-top: 0.45rem; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.4; }
+@media (max-width: 600px) {
+  .sr-flash-layout { grid-template-columns: 1fr; }
+  .sr-progress { grid-template-columns: repeat(3, 1fr); }
+  .sr-progress .sr-spark { grid-column: 1 / -1; }
+  .skill-tab { font-size: 0.85rem; padding: 0.5rem 0.85rem 0.6rem; }
+}
+@media print {
+  .skill-tab-bar, #panel-sight { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -1568,8 +1817,8 @@
     </span>
     <span class="auth-msg" id="auth-msg" role="status" aria-live="polite" hidden></span>
   </div>
-  <h1>The 24 Major &amp; Minor Scales</h1>
-  <p class="subtitle">A complete reference for the classical pianist</p>
+  <h1>Piano Skills</h1>
+  <p class="subtitle">Scales · Sight reading · Daily drills</p>
   <p class="intro">
     All twelve major keys and twelve minor keys — two octaves ascending, hands one octave apart — with sheet music and
     standard classical fingerings for both hands. Each scale fits on one line; tap it for a larger,
@@ -1579,6 +1828,15 @@
   </p>
 </header>
 
+<div class="skill-tab-bar" id="skill-tab-bar">
+  <div class="skill-tabs" role="tablist" aria-label="Skills sections">
+    <button type="button" class="skill-tab active" role="tab" id="tab-scales" aria-selected="true" aria-controls="panel-scales">Scales</button>
+    <button type="button" class="skill-tab" role="tab" id="tab-sight" aria-selected="false" aria-controls="panel-sight">Sight Reading</button>
+  </div>
+  <p class="skill-tab-hint" id="skill-tab-hint">Circle of fifths · all 24 scales · fingerings</p>
+</div>
+
+<div id="panel-scales">
 
 <section class="cof-section" aria-labelledby="cof-heading">
   <h2 id="cof-heading">Circle of Fifths</h2>
@@ -1728,6 +1986,136 @@
   <p>24 keys · two octaves each, hands one octave apart · sheet music + RH/LH classical fingerings</p>
   <a class="back-top" href="#top">↑ Back to top</a>
 </footer>
+
+
+</div><!-- /panel-scales -->
+
+<div id="panel-sight" hidden>
+  <section class="sr-card" aria-label="Progress">
+    <div class="sr-card-body sr-progress">
+      <div class="sr-stat"><div class="sr-stat-num" id="sr-stat-streak">0</div><div class="sr-stat-label">Day streak</div></div>
+      <div class="sr-stat"><div class="sr-stat-num" id="sr-stat-npm">—</div><div class="sr-stat-label">Notes / min</div></div>
+      <div class="sr-stat"><div class="sr-stat-num" id="sr-stat-acc">—</div><div class="sr-stat-label">Accuracy</div></div>
+      <div class="sr-spark" aria-hidden="true">
+        <svg viewBox="0 0 120 40" width="100%" height="42" id="sr-spark-svg">
+          <polyline id="sr-spark-line" fill="none" stroke="#c4a35a" stroke-width="1.5" points="0,30 120,30"/>
+          <circle id="sr-spark-dot" cx="120" cy="30" r="2.5" fill="#8b6914"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="sr-card" id="sr-daily-drill">
+    <div class="sr-card-head">
+      <h2>Daily drill</h2>
+      <span class="sr-card-meta" id="sr-drill-meta">Level 1 · C major · RH · Czerny</span>
+    </div>
+    <div class="sr-card-body">
+      <div class="sr-chips">
+        <div class="sr-chip-group">
+          <span class="sr-chip-label">Level</span>
+          <div class="sr-chip-row" id="sr-level-chips">
+            <button type="button" class="sr-chip active" data-level="1">1</button>
+            <button type="button" class="sr-chip" data-level="2">2</button>
+            <button type="button" class="sr-chip" data-level="3">3</button>
+            <button type="button" class="sr-chip" data-level="4">4</button>
+            <button type="button" class="sr-chip" data-level="5">5</button>
+          </div>
+        </div>
+        <div class="sr-chip-group">
+          <span class="sr-chip-label">Style</span>
+          <div class="sr-chip-row"><button type="button" class="sr-chip active" id="sr-style-tag">Czerny 5-finger</button></div>
+        </div>
+      </div>
+      <p class="sr-source" id="sr-drill-source"></p>
+      <div class="sr-staff-frame"><div id="sr-drill-staff" role="img" aria-label="Sight-reading exercise"></div></div>
+      <div class="sr-controls">
+        <button type="button" class="sr-btn" id="sr-drill-start">Start</button>
+        <div class="sr-tempo">
+          <span class="sr-tempo-val" id="sr-drill-bpm">72</span>
+          <input type="range" min="40" max="120" value="72" id="sr-drill-tempo" aria-label="Drill tempo">
+          <span>BPM</span>
+        </div>
+        <button type="button" class="sr-btn secondary" id="sr-drill-new">New exercise</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="sr-card" id="sr-note-flash">
+    <div class="sr-card-head">
+      <h2>Note Flash</h2>
+      <span class="sr-card-meta">Name the note · treble clef</span>
+    </div>
+    <div class="sr-card-body">
+      <div class="sr-flash-layout">
+        <div id="sr-flash-staff" role="img" aria-label="Single note on treble staff"></div>
+        <div>
+          <div class="sr-letters" id="sr-flash-letters" role="group" aria-label="Note names">
+            <button type="button" class="sr-letter" data-letter="A">A</button>
+            <button type="button" class="sr-letter" data-letter="B">B</button>
+            <button type="button" class="sr-letter" data-letter="C">C</button>
+            <button type="button" class="sr-letter" data-letter="D">D</button>
+            <button type="button" class="sr-letter" data-letter="E">E</button>
+            <button type="button" class="sr-letter" data-letter="F">F</button>
+            <button type="button" class="sr-letter" data-letter="G">G</button>
+          </div>
+          <div class="sr-flash-stats">
+            <span>Streak <strong id="sr-flash-streak">0</strong></span>
+            <span>Time <strong id="sr-flash-time">—</strong></span>
+            <span>Best <strong id="sr-flash-best">—</strong></span>
+          </div>
+        </div>
+      </div>
+      <div class="sr-kb" id="sr-flash-kb" aria-label="On-screen keyboard"></div>
+      <div class="sr-mic-row">
+        <button type="button" class="sr-btn mic-btn" id="sr-flash-mic" aria-pressed="false">🎤 Mic</button>
+        <span class="sr-hearing" id="sr-flash-hearing">hearing: <strong>—</strong></span>
+        <label class="sr-match">Match
+          <select id="sr-flash-match"><option value="letter">letter only</option><option value="exact">exact octave</option></select>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="sr-card" id="sr-note-runner">
+    <div class="sr-card-head">
+      <h2>Note Runner</h2>
+      <span class="sr-card-meta">Scroll · name · survive</span>
+    </div>
+    <div class="sr-card-body">
+      <div class="sr-runner-hud">
+        <span class="sr-speed-pill">Speed <strong id="sr-runner-speed">48</strong> notes/min</span>
+        <span>Streak <strong id="sr-runner-streak">0</strong></span>
+        <span class="sr-hearts" id="sr-runner-hearts" aria-label="3 of 3 lives">♥ ♥ ♥</span>
+      </div>
+      <div class="sr-runner-stage" id="sr-runner-stage" role="img" aria-label="Scrolling sight-reading game">
+        <span class="sr-hit-label">Hit</span>
+        <div class="sr-hit-line" aria-hidden="true"></div>
+        <div id="sr-runner-vf"></div>
+      </div>
+      <p class="sr-runner-hint">Speed increases every 10 correct · name each note before it crosses the gold line · pool follows drill level</p>
+      <div class="sr-letters" id="sr-runner-letters" role="group" aria-label="Answer with letter name" style="margin-top:0.75rem">
+        <button type="button" class="sr-letter" data-letter="A">A</button>
+        <button type="button" class="sr-letter" data-letter="B">B</button>
+        <button type="button" class="sr-letter" data-letter="C">C</button>
+        <button type="button" class="sr-letter" data-letter="D">D</button>
+        <button type="button" class="sr-letter" data-letter="E">E</button>
+        <button type="button" class="sr-letter" data-letter="F">F</button>
+        <button type="button" class="sr-letter" data-letter="G">G</button>
+      </div>
+      <div class="sr-kb" id="sr-runner-kb" aria-label="On-screen keyboard"></div>
+      <div class="sr-mic-row">
+        <button type="button" class="sr-btn mic-btn" id="sr-runner-mic" aria-pressed="false">🎤 Mic</button>
+        <span class="sr-hearing" id="sr-runner-hearing">hearing: <strong>—</strong></span>
+        <label class="sr-match">Match
+          <select id="sr-runner-match"><option value="letter">letter only</option><option value="exact">exact octave</option></select>
+        </label>
+        <button type="button" class="sr-btn secondary" id="sr-runner-toggle">Play</button>
+      </div>
+      <p class="sr-mic-limits">Mic: monophonic only · ~50–100 ms latency · needs HTTPS + permission · iPad Safari needs a tap to start AudioContext · octave slips on low notes / noise</p>
+    </div>
+  </section>
+</div>
 
 <script>
 (function () {
@@ -3191,7 +3579,7 @@
   function topObstruction() {
     /* Measured from size + sticky offset, so it is right even before the bar has stuck. */
     let bottom = 0;
-    document.querySelectorAll(".nav-wrap, .to-cof").forEach(n => {
+    document.querySelectorAll(".nav-wrap, .to-cof, .skill-tab-bar").forEach(n => {
       const cs = getComputedStyle(n);
       if (cs.display === "none" || cs.visibility === "hidden") return;
       if (cs.position !== "sticky" && cs.position !== "fixed") return;
@@ -3210,6 +3598,8 @@
     const fix = () => {
       if (token !== cardJumpToken) return;
       const want = target();
+      /* If the page is back near the top (circle), do not yank back down to the card. */
+      if (window.scrollY < 80 && want > 200) return;
       if (Math.abs(window.scrollY - want) > 2) window.scrollTo({ top: want, behavior: "auto" });
     };
     let n = 0, settled = false;
@@ -3218,7 +3608,7 @@
       const before = window.scrollY;
       window.setTimeout(() => {
         if (token !== cardJumpToken) return;
-        if (Math.abs(window.scrollY - before) < 1 || n > 20) { settled = true; fix(); [250, 600, 1200].forEach(t => window.setTimeout(fix, t)); }
+        if (Math.abs(window.scrollY - before) < 1 || n > 20) { settled = true; fix(); [200, 500].forEach(t => window.setTimeout(fix, t)); }
         else { n++; settle(); }
       }, 120);
     };
@@ -3239,7 +3629,7 @@
       }
     }
     const done = () => { if (ro) { ro.disconnect(); ro = null; } };
-    window.setTimeout(() => { fix(); window.setTimeout(done, 400); }, 2500);
+    window.setTimeout(() => { fix(); window.setTimeout(done, 400); }, 900);
     const stop = () => { cardJumpToken++; done(); };
     ["wheel", "touchstart", "keydown", "pointerdown"].forEach(ev => window.addEventListener(ev, stop, { once: true, passive: true }));
   }
@@ -3357,6 +3747,7 @@
       hit.addEventListener("click", e => {
         e.preventDefault();
         e.stopPropagation();
+        cardJumpToken++; /* cancel prior jump corrections before a new circle click */
         jumpToScale(id, kind);
       });
       hit.addEventListener("keydown", e => {
@@ -5112,6 +5503,1034 @@ const bridge = window.__scalesNotes;
     bridge.unavailable("sdk-setup-failed: " + ((err && (err.code || err.message)) || err));
   }
 })();
+</script>
+<script>
+/*! Sight Reading tab — production module for scales site */
+(function () {
+  "use strict";
+  if (!window.Vex || !Vex.Flow) {
+    console.warn("[sight-reading] VexFlow missing");
+    return;
+  }
+  const VF = Vex.Flow;
+  const STORE_KEY = "pianoSkills.sightReading.v1";
+  const TAB_KEY = "pianoSkills.activeTab";
+
+  /* ---------- Stats (localStorage) ---------- */
+  function loadStore() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}") || {}; }
+    catch (e) { return {}; }
+  }
+  function saveStore(s) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+  function updateStats(hit, miss) {
+    const s = loadStore();
+    s.correct = (s.correct || 0) + (hit || 0);
+    s.wrong = (s.wrong || 0) + (miss || 0);
+    s.history = s.history || [];
+    const day = todayKey();
+    if (s.lastDay !== day) {
+      if (s.lastDay) {
+        const prev = new Date(s.lastDay + "T12:00:00");
+        const cur = new Date(day + "T12:00:00");
+        const diff = Math.round((cur - prev) / 86400000);
+        s.streak = (diff === 1) ? (s.streak || 0) + 1 : 1;
+      } else {
+        s.streak = 1;
+      }
+      s.lastDay = day;
+    }
+    const now = Date.now();
+    s.session = s.session || { t0: now, hits: 0 };
+    if (now - s.session.t0 > 600000) s.session = { t0: now, hits: 0 };
+    if (hit) s.session.hits += hit;
+    const elapsedMin = Math.max(0.05, (now - s.session.t0) / 60000);
+    s.notesPerMin = Math.round(s.session.hits / elapsedMin);
+    const total = (s.correct || 0) + (s.wrong || 0);
+    s.accuracy = total ? Math.round(100 * (s.correct || 0) / total) : null;
+    s.history.push({ t: now, npm: s.notesPerMin, acc: s.accuracy });
+    if (s.history.length > 40) s.history = s.history.slice(-40);
+    saveStore(s);
+    renderStats();
+  }
+  function renderStats() {
+    const s = loadStore();
+    const streak = document.getElementById("sr-stat-streak");
+    const npm = document.getElementById("sr-stat-npm");
+    const acc = document.getElementById("sr-stat-acc");
+    if (!streak) return;
+    streak.textContent = String(s.streak || 0);
+    npm.textContent = s.notesPerMin != null ? String(s.notesPerMin) : "—";
+    acc.textContent = s.accuracy != null ? s.accuracy + "%" : "—";
+    const hist = s.history || [];
+    const line = document.getElementById("sr-spark-line");
+    const dot = document.getElementById("sr-spark-dot");
+    if (line && hist.length) {
+      const vals = hist.map(h => h.npm || 0);
+      const max = Math.max(10, ...vals);
+      const pts = vals.map((v, i) => {
+        const x = vals.length === 1 ? 120 : (i / (vals.length - 1)) * 120;
+        const y = 34 - (v / max) * 28;
+        return x.toFixed(1) + "," + y.toFixed(1);
+      }).join(" ");
+      line.setAttribute("points", pts);
+      const last = pts.split(" ").pop().split(",");
+      if (dot && last.length === 2) { dot.setAttribute("cx", last[0]); dot.setAttribute("cy", last[1]); }
+    }
+  }
+
+  /* ---------- Pitch detection ---------- */
+  const Pitch = (function () {
+    const NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    function freqToMidi(f) { return 69 + 12 * Math.log2(f / 440); }
+    function midiToName(m) {
+      const rounded = Math.round(m);
+      const name = NAMES[(rounded + 1200) % 12];
+      const oct = Math.floor(rounded / 12) - 1;
+      return { name: name, octave: oct, midi: rounded, label: name.replace("#","♯") + oct, letter: name.charAt(0) };
+    }
+    function detectPitch(buf, sampleRate) {
+      const SIZE = buf.length;
+      let rms = 0;
+      for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+      rms = Math.sqrt(rms / SIZE);
+      if (rms < 0.01) return null;
+      const r1 = Math.floor(sampleRate / 2100); /* allow up to ~C7 */
+      const r2 = Math.floor(sampleRate / 65); /* down to ~C2 */
+      const yin = new Float32Array(r2);
+      let tau, i, delta;
+      for (tau = 0; tau < r2; tau++) {
+        let sum = 0;
+        for (i = 0; i < SIZE - tau; i++) {
+          delta = buf[i] - buf[i + tau];
+          sum += delta * delta;
+        }
+        yin[tau] = sum;
+      }
+      yin[0] = 1;
+      let runningSum = 0;
+      for (tau = 1; tau < r2; tau++) {
+        runningSum += yin[tau];
+        yin[tau] *= tau / runningSum;
+      }
+      const threshold = 0.15;
+      let bestTau = -1;
+      for (tau = r1; tau < r2; tau++) {
+        if (yin[tau] < threshold) {
+          while (tau + 1 < r2 && yin[tau + 1] < yin[tau]) tau++;
+          bestTau = tau;
+          break;
+        }
+      }
+      if (bestTau < 0) {
+        let minVal = Infinity;
+        for (tau = r1; tau < r2; tau++) {
+          if (yin[tau] < minVal) { minVal = yin[tau]; bestTau = tau; }
+        }
+        if (minVal > 0.4) return null;
+      }
+      /* Prefer the fundamental: if tau/2 is also a strong valley, we locked an octave low. */
+      for (let div = 2; div <= 3; div++) {
+        const half = Math.floor(bestTau / div);
+        if (half >= r1 && yin[half] < Math.max(threshold * 2, yin[bestTau] * 1.8)) {
+          bestTau = half;
+        }
+      }
+      const x0 = bestTau > 0 ? yin[bestTau - 1] : yin[bestTau];
+      const x1 = yin[bestTau];
+      const x2 = bestTau + 1 < r2 ? yin[bestTau + 1] : yin[bestTau];
+      const better = bestTau + (x2 - x0) / (2 * (2 * x1 - x2 - x0));
+      const freq = sampleRate / better;
+      if (freq < 60 || freq > 2200) return null;
+      return { freq: freq, rms: rms, confidence: 1 - yin[bestTau], note: midiToName(freqToMidi(freq)) };
+    }
+    return { detectPitch: detectPitch, midiToName: midiToName, freqToMidi: freqToMidi, NAMES: NAMES };
+  })();
+  window.SightReadPitch = Pitch;
+
+  /* ---------- Mic ---------- */
+  const Mic = (function () {
+    let ctx = null, stream = null, analyser = null, raf = 0, running = false;
+    let stable = [];
+    const NEED = 3;
+    const listeners = [];
+    function onNote(cb) { listeners.push(cb); }
+    function emit(p) { listeners.forEach(function (cb) { try { cb(p); } catch (e) {} }); }
+    async function start() {
+      if (running) return true;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+        });
+      } catch (e) {
+        console.warn("[sight-reading] mic denied", e);
+        return false;
+      }
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === "suspended") await ctx.resume();
+      const src = ctx.createMediaStreamSource(stream);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      src.connect(analyser);
+      const buf = new Float32Array(analyser.fftSize);
+      running = true;
+      function tick() {
+        if (!running) return;
+        analyser.getFloatTimeDomainData(buf);
+        const result = Pitch.detectPitch(buf, ctx.sampleRate);
+        if (result && result.rms >= 0.02 && result.confidence > 0.55) {
+          stable.push(result.note.label);
+          if (stable.length > NEED) stable.shift();
+          const ok = stable.length >= NEED && stable.every(function (x) { return x === stable[0]; });
+          emit({ hearing: result.note, raw: result, stable: ok });
+        } else {
+          stable = [];
+        }
+        raf = requestAnimationFrame(tick);
+      }
+      tick();
+      return true;
+    }
+    function stop() {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+      if (ctx) ctx.close().catch(function () {});
+      stream = null; ctx = null; analyser = null; stable = [];
+    }
+    function isOn() { return running; }
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden && running) {
+        stop();
+        document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
+          b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
+        });
+        setHearing(document.getElementById("sr-flash-hearing"), null);
+        setHearing(document.getElementById("sr-runner-hearing"), null);
+      }
+    });
+    return { start: start, stop: stop, isOn: isOn, onNote: onNote };
+  })();
+  window.SightReadMic = Mic;
+
+  /* ---------- Note helpers ---------- */
+  function n(clef, key, dur) {
+    var dots = 0;
+    if (dur.charAt(dur.length - 1) === ".") { dots = 1; dur = dur.slice(0, -1); }
+    if (key.charAt(0) === "r") {
+      const rest = new VF.StaveNote({ clef: clef, keys: [clef === "bass" ? "d/3" : "b/4"], duration: dur + "r", dots: dots });
+      if (dots) VF.Dot.buildAndAttach([rest], { all: true });
+      return rest;
+    }
+    const note = new VF.StaveNote({ clef: clef, keys: [key], duration: dur, dots: dots });
+    if (dots) VF.Dot.buildAndAttach([note], { all: true });
+    if (key.indexOf("#") !== -1) {
+      try { note.addModifier(new VF.Accidental("#"), 0); } catch (e) {}
+    }
+    return note;
+  }
+  function letterOfKey(key) {
+    return key.charAt(0).toUpperCase();
+  }
+  function transposeKey(key, semitones) {
+    if (key.charAt(0) === "r") return key;
+    const m = key.match(/^([a-g])(#|b)?\/(\d+)$/i);
+    if (!m) return key;
+    const names = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"];
+    let idx = names.indexOf((m[1] + (m[2] || "")).toLowerCase());
+    if (idx < 0) idx = names.indexOf(m[1].toLowerCase());
+    let midi = (parseInt(m[3], 10) + 1) * 12 + idx;
+    midi += semitones;
+    const nIdx = ((midi % 12) + 12) % 12;
+    const oct = Math.floor(midi / 12) - 1;
+    return names[nIdx] + "/" + oct;
+  }
+
+  /* ---------- Levels (approved repertoire) ---------- */
+  let currentLevel = 1;
+  let transposeSemis = 0; /* New exercise cycles nearby keys */
+
+  function buildLevels(semis) {
+    const T = function (k) { return transposeKey(k, semis); };
+    return {
+      1: {
+        meta: "Level 1 · 5-finger · RH · Czerny",
+        style: "Czerny 5-finger",
+        source: "Czerny Op. 599 No. 1 — opening RH 5-finger pattern (public domain, adapted RH-only)",
+        key: semis === 0 ? "C" : (semis === 7 ? "G" : (semis === 5 ? "F" : (semis === 2 ? "D" : "C"))),
+        time: "4/4", beatsPerBar: 4,
+        notePool: [T("c/4"),T("d/4"),T("e/4"),T("f/4"),T("g/4")],
+        runnerNotes: [
+          { key: T("g/4"), letter: letterOfKey(T("g/4")) },
+          { key: T("e/4"), letter: letterOfKey(T("e/4")) },
+          { key: T("c/4"), letter: letterOfKey(T("c/4")) },
+          { key: T("d/4"), letter: letterOfKey(T("d/4")) },
+          { key: T("f/4"), letter: letterOfKey(T("f/4")) },
+          { key: T("g/4"), letter: letterOfKey(T("g/4")) }
+        ],
+        measures: function () {
+          return [
+            { treble: [n("treble",T("c/4"),"q"), n("treble",T("d/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("f/4"),"q")], bass: [n("bass",T("c/3"),"w")] },
+            { treble: [n("treble",T("g/4"),"q"), n("treble",T("f/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("d/4"),"q")], bass: [n("bass",T("c/3"),"w")] },
+            { treble: [n("treble",T("c/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("g/4"),"q"), n("treble",T("e/4"),"q")], bass: [n("bass",T("c/3"),"w")] },
+            { treble: [n("treble",T("c/4"),"h"), n("treble",T("c/4"),"h")], bass: [n("bass",T("c/3"),"w")] }
+          ];
+        }
+      },
+      2: {
+        meta: "Level 2 · Alberti LH · Czerny-style",
+        style: "Czerny Alberti",
+        source: "Original exercise in the style of Czerny Op. 599 / Op. 139",
+        key: semis === 0 ? "C" : (semis === 7 ? "G" : "F"),
+        time: "4/4", beatsPerBar: 4,
+        notePool: [T("c/4"),T("d/4"),T("e/4"),T("g/4"),T("a/4")],
+        runnerNotes: [
+          { key: T("g/4"), letter: letterOfKey(T("g/4")) },
+          { key: T("e/4"), letter: letterOfKey(T("e/4")) },
+          { key: T("c/4"), letter: letterOfKey(T("c/4")) },
+          { key: T("a/4"), letter: letterOfKey(T("a/4")) },
+          { key: T("f/4"), letter: letterOfKey(T("f/4")) },
+          { key: T("d/4"), letter: letterOfKey(T("d/4")) }
+        ],
+        measures: function () {
+          function alberti(c, e, g) {
+            return [n("bass",c,"8"), n("bass",g,"8"), n("bass",e,"8"), n("bass",g,"8"),
+                    n("bass",c,"8"), n("bass",g,"8"), n("bass",e,"8"), n("bass",g,"8")];
+          }
+          return [
+            { treble: [n("treble",T("e/4"),"q"), n("treble",T("d/4"),"q"), n("treble",T("c/4"),"q"), n("treble",T("d/4"),"q")], bass: alberti(T("c/3"),T("e/3"),T("g/3")) },
+            { treble: [n("treble",T("e/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("e/4"),"h")], bass: alberti(T("c/3"),T("e/3"),T("g/3")) },
+            { treble: [n("treble",T("d/4"),"q"), n("treble",T("d/4"),"q"), n("treble",T("d/4"),"h")], bass: alberti(T("g/2"),T("b/2"),T("d/3")) },
+            { treble: [n("treble",T("e/4"),"q"), n("treble",T("g/4"),"q"), n("treble",T("c/5"),"h")], bass: alberti(T("c/3"),T("e/3"),T("g/3")) }
+          ];
+        }
+      },
+      3: {
+        meta: "Level 3 · G major · minuet",
+        style: "Anna Magdalena minuet",
+        source: "Petzold — Minuet in G, BWV Anh. 114 — opening 4 bars (public domain)",
+        key: "G", time: "3/4", beatsPerBar: 3,
+        /* Keep authentic pitches; no transpose for L3 */
+        notePool: ["d/5","g/4","a/4","b/4","c/5","e/5","f/5","g/5"],
+        runnerNotes: [
+          { key: "g/4", letter: "G" }, { key: "a/4", letter: "A" }, { key: "b/4", letter: "B" },
+          { key: "c/5", letter: "C" }, { key: "d/5", letter: "D" }, { key: "e/5", letter: "E" }
+        ],
+        measures: function () {
+          return [
+            { treble: [n("treble","d/5","q"), n("treble","g/4","8"), n("treble","a/4","8"), n("treble","b/4","8"), n("treble","c/5","8")],
+              bass: [n("bass","g/3","h"), n("bass","a/3","q")], beamPairs: true },
+            { treble: [n("treble","d/5","q"), n("treble","g/4","q"), n("treble","g/4","q")],
+              bass: [n("bass","b/3","h.")] },
+            { treble: [n("treble","e/5","q"), n("treble","c/5","8"), n("treble","d/5","8"), n("treble","e/5","8"), n("treble","f/5","8")],
+              bass: [n("bass","c/4","h.")], beamPairs: true },
+            { treble: [n("treble","g/5","q"), n("treble","g/4","q"), n("treble","g/4","q")],
+              bass: [n("bass","b/3","h.")] }
+          ];
+        }
+      },
+      4: {
+        meta: "Level 4 · running 16ths",
+        style: "Little Prelude",
+        source: "Original exercise in the style of Bach Little Prelude BWV 939",
+        key: semis === 0 ? "C" : "G",
+        time: "4/4", beatsPerBar: 4,
+        notePool: [T("c/4"),T("d/4"),T("e/4"),T("f/4"),T("g/4"),T("a/4"),T("b/4"),T("c/5")],
+        runnerNotes: [
+          { key: T("g/4"), letter: letterOfKey(T("g/4")) },
+          { key: T("a/4"), letter: letterOfKey(T("a/4")) },
+          { key: T("b/4"), letter: letterOfKey(T("b/4")) },
+          { key: T("c/5"), letter: letterOfKey(T("c/5")) },
+          { key: T("e/4"), letter: letterOfKey(T("e/4")) },
+          { key: T("f/4"), letter: letterOfKey(T("f/4")) }
+        ],
+        measures: function () {
+          function six(keys) { return keys.map(function (k) { return n("treble", T(k), "16"); }); }
+          return [
+            { treble: six(["c/5","b/4","a/4","g/4","a/4","g/4","f/4","e/4","f/4","e/4","d/4","c/4","d/4","e/4","f/4","g/4"]),
+              bass: [n("bass",T("c/3"),"q"), n("bass",T("e/3"),"q"), n("bass",T("g/3"),"q"), n("bass",T("c/3"),"q")] },
+            { treble: six(["a/4","b/4","c/5","d/5","c/5","b/4","a/4","g/4","f/4","g/4","a/4","b/4","c/5","g/4","e/4","c/4"]),
+              bass: [n("bass",T("f/3"),"q"), n("bass",T("a/3"),"q"), n("bass",T("c/3"),"q"), n("bass",T("f/3"),"q")] },
+            { treble: six(["d/4","e/4","f/4","g/4","a/4","g/4","f/4","e/4","d/4","e/4","f/4","g/4","a/4","b/4","c/5","d/5"]),
+              bass: [n("bass",T("g/3"),"q"), n("bass",T("b/3"),"q"), n("bass",T("d/3"),"q"), n("bass",T("g/3"),"q")] },
+            { treble: six(["c/5","b/4","a/4","g/4","f/4","e/4","d/4","c/4","d/4","e/4","f/4","g/4","e/4","c/4","d/4","c/4"]),
+              bass: [n("bass",T("c/3"),"h"), n("bass",T("c/3"),"h")] }
+          ];
+        }
+      },
+      5: {
+        meta: "Level 5 · imitation · 2 bars",
+        style: "Invention imitation",
+        source: "Original exercise in the style of Bach Invention No. 1 BWV 772 — 2-bar subject + octave answer",
+        key: "C", time: "4/4", beatsPerBar: 4,
+        notePool: ["c/4","d/4","e/4","f/4","g/4","a/4","c/5","d/5","e/5","f/5","g/5"],
+        runnerNotes: [
+          { key: "g/4", letter: "G" }, { key: "c/5", letter: "C" }, { key: "d/5", letter: "D" },
+          { key: "e/5", letter: "E" }, { key: "f/4", letter: "F" }, { key: "a/4", letter: "A" }
+        ],
+        measures: function () {
+          function subject(clef, oct) {
+            const o = String(oct);
+            return [
+              n(clef,"c/"+o,"16"), n(clef,"d/"+o,"16"), n(clef,"e/"+o,"16"), n(clef,"f/"+o,"16"),
+              n(clef,"d/"+o,"16"), n(clef,"e/"+o,"16"), n(clef,"f/"+o,"16"), n(clef,"g/"+o,"16"),
+              n(clef,"e/"+o,"16"), n(clef,"f/"+o,"16"), n(clef,"g/"+o,"16"), n(clef,"a/"+o,"16"),
+              n(clef,"g/"+o,"8"), n(clef,"c/"+o,"8")
+            ];
+          }
+          const rh = subject("treble", 5);
+          const lh = subject("bass", 3);
+          return [
+            { treble: rh, bass: [n("bass","r/3","w")], beamGroups: [[0,4],[4,8],[8,12],[12,14]] },
+            { treble: [n("treble","e/5","h"), n("treble","c/5","h")], bass: lh, beamGroupsBass: [[0,4],[4,8],[8,12],[12,14]] }
+          ];
+        }
+      }
+    };
+  }
+  let LEVELS = buildLevels(0);
+
+  function makeBeams(notes, opts) {
+    opts = opts || {};
+    const playable = notes.filter(function (x) { return !x.isRest(); });
+    if (playable.length < 2) return [];
+    if (opts.beamGroups) {
+      return opts.beamGroups.map(function (pair) { return new VF.Beam(notes.slice(pair[0], pair[1])); });
+    }
+    if (opts.beamPairs) {
+      const beams = [];
+      const eighths = notes.filter(function (x) { return !x.isRest() && String(x.getDuration()) === "8"; });
+      for (var k = 0; k + 1 < eighths.length; k += 2) beams.push(new VF.Beam([eighths[k], eighths[k + 1]]));
+      return beams;
+    }
+    try {
+      return VF.Beam.generateBeams(playable, {
+        groups: [new VF.Fraction(1,4), new VF.Fraction(1,4), new VF.Fraction(1,4), new VF.Fraction(1,4)]
+      });
+    } catch (e) {
+      try { return VF.Beam.generateBeams(playable); } catch (e2) { return []; }
+    }
+  }
+
+  /* continue in part 2 */
+  window.__SR_PART1_OK = true;
+
+  /* ---------- Drill rendering ---------- */
+  let lastMeasures = [];
+  function drawDrill() {
+    const level = LEVELS[currentLevel];
+    const el = document.getElementById("sr-drill-staff");
+    if (!el) return;
+    el.innerHTML = "";
+    const measures = level.measures();
+    lastMeasures = measures;
+    const containerW = Math.max(300, el.clientWidth || 640);
+    const bars = measures.length;
+    const narrow = containerW < 520;
+    const systems = (narrow && bars >= 4) ? 2 : 1;
+    const barsPerSystem = Math.ceil(bars / systems);
+    const systemGap = 200;
+    const height = 16 + systems * systemGap;
+    const beatsPerBar = level.beatsPerBar || 4;
+    const padL = 8;
+
+    function measureMinWidth(measure, isFirst) {
+      const nCount = measure.treble.filter(function (x) { return !x.isRest(); }).length
+        + measure.bass.filter(function (x) { return !x.isRest(); }).length;
+      var w = 70 + nCount * 14;
+      if (isFirst) w += 64;
+      return Math.max(isFirst ? 140 : 100, w);
+    }
+    var sysWidths = [];
+    for (var s = 0; s < systems; s++) {
+      const slice = measures.slice(s * barsPerSystem, s * barsPerSystem + barsPerSystem);
+      var sum = padL + 8;
+      slice.forEach(function (m, mi) { sum += measureMinWidth(m, mi === 0); });
+      sysWidths.push(Math.max(containerW, sum));
+    }
+    const width = Math.max.apply(null, sysWidths.concat([containerW]));
+    const renderer = new VF.Renderer(el, VF.Renderer.Backends.SVG);
+    renderer.resize(width, height);
+    const ctx = renderer.getContext();
+
+    for (var sys = 0; sys < systems; sys++) {
+      const start = sys * barsPerSystem;
+      const slice = measures.slice(start, start + barsPerSystem);
+      if (!slice.length) continue;
+      const yT = 8 + sys * systemGap;
+      const yB = yT + 100;
+      const usable = sysWidths[sys] - padL - 8;
+      var widths = slice.map(function (m, mi) { return measureMinWidth(m, mi === 0); });
+      var sumW = widths.reduce(function (a, b) { return a + b; }, 0);
+      if (sumW < usable) {
+        var densest = 0;
+        for (var i = 1; i < slice.length; i++) {
+          if (slice[i].treble.length >= slice[densest].treble.length) densest = i;
+        }
+        widths[densest] += usable - sumW;
+      }
+      var x = padL;
+      slice.forEach(function (measure, mi) {
+        const isFirst = mi === 0;
+        const isLast = mi === slice.length - 1;
+        const mW = widths[mi];
+        const treble = new VF.Stave(x, yT, mW);
+        const bass = new VF.Stave(x, yB, mW);
+        if (!isFirst) {
+          treble.setBegBarType(VF.Barline.type.SINGLE);
+          bass.setBegBarType(VF.Barline.type.SINGLE);
+        }
+        if (isFirst) {
+          treble.addClef("treble");
+          bass.addClef("bass");
+          if (level.key && level.key !== "C") {
+            treble.addKeySignature(level.key);
+            bass.addKeySignature(level.key);
+          }
+          treble.addTimeSignature(level.time || "4/4");
+          bass.addTimeSignature(level.time || "4/4");
+        }
+        if (isLast) {
+          treble.setEndBarType(VF.Barline.type.SINGLE);
+          bass.setEndBarType(VF.Barline.type.SINGLE);
+        }
+        treble.setContext(ctx).draw();
+        bass.setContext(ctx).draw();
+        if (isFirst) {
+          new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.BRACE).setContext(ctx).draw();
+          new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.SINGLE_LEFT).setContext(ctx).draw();
+        }
+        if (isLast) {
+          new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.SINGLE_RIGHT).setContext(ctx).draw();
+        }
+        const tNotes = measure.treble;
+        const bNotes = measure.bass;
+        const beamsT = makeBeams(tNotes, { beamPairs: !!measure.beamPairs, beamGroups: measure.beamGroups });
+        const beamsB = makeBeams(bNotes, { beamGroups: measure.beamGroupsBass });
+        const voiceT = new VF.Voice({ num_beats: beatsPerBar, beat_value: 4 }).setStrict(true).addTickables(tNotes);
+        const voiceB = new VF.Voice({ num_beats: beatsPerBar, beat_value: 4 }).setStrict(true).addTickables(bNotes);
+        const avail = Math.max(40, treble.getNoteEndX() - treble.getNoteStartX() - 8);
+        new VF.Formatter().joinVoices([voiceT, voiceB]).format([voiceT, voiceB], avail);
+        voiceT.draw(ctx, treble);
+        voiceB.draw(ctx, bass);
+        beamsT.forEach(function (b) { b.setContext(ctx).draw(); });
+        beamsB.forEach(function (b) { b.setContext(ctx).draw(); });
+        /* stash for playback highlight */
+        tNotes.forEach(function (note) {
+          note.srStave = treble;
+          note.srSystem = sys;
+        });
+        x += mW;
+      });
+    }
+  }
+
+  /* ---------- Drill playback ---------- */
+  let drillPlaying = false;
+  let drillTimers = [];
+  let drillAudioCtx = null;
+  function ensureDrillAudio() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!drillAudioCtx) drillAudioCtx = new AC();
+    return drillAudioCtx;
+  }
+  function clickAt(ctx, time, accent) {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = accent ? 1200 : 900;
+    g.gain.setValueAtTime(accent ? 0.12 : 0.07, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(time); osc.stop(time + 0.06);
+  }
+  function stopDrill() {
+    drillPlaying = false;
+    drillTimers.forEach(clearTimeout);
+    drillTimers = [];
+    const btn = document.getElementById("sr-drill-start");
+    if (btn) btn.textContent = "Start";
+    document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) {
+      el.style.opacity = "";
+      el.classList.remove("sr-now");
+    });
+  }
+  function startDrill() {
+    if (drillPlaying) { stopDrill(); return; }
+    const ctx = ensureDrillAudio();
+    if (!ctx) return;
+    const resume = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+    resume.then(function () {
+      const bpm = parseInt(document.getElementById("sr-drill-bpm").textContent, 10) || 72;
+      const beatSec = 60 / bpm;
+      const level = LEVELS[currentLevel];
+      /* Flatten treble notes with durations in beats */
+      const flat = [];
+      lastMeasures.forEach(function (m) {
+        m.treble.forEach(function (note) {
+          if (note.isRest && note.isRest()) return;
+          const dur = note.getDuration();
+          let beats = dur === "w" ? 4 : dur === "h" ? 2 : dur === "q" ? 1 : dur === "8" ? 0.5 : dur === "16" ? 0.25 : 1;
+          if (note.dots && note.dots > 0) beats *= 1.5;
+          flat.push({ note: note, beats: beats });
+        });
+      });
+      if (!flat.length) return;
+      drillPlaying = true;
+      document.getElementById("sr-drill-start").textContent = "Stop";
+      const svgNotes = document.querySelectorAll("#sr-drill-staff .vf-stavenote");
+      /* Map only treble-ish by y position: take first N matching flat length from upper system notes */
+      const trebleEls = [];
+      svgNotes.forEach(function (el) {
+        const bb = el.getBBox();
+        if (bb.y < 120 || (bb.y > 200 && bb.y < 320)) trebleEls.push(el); /* rough: upper staff of each system */
+      });
+      let t = 0;
+      flat.forEach(function (item, idx) {
+        const startT = t;
+        const el = trebleEls[idx];
+        drillTimers.push(setTimeout(function () {
+          if (!drillPlaying) return;
+          trebleEls.forEach(function (e) { e.style.opacity = "0.35"; });
+          if (el) { el.style.opacity = "1"; el.style.filter = "drop-shadow(0 0 3px #8b6914)"; }
+          clickAt(ctx, ctx.currentTime, idx === 0);
+        }, startT * 1000));
+        t += item.beats * beatSec;
+      });
+      drillTimers.push(setTimeout(function () {
+        stopDrill();
+        updateStats(flat.length, 0);
+      }, t * 1000 + 80));
+    });
+  }
+
+  /* ---------- Flash ---------- */
+  let flashAnswer = { letter: "G", label: "G4", key: "g/4" };
+  let flashShownAt = 0;
+  let flashStreak = 0;
+  let flashBest = null;
+  function drawFlash() {
+    const el = document.getElementById("sr-flash-staff");
+    if (!el) return;
+    el.innerHTML = "";
+    const pool = LEVELS[currentLevel].notePool.filter(function (k) {
+      return k.indexOf("/4") !== -1 || k.indexOf("/5") !== -1;
+    });
+    const key = pool[Math.floor(Math.random() * pool.length)] || "g/4";
+    flashAnswer = { letter: letterOfKey(key), label: letterOfKey(key) + key.split("/")[1], key: key };
+    const renderer = new VF.Renderer(el, VF.Renderer.Backends.SVG);
+    renderer.resize(168, 120);
+    const ctx = renderer.getContext();
+    const stave = new VF.Stave(10, 10, 148);
+    stave.addClef("treble").setContext(ctx).draw();
+    const notes = [new VF.StaveNote({ clef: "treble", keys: [key], duration: "w" })];
+    const voice = new VF.Voice({ num_beats: 4, beat_value: 4 }).addTickables(notes);
+    new VF.Formatter().joinVoices([voice]).format([voice], 100);
+    voice.draw(ctx, stave);
+    flashShownAt = performance.now();
+    document.querySelectorAll("#sr-flash-letters .sr-letter").forEach(function (b) {
+      b.classList.remove("hot", "ok", "bad");
+    });
+  }
+  function answerFlash(letter) {
+    const elapsed = (performance.now() - flashShownAt) / 1000;
+    const ok = letter === flashAnswer.letter;
+    document.querySelectorAll("#sr-flash-letters .sr-letter").forEach(function (b) {
+      b.classList.toggle("ok", ok && b.dataset.letter === letter);
+      b.classList.toggle("bad", !ok && b.dataset.letter === letter);
+      if (b.dataset.letter === flashAnswer.letter) b.classList.add("hot");
+    });
+    if (ok) {
+      flashStreak++;
+      if (flashBest == null || elapsed < flashBest) flashBest = elapsed;
+      updateStats(1, 0);
+      document.getElementById("sr-flash-time").textContent = elapsed.toFixed(1) + "s";
+      document.getElementById("sr-flash-best").textContent = flashBest.toFixed(1) + "s";
+      setTimeout(drawFlash, 450);
+    } else {
+      flashStreak = 0;
+      updateStats(0, 1);
+    }
+    document.getElementById("sr-flash-streak").textContent = String(flashStreak);
+  }
+
+  /* ---------- Note Runner game ---------- */
+  const Runner = (function () {
+    let playing = false, raf = 0;
+    let speed = 48; /* notes/min */
+    let streak = 0, lives = 3, sinceSpeed = 0;
+    let notes = []; /* {key, letter, x, line} */
+    let staffTop = 0, gap = 10, hitX = 140;
+    let lastTs = 0;
+
+    function staffYForKey(key) {
+      const map = {
+        "c/4": 5, "d/4": 4.5, "e/4": 4, "f/4": 3.5, "g/4": 3, "a/4": 2.5, "b/4": 2,
+        "c/5": 1.5, "d/5": 1, "e/5": 0.5, "f/5": 0, "g/5": -0.5, "a/5": -1,
+        "c#/4": 5, "d#/4": 4.5, "f#/4": 3.5, "g#/4": 3, "a#/4": 2.5
+      };
+      /* normalize */
+      const k = key.replace("♯", "#");
+      return map[k] != null ? map[k] : 3;
+    }
+    function spawnNote(x) {
+      const pool = LEVELS[currentLevel].runnerNotes;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      return { key: pick.key, letter: pick.letter, x: x, answered: false };
+    }
+    function drawFrame() {
+      const host = document.getElementById("sr-runner-vf");
+      if (!host) return;
+      host.innerHTML = "";
+      const width = 640, height = 148;
+      const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
+      renderer.resize(width, height);
+      const ctx = renderer.getContext();
+      const stave = new VF.Stave(6, 28, width - 12);
+      stave.addClef("treble");
+      stave.setContext(ctx).draw();
+      const svg = host.querySelector("svg");
+      if (!svg) return;
+      svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+      staffTop = stave.getYForLine(0);
+      gap = stave.getYForLine(1) - stave.getYForLine(0);
+      hitX = width * 0.22;
+      const NS = "http://www.w3.org/2000/svg";
+      notes.forEach(function (pn) {
+        const line = staffYForKey(pn.key);
+        const y = staffTop + line * gap;
+        const x = pn.x;
+        const hot = !pn.answered && Math.abs(x - hitX) < 28;
+        const g = document.createElementNS(NS, "g");
+        if (line >= 5 || line <= -0.5) {
+          const led = document.createElementNS(NS, "line");
+          const ly = staffTop + Math.round(line) * gap;
+          led.setAttribute("x1", x - 11); led.setAttribute("x2", x + 11);
+          led.setAttribute("y1", ly); led.setAttribute("y2", ly);
+          led.setAttribute("stroke", "#2c2416"); led.setAttribute("stroke-width", "1.1");
+          g.appendChild(led);
+        }
+        if (hot) {
+          const glow = document.createElementNS(NS, "circle");
+          glow.setAttribute("cx", x); glow.setAttribute("cy", y); glow.setAttribute("r", "15");
+          glow.setAttribute("fill", "rgba(139,105,20,0.18)");
+          g.appendChild(glow);
+          pn._hot = true;
+        } else pn._hot = false;
+        const head = document.createElementNS(NS, "ellipse");
+        head.setAttribute("cx", x); head.setAttribute("cy", y);
+        head.setAttribute("rx", "7"); head.setAttribute("ry", "5.2");
+        head.setAttribute("transform", "rotate(-20 " + x + " " + y + ")");
+        head.setAttribute("fill", hot ? "#8b6914" : "#2c2416");
+        g.appendChild(head);
+        const stemUp = line > 2;
+        const stem = document.createElementNS(NS, "line");
+        const sx = x + (stemUp ? 6 : -6);
+        stem.setAttribute("x1", sx); stem.setAttribute("x2", sx);
+        stem.setAttribute("y1", y); stem.setAttribute("y2", y + (stemUp ? -30 : 30));
+        stem.setAttribute("stroke", hot ? "#8b6914" : "#2c2416");
+        stem.setAttribute("stroke-width", "1.5");
+        g.appendChild(stem);
+        svg.appendChild(g);
+      });
+    }
+    function syncHud() {
+      document.getElementById("sr-runner-speed").textContent = String(Math.round(speed));
+      document.getElementById("sr-runner-streak").textContent = String(streak);
+      const hearts = [];
+      for (let i = 0; i < 3; i++) hearts.push(i < lives ? "♥" : '<span style="opacity:.28">♥</span>');
+      document.getElementById("sr-runner-hearts").innerHTML = hearts.join(" ");
+      const btn = document.getElementById("sr-runner-toggle");
+      if (btn) btn.textContent = playing ? "Pause" : "Play";
+    }
+    function target() {
+      let best = null, bestDist = 1e9;
+      notes.forEach(function (n) {
+        if (n.answered) return;
+        const d = n.x - hitX;
+        if (d > -20 && d < bestDist) { bestDist = d; best = n; }
+      });
+      return best;
+    }
+    function answer(letter) {
+      if (!playing) return;
+      const t = target();
+      if (!t) return;
+      const mode = document.getElementById("sr-runner-match").value;
+      let ok = (letter === t.letter);
+      if (ok) {
+        t.answered = true;
+        streak++;
+        sinceSpeed++;
+        updateStats(1, 0);
+        if (sinceSpeed >= 10) { speed = Math.min(120, speed + 8); sinceSpeed = 0; }
+        highlightLetter(document.getElementById("sr-runner-letters"), letter);
+      } else {
+        streak = 0;
+        lives--;
+        speed = Math.max(32, speed - 6);
+        sinceSpeed = 0;
+        updateStats(0, 1);
+        if (lives <= 0) { playing = false; lives = 3; streak = 0; }
+      }
+      syncHud();
+    }
+    function tick(ts) {
+      if (!playing) return;
+      if (!lastTs) lastTs = ts;
+      const dt = Math.min(0.05, (ts - lastTs) / 1000);
+      lastTs = ts;
+      const pxPerSec = (speed / 60) * 110; /* ~spacing */
+      notes.forEach(function (n) { n.x -= pxPerSec * dt; });
+      /* miss if crossed hit line unanswered */
+      notes.forEach(function (n) {
+        if (!n.answered && n.x < hitX - 18) {
+          n.answered = true;
+          streak = 0; lives--; speed = Math.max(32, speed - 6); sinceSpeed = 0;
+          updateStats(0, 1);
+          if (lives <= 0) { playing = false; lives = 3; }
+          syncHud();
+        }
+      });
+      notes = notes.filter(function (n) { return n.x > -40; });
+      const maxX = notes.reduce(function (m, n) { return Math.max(m, n.x); }, 0);
+      if (maxX < 560) notes.push(spawnNote(maxX + 90 + Math.random() * 30));
+      drawFrame();
+      const hot = notes.find(function (n) { return n._hot; });
+      if (hot) highlightLetter(document.getElementById("sr-runner-letters"), hot.letter);
+      raf = requestAnimationFrame(tick);
+    }
+    function start() {
+      if (playing) { playing = false; cancelAnimationFrame(raf); syncHud(); return; }
+      notes = [];
+      for (let i = 0; i < 5; i++) notes.push(spawnNote(160 + i * 95));
+      playing = true; lastTs = 0;
+      syncHud();
+      raf = requestAnimationFrame(tick);
+    }
+    function resetVisual() {
+      notes = [];
+      for (let i = 0; i < 5; i++) notes.push(spawnNote(160 + i * 95));
+      /* mid-game look: first near hit */
+      notes[0].x = hitX + 8;
+      drawFrame();
+      syncHud();
+    }
+    return { start: start, answer: answer, resetVisual: resetVisual, syncHud: syncHud, isPlaying: function () { return playing; } };
+  })();
+
+  /* ---------- UI helpers ---------- */
+  function setHearing(el, note, live) {
+    if (!el) return;
+    const strong = el.querySelector("strong");
+    if (!note) { strong.textContent = "—"; el.classList.remove("live"); return; }
+    strong.textContent = note.label || note;
+    el.classList.toggle("live", !!live);
+  }
+  function highlightLetter(container, letter) {
+    if (!container) return;
+    container.querySelectorAll(".sr-letter").forEach(function (b) {
+      b.classList.toggle("hot", b.dataset.letter === letter);
+    });
+  }
+  function buildKeyboard(el) {
+    if (!el) return;
+    el.innerHTML = "";
+    const WHITE = ["C4","D4","E4","F4","G4","A4","B4","C5"];
+    WHITE.forEach(function (note) {
+      const letter = note.charAt(0);
+      const d = document.createElement("div");
+      d.className = "sr-kb-key"; d.dataset.note = note; d.dataset.letter = letter; d.textContent = letter;
+      el.appendChild(d);
+      if ("CDFGA".indexOf(letter) !== -1 && note !== "C5") {
+        const b = document.createElement("div");
+        b.className = "sr-kb-key black";
+        b.dataset.note = letter + "♯" + note.slice(-1);
+        b.dataset.letter = letter;
+        el.appendChild(b);
+      }
+    });
+  }
+  function lightKeyboard(el, label) {
+    if (!el) return;
+    el.querySelectorAll(".sr-kb-key").forEach(function (k) { k.classList.remove("lit"); });
+    if (!label) return;
+    const want = label.replace("#", "♯");
+    const exact = Array.prototype.find.call(el.querySelectorAll(".sr-kb-key"), function (k) {
+      return (k.dataset.note || "").replace("#", "♯") === want;
+    });
+    if (exact) exact.classList.add("lit");
+  }
+
+  function setLevel(lv) {
+    currentLevel = lv;
+    LEVELS = buildLevels(currentLevel === 3 ? 0 : transposeSemis);
+    const level = LEVELS[lv];
+    document.getElementById("sr-drill-meta").textContent = level.meta;
+    document.getElementById("sr-drill-source").textContent = level.source;
+    document.getElementById("sr-style-tag").textContent = level.style;
+    document.querySelectorAll("#sr-level-chips .sr-chip").forEach(function (c) {
+      c.classList.toggle("active", +c.dataset.level === lv);
+    });
+    stopDrill();
+    drawDrill();
+    drawFlash();
+    Runner.resetVisual();
+  }
+
+  /* ---------- Tabs ---------- */
+  function setTab(name) {
+    const scales = document.getElementById("panel-scales");
+    const sight = document.getElementById("panel-sight");
+    const tabS = document.getElementById("tab-scales");
+    const tabR = document.getElementById("tab-sight");
+    const hint = document.getElementById("skill-tab-hint");
+    const isSight = name === "sight";
+    if (scales) scales.hidden = isSight;
+    if (sight) sight.hidden = !isSight;
+    if (tabS) { tabS.classList.toggle("active", !isSight); tabS.setAttribute("aria-selected", String(!isSight)); }
+    if (tabR) { tabR.classList.toggle("active", isSight); tabR.setAttribute("aria-selected", String(isSight)); }
+    if (hint) hint.textContent = isSight
+      ? "Bach & Czerny graded drills · mic pitch · Note Runner"
+      : "Circle of fifths · all 24 scales · fingerings";
+    try { localStorage.setItem(TAB_KEY, isSight ? "sight" : "scales"); } catch (e) {}
+    if (isSight) {
+      if (location.hash !== "#sight-reading") history.replaceState(null, "", "#sight-reading");
+      setLevel(currentLevel);
+      renderStats();
+    } else {
+      if (location.hash === "#sight-reading") history.replaceState(null, "", location.pathname + location.search);
+      if (Mic.isOn()) Mic.stop();
+      document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
+        b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
+      });
+      Runner.start && Runner.isPlaying() && Runner.start(); /* pause if playing */
+    }
+  }
+
+  async function toggleMic(btn) {
+    if (Mic.isOn()) {
+      Mic.stop();
+      document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
+        b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
+      });
+      setHearing(document.getElementById("sr-flash-hearing"), null);
+      setHearing(document.getElementById("sr-runner-hearing"), null);
+      lightKeyboard(document.getElementById("sr-flash-kb"), null);
+      lightKeyboard(document.getElementById("sr-runner-kb"), null);
+      return;
+    }
+    const ok = await Mic.start();
+    if (ok) {
+      document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
+        b.classList.add("on"); b.setAttribute("aria-pressed", "true");
+      });
+    } else {
+      alert("Microphone permission is needed for pitch detection. You can still answer with the A–G buttons.");
+    }
+  }
+
+  let micCooldown = 0;
+  Mic.onNote(function (payload) {
+    if (!payload || !payload.hearing) return;
+    const note = payload.hearing;
+    setHearing(document.getElementById("sr-flash-hearing"), note, payload.stable);
+    setHearing(document.getElementById("sr-runner-hearing"), note, payload.stable);
+    lightKeyboard(document.getElementById("sr-flash-kb"), note.label);
+    lightKeyboard(document.getElementById("sr-runner-kb"), note.label);
+    if (!payload.stable) return;
+    if (document.getElementById("panel-sight").hidden) return;
+    const now = performance.now();
+    if (now - micCooldown < 700) return;
+    const flashMatch = document.getElementById("sr-flash-match").value;
+    const runnerMatch = document.getElementById("sr-runner-match").value;
+    let flashOk = note.letter === flashAnswer.letter;
+    if (flashMatch === "exact") {
+      flashOk = note.label.replace("♯","#") === flashAnswer.label.replace("♯","#");
+    }
+    if (flashOk) {
+      micCooldown = now;
+      answerFlash(note.letter);
+    }
+    if (Runner.isPlaying()) {
+      const t = null; /* Runner.answer does its own target check */
+      if (runnerMatch === "exact") {
+        /* still answer by letter; Runner checks against current target letter */
+      }
+      micCooldown = now;
+      Runner.answer(note.letter);
+    }
+  });
+
+  function bind() {
+    document.getElementById("tab-scales").addEventListener("click", function () { setTab("scales"); });
+    document.getElementById("tab-sight").addEventListener("click", function () { setTab("sight"); });
+    document.querySelectorAll("#sr-level-chips .sr-chip").forEach(function (btn) {
+      btn.addEventListener("click", function () { setLevel(+btn.dataset.level); });
+    });
+    document.getElementById("sr-drill-tempo").addEventListener("input", function (e) {
+      document.getElementById("sr-drill-bpm").textContent = e.target.value;
+    });
+    document.getElementById("sr-drill-start").addEventListener("click", startDrill);
+    document.getElementById("sr-drill-new").addEventListener("click", function () {
+      if (currentLevel === 3) { setLevel(3); return; }
+      const cycle = [0, 7, 5, 2, -5]; /* C G F D Bb */
+      const idx = cycle.indexOf(transposeSemis);
+      transposeSemis = cycle[(idx + 1) % cycle.length];
+      LEVELS = buildLevels(transposeSemis);
+      setLevel(currentLevel);
+    });
+    document.querySelectorAll("#sr-flash-letters .sr-letter").forEach(function (b) {
+      b.addEventListener("click", function () { answerFlash(b.dataset.letter); });
+    });
+    document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) {
+      b.addEventListener("click", function () { Runner.answer(b.dataset.letter); });
+    });
+    document.getElementById("sr-flash-mic").addEventListener("click", function () { toggleMic(this); });
+    document.getElementById("sr-runner-mic").addEventListener("click", function () { toggleMic(this); });
+    document.getElementById("sr-runner-toggle").addEventListener("click", function () { Runner.start(); });
+    buildKeyboard(document.getElementById("sr-flash-kb"));
+    buildKeyboard(document.getElementById("sr-runner-kb"));
+    window.addEventListener("resize", function () {
+      clearTimeout(window.__srResize);
+      window.__srResize = setTimeout(function () {
+        if (!document.getElementById("panel-sight").hidden) {
+          drawDrill(); Runner.resetVisual();
+        }
+      }, 150);
+    });
+  }
+
+  function boot() {
+    bind();
+    renderStats();
+    /* Hash is source of truth on load so /scales/ always opens Scales.
+       localStorage restores only when the hash already says sight-reading
+       (or after an in-page tab click that set the hash). */
+    let want = "scales";
+    try {
+      if (location.hash === "#sight-reading") want = "sight";
+      else if (!location.hash && localStorage.getItem(TAB_KEY) === "sight") {
+        history.replaceState(null, "", "#sight-reading");
+        want = "sight";
+      }
+    } catch (e) {}
+    setTab(want);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+
+  window.__srSetLevel = setLevel;
+  window.__srSetTab = setTab;
+})();
+
 </script>
 </body>
 </html>
