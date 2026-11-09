@@ -1557,6 +1557,8 @@
 
 
 /* ===== Sight Reading tabs & panel ===== */
+
+/* ===== Sight Reading tabs & panel ===== */
 .skill-tabs {
   display: flex;
   justify-content: center;
@@ -1587,10 +1589,6 @@
   border-color: var(--border);
   border-bottom-color: var(--ivory);
 }
-html {
-  /* Keep scrollIntoView / jump targets clear of the sticky Scales/Sight tabs */
-  scroll-padding-top: 6.5rem;
-}
 .skill-tab-bar {
   position: sticky;
   top: 0;
@@ -1599,9 +1597,11 @@ html {
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 10px var(--shadow);
+  pointer-events: none; /* only tabs themselves capture clicks */
 }
-.cof-section, #cof-wrap {
-  scroll-margin-top: 6.5rem;
+.skill-tab-bar .skill-tab,
+.skill-tab-bar .skill-tab-hint {
+  pointer-events: auto;
 }
 .skill-tab-hint {
   text-align: center;
@@ -1709,13 +1709,6 @@ html {
   font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700;
   font-size: 1.15rem; color: var(--ink); min-width: 2.5rem;
 }
-.sr-flash-layout {
-  display: grid; grid-template-columns: minmax(7.5rem, 11rem) 1fr; gap: 1rem; align-items: center;
-}
-#sr-flash-staff {
-  background: #fffef9; border: 1px solid var(--border); border-radius: 0.5rem;
-  min-height: 110px; display: flex; align-items: center; justify-content: center;
-}
 .sr-letters {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.35rem;
 }
@@ -1726,8 +1719,6 @@ html {
 .sr-letter:hover, .sr-letter.hot { background: var(--accent-pale); border-color: var(--accent-soft); }
 .sr-letter.ok { background: #d4e8d4; border-color: #6a9a6a; }
 .sr-letter.bad { background: #f0d4d0; border-color: #b07060; }
-.sr-flash-stats { display: flex; gap: 1rem; font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.55rem; }
-.sr-flash-stats strong { color: var(--ink); }
 .sr-mic-row {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 0.85rem;
   margin-top: 0.75rem; padding-top: 0.7rem; border-top: 1px dashed var(--border);
@@ -1774,10 +1765,14 @@ html {
 }
 .sr-runner-stage {
   position: relative; background: #fffef9; border: 1px solid var(--border);
-  border-radius: 0.55rem; height: 148px; overflow: hidden;
+  border-radius: 0.55rem; height: 176px; overflow: hidden;
 }
 #sr-runner-vf { width: 100%; height: 100%; }
-#sr-runner-vf svg { display: block; width: 100%; height: 100%; }
+#sr-runner-vf svg {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
 .sr-hit-line {
   position: absolute; left: 22%; top: 8%; bottom: 8%; width: 2px;
   background: var(--accent); box-shadow: 0 0 0 3px rgba(139,105,20,0.18);
@@ -1791,7 +1786,6 @@ html {
 .sr-runner-hint { margin-top: 0.55rem; font-size: 0.75rem; color: var(--ink-soft); }
 .sr-mic-limits { margin-top: 0.45rem; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.4; }
 @media (max-width: 600px) {
-  .sr-flash-layout { grid-template-columns: 1fr; }
   .sr-progress { grid-template-columns: repeat(3, 1fr); }
   .sr-progress .sr-spark { grid-column: 1 / -1; }
   .skill-tab { font-size: 0.85rem; padding: 0.5rem 0.85rem 0.6rem; }
@@ -1799,6 +1793,11 @@ html {
 @media print {
   .skill-tab-bar, #panel-sight { display: none !important; }
 }
+
+/* Scales-only chrome: hide circle-back while Sight is open */
+body.sr-sight-open #to-cof { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+
+body.sr-sight-open header::after { display: none; }
 
 </style>
 </head>
@@ -2041,41 +2040,6 @@ html {
     </div>
   </section>
 
-  <section class="sr-card" id="sr-note-flash">
-    <div class="sr-card-head">
-      <h2>Note Flash</h2>
-      <span class="sr-card-meta">Name the note · treble clef</span>
-    </div>
-    <div class="sr-card-body">
-      <div class="sr-flash-layout">
-        <div id="sr-flash-staff" role="img" aria-label="Single note on treble staff"></div>
-        <div>
-          <div class="sr-letters" id="sr-flash-letters" role="group" aria-label="Note names">
-            <button type="button" class="sr-letter" data-letter="A">A</button>
-            <button type="button" class="sr-letter" data-letter="B">B</button>
-            <button type="button" class="sr-letter" data-letter="C">C</button>
-            <button type="button" class="sr-letter" data-letter="D">D</button>
-            <button type="button" class="sr-letter" data-letter="E">E</button>
-            <button type="button" class="sr-letter" data-letter="F">F</button>
-            <button type="button" class="sr-letter" data-letter="G">G</button>
-          </div>
-          <div class="sr-flash-stats">
-            <span>Streak <strong id="sr-flash-streak">0</strong></span>
-            <span>Time <strong id="sr-flash-time">—</strong></span>
-            <span>Best <strong id="sr-flash-best">—</strong></span>
-          </div>
-        </div>
-      </div>
-      <div class="sr-kb" id="sr-flash-kb" aria-label="On-screen keyboard"></div>
-      <div class="sr-mic-row">
-        <button type="button" class="sr-btn mic-btn" id="sr-flash-mic" aria-pressed="false">🎤 Mic</button>
-        <span class="sr-hearing" id="sr-flash-hearing">hearing: <strong>—</strong></span>
-        <label class="sr-match">Match
-          <select id="sr-flash-match"><option value="letter">letter only</option><option value="exact">exact octave</option></select>
-        </label>
-      </div>
-    </div>
-  </section>
 
   <section class="sr-card" id="sr-note-runner">
     <div class="sr-card-head">
@@ -5506,6 +5470,7 @@ const bridge = window.__scalesNotes;
 </script>
 <script>
 /*! Sight Reading tab — production module for scales site */
+/*! Sight Reading tab — production module for scales site */
 (function () {
   "use strict";
   if (!window.Vex || !Vex.Flow) {
@@ -5710,8 +5675,7 @@ const bridge = window.__scalesNotes;
         document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
           b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
         });
-        setHearing(document.getElementById("sr-flash-hearing"), null);
-        setHearing(document.getElementById("sr-runner-hearing"), null);
+          setHearing(document.getElementById("sr-runner-hearing"), null);
       }
     });
     return { start: start, stop: stop, isOn: isOn, onNote: onNote };
@@ -6111,54 +6075,6 @@ const bridge = window.__scalesNotes;
   }
 
   /* ---------- Flash ---------- */
-  let flashAnswer = { letter: "G", label: "G4", key: "g/4" };
-  let flashShownAt = 0;
-  let flashStreak = 0;
-  let flashBest = null;
-  function drawFlash() {
-    const el = document.getElementById("sr-flash-staff");
-    if (!el) return;
-    el.innerHTML = "";
-    const pool = LEVELS[currentLevel].notePool.filter(function (k) {
-      return k.indexOf("/4") !== -1 || k.indexOf("/5") !== -1;
-    });
-    const key = pool[Math.floor(Math.random() * pool.length)] || "g/4";
-    flashAnswer = { letter: letterOfKey(key), label: letterOfKey(key) + key.split("/")[1], key: key };
-    const renderer = new VF.Renderer(el, VF.Renderer.Backends.SVG);
-    renderer.resize(168, 120);
-    const ctx = renderer.getContext();
-    const stave = new VF.Stave(10, 10, 148);
-    stave.addClef("treble").setContext(ctx).draw();
-    const notes = [new VF.StaveNote({ clef: "treble", keys: [key], duration: "w" })];
-    const voice = new VF.Voice({ num_beats: 4, beat_value: 4 }).addTickables(notes);
-    new VF.Formatter().joinVoices([voice]).format([voice], 100);
-    voice.draw(ctx, stave);
-    flashShownAt = performance.now();
-    document.querySelectorAll("#sr-flash-letters .sr-letter").forEach(function (b) {
-      b.classList.remove("hot", "ok", "bad");
-    });
-  }
-  function answerFlash(letter) {
-    const elapsed = (performance.now() - flashShownAt) / 1000;
-    const ok = letter === flashAnswer.letter;
-    document.querySelectorAll("#sr-flash-letters .sr-letter").forEach(function (b) {
-      b.classList.toggle("ok", ok && b.dataset.letter === letter);
-      b.classList.toggle("bad", !ok && b.dataset.letter === letter);
-      if (b.dataset.letter === flashAnswer.letter) b.classList.add("hot");
-    });
-    if (ok) {
-      flashStreak++;
-      if (flashBest == null || elapsed < flashBest) flashBest = elapsed;
-      updateStats(1, 0);
-      document.getElementById("sr-flash-time").textContent = elapsed.toFixed(1) + "s";
-      document.getElementById("sr-flash-best").textContent = flashBest.toFixed(1) + "s";
-      setTimeout(drawFlash, 450);
-    } else {
-      flashStreak = 0;
-      updateStats(0, 1);
-    }
-    document.getElementById("sr-flash-streak").textContent = String(flashStreak);
-  }
 
   /* ---------- Note Runner game ---------- */
   const Runner = (function () {
@@ -6188,16 +6104,35 @@ const bridge = window.__scalesNotes;
       const host = document.getElementById("sr-runner-vf");
       if (!host) return;
       host.innerHTML = "";
-      const width = 640, height = 148;
+      const width = 640, height = 176;
       const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
       renderer.resize(width, height);
       const ctx = renderer.getContext();
-      const stave = new VF.Stave(6, 28, width - 12);
+      /* y=18 leaves room above for HIT label; height 176 fits all 5 lines + clef + stems */
+      const stave = new VF.Stave(6, 18, width - 12);
       stave.addClef("treble");
       stave.setContext(ctx).draw();
       const svg = host.querySelector("svg");
       if (!svg) return;
-      svg.setAttribute("viewBox", "0 0 " + width + " " + height);
+      /* Crop viewBox to the staff band so at 390px all 5 lines render large and clear */
+      svg.setAttribute("viewBox", "0 40 " + width + " 90");
+      svg.setAttribute("preserveAspectRatio", "xMinYMid meet");
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+      svg.style.display = "block";
+      /* Darken VF stave lines (defaults to #999; child paths need explicit stroke) */
+      svg.querySelectorAll(".vf-stave").forEach(function (g) {
+        g.setAttribute("stroke", "#2c2416");
+        g.setAttribute("fill", "#2c2416");
+      });
+      svg.querySelectorAll(".vf-stave path").forEach(function (p) {
+        p.setAttribute("stroke", "#2c2416");
+        p.setAttribute("stroke-width", "1.25");
+        p.setAttribute("fill", "none");
+      });
+      svg.querySelectorAll(".vf-clef path").forEach(function (p) {
+        p.setAttribute("fill", "#2c2416");
+      });
       staffTop = stave.getYForLine(0);
       gap = stave.getYForLine(1) - stave.getYForLine(0);
       hitX = width * 0.22;
@@ -6206,6 +6141,8 @@ const bridge = window.__scalesNotes;
         const line = staffYForKey(pn.key);
         const y = staffTop + line * gap;
         const x = pn.x;
+        /* Never draw over the clef or once a note has crossed the hit line */
+        if (x < hitX - 10) return;
         const hot = !pn.answered && Math.abs(x - hitX) < 28;
         const g = document.createElementNS(NS, "g");
         if (line >= 5 || line <= -0.5) {
@@ -6277,8 +6214,17 @@ const bridge = window.__scalesNotes;
         speed = Math.max(32, speed - 6);
         sinceSpeed = 0;
         updateStats(0, 1);
+        highlightLetter(document.getElementById("sr-runner-letters"), letter);
+        document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) {
+          b.classList.toggle("bad", b.dataset.letter === letter);
+        });
         if (lives <= 0) { playing = false; lives = 3; streak = 0; }
       }
+      clearTimeout(answerHlTimer);
+      answerHlTimer = setTimeout(function () {
+        document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) { b.classList.remove("bad"); });
+        if (!Mic.isOn()) highlightLetter(document.getElementById("sr-runner-letters"), null);
+      }, 380);
       syncHud();
     }
     function tick(ts) {
@@ -6298,12 +6244,11 @@ const bridge = window.__scalesNotes;
           syncHud();
         }
       });
-      notes = notes.filter(function (n) { return n.x > -40; });
+      /* Drop notes once past the hit line so they never overlap the clef */
+      notes = notes.filter(function (n) { return n.x > hitX - 12; });
       const maxX = notes.reduce(function (m, n) { return Math.max(m, n.x); }, 0);
       if (maxX < 560) notes.push(spawnNote(maxX + 90 + Math.random() * 30));
       drawFrame();
-      const hot = notes.find(function (n) { return n._hot; });
-      if (hot) highlightLetter(document.getElementById("sr-runner-letters"), hot.letter);
       raf = requestAnimationFrame(tick);
     }
     function start() {
@@ -6380,7 +6325,6 @@ const bridge = window.__scalesNotes;
     });
     stopDrill();
     drawDrill();
-    drawFlash();
     Runner.resetVisual();
   }
 
@@ -6392,6 +6336,7 @@ const bridge = window.__scalesNotes;
     const tabR = document.getElementById("tab-sight");
     const hint = document.getElementById("skill-tab-hint");
     const isSight = name === "sight";
+    document.body.classList.toggle("sr-sight-open", isSight);
     if (scales) scales.hidden = isSight;
     if (sight) sight.hidden = !isSight;
     if (tabS) { tabS.classList.toggle("active", !isSight); tabS.setAttribute("aria-selected", String(!isSight)); }
@@ -6404,13 +6349,17 @@ const bridge = window.__scalesNotes;
       if (location.hash !== "#sight-reading") history.replaceState(null, "", "#sight-reading");
       setLevel(currentLevel);
       renderStats();
+      /* Circle "back" control is for Scales only — hide so it cannot sit as a gold speck over Sight */
+      const toc = document.getElementById("to-cof");
+      if (toc) { toc.classList.remove("show"); toc.setAttribute("aria-hidden", "true"); toc.tabIndex = -1; }
     } else {
       if (location.hash === "#sight-reading") history.replaceState(null, "", location.pathname + location.search);
       if (Mic.isOn()) Mic.stop();
       document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
         b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
       });
-      Runner.start && Runner.isPlaying() && Runner.start(); /* pause if playing */
+      highlightLetter(document.getElementById("sr-runner-letters"), null);
+      if (Runner.isPlaying()) Runner.start(); /* toggle pauses */
     }
   }
 
@@ -6420,10 +6369,9 @@ const bridge = window.__scalesNotes;
       document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
         b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
       });
-      setHearing(document.getElementById("sr-flash-hearing"), null);
       setHearing(document.getElementById("sr-runner-hearing"), null);
-      lightKeyboard(document.getElementById("sr-flash-kb"), null);
       lightKeyboard(document.getElementById("sr-runner-kb"), null);
+      highlightLetter(document.getElementById("sr-runner-letters"), null);
       return;
     }
     const ok = await Mic.start();
@@ -6440,30 +6388,20 @@ const bridge = window.__scalesNotes;
   Mic.onNote(function (payload) {
     if (!payload || !payload.hearing) return;
     const note = payload.hearing;
-    setHearing(document.getElementById("sr-flash-hearing"), note, payload.stable);
     setHearing(document.getElementById("sr-runner-hearing"), note, payload.stable);
-    lightKeyboard(document.getElementById("sr-flash-kb"), note.label);
     lightKeyboard(document.getElementById("sr-runner-kb"), note.label);
+    /* Letter buttons follow detected pitch when stable; clear while unstable so they reset between notes */
+    if (payload.stable) {
+      highlightLetter(document.getElementById("sr-runner-letters"), note.letter);
+    } else {
+      highlightLetter(document.getElementById("sr-runner-letters"), null);
+    }
     if (!payload.stable) return;
     if (document.getElementById("panel-sight").hidden) return;
     const now = performance.now();
     if (now - micCooldown < 700) return;
-    const flashMatch = document.getElementById("sr-flash-match").value;
-    const runnerMatch = document.getElementById("sr-runner-match").value;
-    let flashOk = note.letter === flashAnswer.letter;
-    if (flashMatch === "exact") {
-      flashOk = note.label.replace("♯","#") === flashAnswer.label.replace("♯","#");
-    }
-    if (flashOk) {
-      micCooldown = now;
-      answerFlash(note.letter);
-    }
     if (Runner.isPlaying()) {
-      const t = null; /* Runner.answer does its own target check */
-      if (runnerMatch === "exact") {
-        /* still answer by letter; Runner checks against current target letter */
-      }
-      micCooldown = now;
+      micAudio = now;
       Runner.answer(note.letter);
     }
   });
@@ -6486,16 +6424,11 @@ const bridge = window.__scalesNotes;
       LEVELS = buildLevels(transposeSemis);
       setLevel(currentLevel);
     });
-    document.querySelectorAll("#sr-flash-letters .sr-letter").forEach(function (b) {
-      b.addEventListener("click", function () { answerFlash(b.dataset.letter); });
-    });
     document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) {
       b.addEventListener("click", function () { Runner.answer(b.dataset.letter); });
     });
-    document.getElementById("sr-flash-mic").addEventListener("click", function () { toggleMic(this); });
     document.getElementById("sr-runner-mic").addEventListener("click", function () { toggleMic(this); });
     document.getElementById("sr-runner-toggle").addEventListener("click", function () { Runner.start(); });
-    buildKeyboard(document.getElementById("sr-flash-kb"));
     buildKeyboard(document.getElementById("sr-runner-kb"));
     window.addEventListener("resize", function () {
       clearTimeout(window.__srResize);
@@ -6515,11 +6448,8 @@ const bridge = window.__scalesNotes;
        (or after an in-page tab click that set the hash). */
     let want = "scales";
     try {
+      /* Hash is source of truth on load. localStorage still updated on tab click for analytics. */
       if (location.hash === "#sight-reading") want = "sight";
-      else if (!location.hash && localStorage.getItem(TAB_KEY) === "sight") {
-        history.replaceState(null, "", "#sight-reading");
-        want = "sight";
-      }
     } catch (e) {}
     setTab(want);
   }
