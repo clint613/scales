@@ -1362,6 +1362,41 @@
   }
   .metro-mode-hint:empty { display: none; }
 
+  .metro-subdiv-wrap { display: flex; flex-direction: column; gap: 0.35rem; }
+  .metro-subdiv-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.28rem;
+  }
+  .metro-sub-tile {
+    appearance: none;
+    width: 100%;
+    aspect-ratio: 1;
+    min-height: 2.4rem;
+    max-height: 2.75rem;
+    padding: 0.15rem;
+    border-radius: 0.4rem;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+  }
+  .metro-sub-tile svg { width: 92%; height: 92%; display: block; pointer-events: none; }
+  .metro-sub-tile:hover, .metro-sub-tile:focus-visible {
+    border-color: var(--accent-soft);
+    outline: none;
+    background: var(--parchment);
+  }
+  .metro-sub-tile[aria-selected="true"] {
+    border-color: var(--accent);
+    background: var(--accent-pale);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .metro-sub-tile[hidden] { display: none !important; }
+
   .metro-more-toggle {
     appearance: none;
     border: none;
@@ -1556,15 +1591,10 @@
       </select>
     </div>
     <p class="metro-hint" id="metro-unit-hint">BPM is the quarter-note pulse. Accents mark the bar.</p>
-    <div class="metro-field">
-      <label class="metro-label" for="metro-subdiv">Subdiv</label>
-      <select class="metro-select" id="metro-subdiv" aria-label="Subdivision">
-        <option value="1" selected>Quarter (none)</option>
-        <option value="2">Eighths</option>
-        <option value="3">Triplets</option>
-        <option value="4">Sixteenths</option>
-        <option value="5">Quintuplets</option>
-      </select>
+    <div class="metro-subdiv-wrap">
+      <span class="metro-label" id="metro-subdiv-label">Subdiv</span>
+      <div class="metro-subdiv-grid" id="metro-subdiv-grid" role="listbox" aria-labelledby="metro-subdiv-label"></div>
+      <p class="metro-hint" id="metro-subdiv-hint">One-beat groupings. In /8 meters only plain, 2, and 3 are offered.</p>
     </div>
     <div class="metro-field">
       <label class="metro-label" for="metro-poly">Poly</label>
@@ -3800,8 +3830,24 @@
   var MIN_BPM = 30;
   var MAX_BPM = 240;
   var TIMESIGS = ["off", "2/4", "3/4", "4/4", "5/4", "6/8", "7/8", "9/8", "12/8"];
-  var SUBDIVS = [1, 2, 3, 4, 5];
   var POLYS = ["off", "3:2", "4:3", "3:4", "5:4", "2:3"];
+
+  /* One-beat onset patterns (fractions of the BPM unit). First onset is the beat click. */
+  var SUBDIV_PATTERNS = [
+    { id: "quarter", onsets: [0], label: "Quarter", compoundOk: true },
+    { id: "eighths", onsets: [0, 0.5], label: "2 eighths", compoundOk: true },
+    { id: "triplet", onsets: [0, 1 / 3, 2 / 3], label: "Triplet eighths", compoundOk: true, tuplet: 3 },
+    { id: "sixteenths", onsets: [0, 0.25, 0.5, 0.75], label: "4 sixteenths", compoundOk: false },
+    { id: "e_ss", onsets: [0, 0.5, 0.75], label: "Eighth + 2 sixteenths", compoundOk: false },
+    { id: "ss_e", onsets: [0, 0.25, 0.5], label: "2 sixteenths + eighth", compoundOk: false },
+    { id: "s_e_s", onsets: [0, 0.25, 0.75], label: "Sixteenth–eighth–sixteenth", compoundOk: false },
+    { id: "de_s", onsets: [0, 0.75], label: "Dotted eighth + sixteenth", compoundOk: false },
+    { id: "s_de", onsets: [0, 0.25], label: "Sixteenth + dotted eighth", compoundOk: false },
+    { id: "quintuplet", onsets: [0, 0.2, 0.4, 0.6, 0.8], label: "Quintuplet", compoundOk: false, tuplet: 5 }
+  ];
+  var SUBDIV_BY_ID = {};
+  for (var spi = 0; spi < SUBDIV_PATTERNS.length; spi++) SUBDIV_BY_ID[SUBDIV_PATTERNS[spi].id] = SUBDIV_PATTERNS[spi];
+  var LEGACY_SUBDIV = { "1": "quarter", "2": "eighths", "3": "triplet", "4": "sixteenths", "5": "quintuplet" };
 
   var btn = document.getElementById("metro-btn");
   var panel = document.getElementById("metro-panel");
@@ -3812,7 +3858,8 @@
   var slider = document.getElementById("metro-slider");
   var tapBtn = document.getElementById("metro-tap");
   var timesigSel = document.getElementById("metro-timesig");
-  var subdivSel = document.getElementById("metro-subdiv");
+  var subdivGrid = document.getElementById("metro-subdiv-grid");
+  var subdivHint = document.getElementById("metro-subdiv-hint");
   var polySel = document.getElementById("metro-poly");
   var moreToggle = document.getElementById("metro-more-toggle");
   var moreEl = document.getElementById("metro-more");
@@ -3892,17 +3939,33 @@
     return times;
   }
 
-  function planSubdivTimes(bpmVal, subdiv, beats, startTime) {
+  function patternOnsets(id) {
+    var p = SUBDIV_BY_ID[id];
+    return p ? p.onsets.slice() : [0];
+  }
+
+  function planSubdivTimes(bpmVal, patternId, beats, startTime) {
     var beat = 60 / bpmVal;
+    var onsets = patternOnsets(patternId);
+    /* Back-compat: numeric 2/3/4/5 still accepted by tests/callers */
+    if (typeof patternId === "number" || /^[1-5]$/.test(String(patternId))) {
+      var legacy = LEGACY_SUBDIV[String(patternId)];
+      onsets = patternOnsets(legacy || "quarter");
+    }
     var times = [];
-    var n = Math.max(1, subdiv | 0);
     for (var i = 0; i < beats; i++) {
-      for (var k = 0; k < n; k++) {
-        if (k === 0) continue; /* beat itself is the main click */
-        times.push(startTime + i * beat + (k * beat) / n);
+      for (var k = 0; k < onsets.length; k++) {
+        if (onsets[k] === 0) continue; /* beat itself is the main click */
+        times.push(startTime + i * beat + onsets[k] * beat);
       }
     }
     return times;
+  }
+
+  function planPatternBeatTimes(bpmVal, patternId, startTime) {
+    var beat = 60 / bpmVal;
+    var onsets = patternOnsets(patternId);
+    return onsets.map(function (f) { return startTime + f * beat; });
   }
 
   function planPolyTimes(ratio, bpmVal, startTime, cycles) {
@@ -3935,12 +3998,34 @@
     } catch (e) {}
     return "4/4";
   }
+  function normalizeSubdivId(raw) {
+    if (raw == null || raw === "") return "quarter";
+    var s = String(raw);
+    if (LEGACY_SUBDIV[s]) return LEGACY_SUBDIV[s];
+    if (SUBDIV_BY_ID[s]) return s;
+    return "quarter";
+  }
+
   function loadSubdiv() {
     try {
-      var v = parseInt(localStorage.getItem(LS_SUBDIV), 10);
-      if (SUBDIVS.indexOf(v) >= 0) return v;
+      return normalizeSubdivId(localStorage.getItem(LS_SUBDIV));
     } catch (e) {}
-    return 1;
+    return "quarter";
+  }
+
+  function isCompoundMeter() {
+    return unitLabel() === "eighth";
+  }
+
+  function patternAllowed(id) {
+    var p = SUBDIV_BY_ID[id];
+    if (!p) return false;
+    if (isCompoundMeter()) return !!p.compoundOk;
+    return true;
+  }
+
+  function hasExtraOnsets(id) {
+    return patternOnsets(id).length > 1;
   }
   function loadPoly() {
     try {
@@ -3978,6 +4063,107 @@
     return meterInfo(timesig).unit;
   }
 
+
+  /* Compact inline SVG for one-beat rhythms (no external fonts). */
+  function noteSvg(id) {
+    var ink = "#2c2416";
+    /* Shared pieces */
+    function head(x, y) {
+      return '<ellipse cx="' + x + '" cy="' + y + '" rx="3.2" ry="2.4" transform="rotate(-20 ' + x + ' ' + y + ')" fill="' + ink + '"/>';
+    }
+    function stem(x, y1, y2) {
+      return '<line x1="' + (x + 3) + '" y1="' + y1 + '" x2="' + (x + 3) + '" y2="' + y2 + '" stroke="' + ink + '" stroke-width="1.2"/>';
+    }
+    function beam(x1, x2, y) {
+      return '<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="' + ink + '" stroke-width="2.4" stroke-linecap="butt"/>';
+    }
+    function flag(x, y) {
+      return '<path d="M' + (x + 3) + ' ' + y + ' c2.5 1.5 3.5 4 1.5 7" fill="none" stroke="' + ink + '" stroke-width="1.2"/>';
+    }
+    function dot(x, y) {
+      return '<circle cx="' + x + '" cy="' + y + '" r="1.1" fill="' + ink + '"/>';
+    }
+    function tuplet(n, x1, x2, y) {
+      var mid = (x1 + x2) / 2;
+      return '<line x1="' + x1 + '" y1="' + y + '" x2="' + x2 + '" y2="' + y + '" stroke="' + ink + '" stroke-width="1"/>' +
+        '<text x="' + mid + '" y="' + (y - 1.5) + '" text-anchor="middle" font-size="7" font-family="Source Sans 3,Segoe UI,sans-serif" fill="' + ink + '">' + n + '</text>';
+    }
+    var y = 26, top = 10;
+    var body = "";
+    if (id === "quarter") {
+      body = head(18, y) + stem(18, y, top);
+    } else if (id === "eighths") {
+      body = head(12, y) + stem(12, y, top) + head(26, y) + stem(26, y, top) + beam(15, 29, top);
+    } else if (id === "triplet") {
+      body = head(9, y) + stem(9, y, top) + head(18, y) + stem(18, y, top) + head(27, y) + stem(27, y, top) +
+        beam(12, 30, top) + tuplet(3, 12, 30, top - 3);
+    } else if (id === "sixteenths") {
+      var xs = [7, 14, 21, 28];
+      for (var i = 0; i < 4; i++) body += head(xs[i], y) + stem(xs[i], y, top);
+      body += beam(10, 31, top) + beam(10, 31, top + 3.2);
+    } else if (id === "e_ss") {
+      body = head(10, y) + stem(10, y, top) + head(22, y) + stem(22, y, top) + head(30, y) + stem(30, y, top) +
+        beam(13, 33, top) + beam(25, 33, top + 3.2);
+    } else if (id === "ss_e") {
+      body = head(8, y) + stem(8, y, top) + head(16, y) + stem(16, y, top) + head(28, y) + stem(28, y, top) +
+        beam(11, 31, top) + beam(11, 19, top + 3.2);
+    } else if (id === "s_e_s") {
+      body = head(8, y) + stem(8, y, top) + flag(8, top) +
+        head(18, y) + stem(18, y, top) +
+        head(30, y) + stem(30, y, top) + flag(30, top);
+      /* partial beams suggesting 16–8–16 */
+      body += beam(11, 16, top) + beam(11, 13.5, top + 3.2);
+      body += beam(21, 33, top) + beam(31.5, 33, top + 3.2);
+    } else if (id === "de_s") {
+      body = head(12, y) + stem(12, y, top) + flag(12, top) + dot(17.5, y) +
+        head(28, y) + stem(28, y, top) + flag(28, top);
+      body += beam(15, 31, top) + beam(29.5, 31, top + 3.2);
+    } else if (id === "s_de") {
+      body = head(10, y) + stem(10, y, top) + flag(10, top) +
+        head(24, y) + stem(24, y, top) + flag(24, top) + dot(29.5, y);
+      body += beam(13, 27, top) + beam(13, 14.5, top + 3.2);
+    } else if (id === "quintuplet") {
+      var qx = [6, 12, 18, 24, 30];
+      for (var q = 0; q < 5; q++) body += head(qx[q], y) + stem(qx[q], y, top);
+      body += beam(9, 33, top) + beam(9, 33, top + 3.2) + tuplet(5, 9, 33, top - 3);
+    } else {
+      body = head(18, y) + stem(18, y, top);
+    }
+    return '<svg viewBox="0 0 40 36" aria-hidden="true">' + body + '</svg>';
+  }
+
+  function buildSubdivTiles() {
+    if (!subdivGrid || subdivGrid.getAttribute("data-built") === "1") return;
+    subdivGrid.innerHTML = "";
+    SUBDIV_PATTERNS.forEach(function (p) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "metro-sub-tile";
+      b.id = "metro-sub-" + p.id;
+      b.setAttribute("role", "option");
+      b.setAttribute("data-subdiv", p.id);
+      b.setAttribute("aria-label", p.label);
+      b.title = p.label;
+      b.innerHTML = noteSvg(p.id);
+      b.addEventListener("click", function () { setSubdiv(p.id); });
+      subdivGrid.appendChild(b);
+    });
+    subdivGrid.setAttribute("data-built", "1");
+  }
+
+  function syncSubdivTiles() {
+    buildSubdivTiles();
+    if (!subdivGrid) return;
+    if (!patternAllowed(subdiv)) subdiv = "quarter";
+    var tiles = subdivGrid.querySelectorAll(".metro-sub-tile");
+    for (var i = 0; i < tiles.length; i++) {
+      var id = tiles[i].getAttribute("data-subdiv");
+      var allowed = patternAllowed(id);
+      tiles[i].hidden = !allowed;
+      tiles[i].setAttribute("aria-selected", id === subdiv ? "true" : "false");
+    }
+  }
+
   function showModeHint(msg) {
     if (!modeHint) return;
     modeHint.textContent = msg || "";
@@ -3995,9 +4181,7 @@
     slider.value = String(bpm);
     bpmUnitEl.textContent = "BPM · " + unitLabel();
     timesigSel.value = timesig;
-    subdivSel.value = String(subdiv);
     polySel.value = poly;
-    subdivSel.disabled = false;
     startBtn.textContent = running ? "Stop" : "Start";
     startBtn.setAttribute("aria-pressed", running ? "true" : "false");
     btn.classList.toggle("running", running);
@@ -4010,6 +4194,12 @@
     } else {
       unitHint.textContent = "BPM is the quarter-note pulse. Accents mark the bar.";
     }
+    if (subdivHint) {
+      subdivHint.textContent = isCompoundMeter()
+        ? "In /8 meters BPM is the eighth: only plain, 2, and 3 are offered."
+        : "One-beat groupings (tap a tile). First note is the beat click.";
+    }
+    syncSubdivTiles();
   }
 
   function setBpm(n, fromSlider) {
@@ -4021,13 +4211,20 @@
   }
   function setTimesig(v) {
     timesig = TIMESIGS.indexOf(v) >= 0 ? v : "4/4";
-    savePrefs();
+    if (!patternAllowed(subdiv)) {
+      subdiv = "quarter";
+      savePrefs();
+      showModeHint("Subdivision reset for /8 meter (only plain, 2, and 3).");
+    } else {
+      savePrefs();
+    }
     syncUi();
   }
   function setSubdiv(v) {
-    v = parseInt(v, 10);
-    subdiv = SUBDIVS.indexOf(v) >= 0 ? v : 1;
-    if (subdiv > 1 && poly !== "off") {
+    var id = normalizeSubdivId(v);
+    if (!patternAllowed(id)) id = "quarter";
+    subdiv = id;
+    if (hasExtraOnsets(subdiv) && poly !== "off") {
       poly = "off";
       savePrefs();
       syncUi();
@@ -4039,8 +4236,8 @@
   }
   function setPoly(v) {
     poly = POLYS.indexOf(v) >= 0 ? v : "off";
-    if (poly !== "off" && subdiv > 1) {
-      subdiv = 1;
+    if (poly !== "off" && hasExtraOnsets(subdiv)) {
+      subdiv = "quarter";
       savePrefs();
       syncUi();
       showModeHint("Subdivisions turned off while polyrhythm is on.");
@@ -4145,10 +4342,12 @@
         scheduleMain(t, accent);
       }
 
-      /* Subdivs belong to beat i even when the main click was in an earlier window. */
-      if (!polyRatio && subdiv > 1) {
-        for (var k = 1; k < subdiv; k++) {
-          var st = t + (k * beat) / subdiv;
+      /* Extra onsets belong to beat i even when the main click was in an earlier window. */
+      if (!polyRatio && hasExtraOnsets(subdiv)) {
+        var onsets = patternOnsets(subdiv);
+        for (var k = 0; k < onsets.length; k++) {
+          if (onsets[k] === 0) continue;
+          var st = t + onsets[k] * beat;
           if (st >= from - 1e-9 && st < to) scheduleSub(st);
         }
       }
@@ -4281,7 +4480,6 @@
   });
 
   timesigSel.addEventListener("change", function () { setTimesig(timesigSel.value); });
-  subdivSel.addEventListener("change", function () { setSubdiv(subdivSel.value); });
   polySel.addEventListener("change", function () { setPoly(polySel.value); });
 
   moreToggle.addEventListener("click", function () {
@@ -4333,13 +4531,16 @@
   window.__metro = {
     planClickTimes: planClickTimes,
     planSubdivTimes: planSubdivTimes,
+    planPatternBeatTimes: planPatternBeatTimes,
     planPolyTimes: planPolyTimes,
     meterInfo: meterInfo,
+    patterns: SUBDIV_PATTERNS,
     getBpm: function () { return bpm; },
     getTimesig: function () { return timesig; },
     getSubdiv: function () { return subdiv; },
+    getOnsets: function () { return patternOnsets(subdiv); },
     getPoly: function () { return poly; },
-    getMeter: function () { return timesig; }, /* back-compat for older tests */
+    getMeter: function () { return timesig; },
     isRunning: function () { return running; },
     setBpm: setBpm,
     setTimesig: setTimesig,
@@ -4355,7 +4556,6 @@
     close: closePanel,
     openMore: openMore,
     drainToneLog: function () { var t = toneLog.slice(); toneLog.length = 0; return t; },
-    /* Deterministic scheduler probe (no AudioContext required). */
     scheduleWindowForTest: function (from, to, originTime) {
       origin = originTime;
       scheduledThrough = from;
