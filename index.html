@@ -1372,6 +1372,71 @@
     background: var(--accent-soft);
     transform: scale(1.08);
   }
+
+  .metro-circles-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .metro-circles-label {
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .metro-circles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.32rem;
+    max-width: 100%;
+  }
+  .metro-circle {
+    appearance: none;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    border: 2px solid var(--ink-soft);
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    flex: none;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.08s ease, border-color 0.08s ease;
+  }
+  .metro-circles.many .metro-circle {
+    width: 1.05rem;
+    height: 1.05rem;
+    border-width: 1.5px;
+    gap: 0.22rem;
+  }
+  .metro-circle.state-normal {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .metro-circle.state-accent {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .metro-circle.state-silent {
+    background: transparent;
+    border-color: var(--border);
+  }
+  .metro-circle.now {
+    box-shadow: 0 0 0 3px var(--accent-pale);
+    transform: scale(1.18);
+  }
+  .metro-circle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .metro-circles-legend {
+    font-size: 0.65rem;
+    color: var(--ink-soft);
+    text-align: center;
+    line-height: 1.3;
+  }
   .metro-mode-hint {
     font-size: 0.68rem;
     color: #6e3a2a;
@@ -1587,6 +1652,11 @@
     <button type="button" class="metro-step" id="metro-inc" aria-label="Faster">+</button>
   </div>
   <input type="range" class="metro-slider" id="metro-slider" min="30" max="240" step="1" value="100" aria-label="Tempo in beats per minute">
+  <div class="metro-circles-wrap">
+    <span class="metro-circles-label" id="metro-circles-label">Beats</span>
+    <div class="metro-circles" id="metro-circles" role="group" aria-labelledby="metro-circles-label"></div>
+    <p class="metro-circles-legend">Tap: gold = accent · filled = normal · empty = silent</p>
+  </div>
   <div class="metro-row">
     <button type="button" class="metro-tap" id="metro-tap">Tap tempo</button>
   </div>
@@ -1623,6 +1693,15 @@
         <option value="3:4">3:4</option>
         <option value="5:4">5:4</option>
         <option value="2:3">2:3</option>
+      </select>
+    </div>
+    <div class="metro-field">
+      <label class="metro-label" for="metro-kit">Sound</label>
+      <select class="metro-select" id="metro-kit" aria-label="Click sound">
+        <option value="click" selected>Click</option>
+        <option value="wood">Woodblock</option>
+        <option value="beep">Beep</option>
+        <option value="rim">Rim</option>
       </select>
     </div>
     <p class="metro-mode-hint" id="metro-mode-hint" role="status" aria-live="polite"></p>
@@ -3842,7 +3921,11 @@
   var LS_TIMESIG = "scales-metro-timesig";
   var LS_SUBDIV = "scales-metro-subdiv";
   var LS_POLY = "scales-metro-poly";
+  var LS_KIT = "scales-metro-kit";
+  var LS_BEATPAT = "scales-metro-beatpat";
   var LS_METER_LEGACY = "scales-metro-meter";
+  var BEAT_STATES = ["accent", "normal", "silent"];
+  var KIT_IDS = ["click", "wood", "beep", "rim"];
   var LOOKAHEAD_MS = 25;
   var SCHEDULE_AHEAD = 0.12;
   var MIN_BPM = 30;
@@ -3885,6 +3968,8 @@
   var beatEl = document.getElementById("metro-beat");
   var beatPolyEl = document.getElementById("metro-beat-poly");
   var modeHint = document.getElementById("metro-mode-hint");
+  var circlesEl = document.getElementById("metro-circles");
+  var kitSel = document.getElementById("metro-kit");
   if (!btn || !panel) return;
   var toneLog = [];
   var modeHintTimer = null;
@@ -4053,10 +4138,84 @@
     return "off";
   }
 
+  function loadKit() {
+    try {
+      var v = localStorage.getItem(LS_KIT);
+      if (KIT_IDS.indexOf(v) >= 0) return v;
+    } catch (e) {}
+    return "click";
+  }
+
+  function beatsForMeter(ts) {
+    if (!ts || ts === "off") return 4;
+    var info = meterInfo(ts);
+    return info.clicksPerBar > 0 ? info.clicksPerBar : 4;
+  }
+
+  function defaultBeatPattern(n) {
+    var p = [];
+    for (var i = 0; i < n; i++) p.push(i === 0 ? "accent" : "normal");
+    return p;
+  }
+
+  function loadAllBeatPatterns() {
+    try {
+      var raw = localStorage.getItem(LS_BEATPAT);
+      if (raw) {
+        var obj = JSON.parse(raw);
+        if (obj && typeof obj === "object") return obj;
+      }
+    } catch (e) {}
+    return {};
+  }
+
+  function saveAllBeatPatterns() {
+    try { localStorage.setItem(LS_BEATPAT, JSON.stringify(beatPatterns)); } catch (e) {}
+  }
+
+  function ensureBeatPattern(ts) {
+    var n = beatsForMeter(ts);
+    var p = beatPatterns[ts];
+    if (!p || !p.length) {
+      p = defaultBeatPattern(n);
+      beatPatterns[ts] = p;
+      return p;
+    }
+    if (p.length !== n) {
+      var next = defaultBeatPattern(n);
+      for (var i = 0; i < Math.min(p.length, n); i++) {
+        if (BEAT_STATES.indexOf(p[i]) >= 0) next[i] = p[i];
+      }
+      beatPatterns[ts] = next;
+      return next;
+    }
+    return p;
+  }
+
+  function getBeatState(beatIndex) {
+    var p = ensureBeatPattern(timesig);
+    var i = ((beatIndex % p.length) + p.length) % p.length;
+    return p[i] || "normal";
+  }
+
+  function cycleBeatState(idx) {
+    var p = ensureBeatPattern(timesig).slice();
+    if (idx < 0 || idx >= p.length) return;
+    var cur = BEAT_STATES.indexOf(p[idx]);
+    if (cur < 0) cur = 0;
+    p[idx] = BEAT_STATES[(cur + 1) % BEAT_STATES.length];
+    beatPatterns[timesig] = p;
+    saveAllBeatPatterns();
+    syncBeatCircles();
+  }
+
   var bpm = loadBpm();
   var timesig = loadTimesig();
   var subdiv = loadSubdiv();
   var poly = loadPoly();
+  var kit = loadKit();
+  var beatPatterns = loadAllBeatPatterns();
+  ensureBeatPattern(timesig);
   var running = false;
   var audioCtx = null;
   var timerId = null;
@@ -4074,7 +4233,9 @@
       localStorage.setItem(LS_TIMESIG, timesig);
       localStorage.setItem(LS_SUBDIV, String(subdiv));
       localStorage.setItem(LS_POLY, poly);
+      localStorage.setItem(LS_KIT, kit);
     } catch (e) {}
+    saveAllBeatPatterns();
   }
 
   function unitLabel() {
@@ -4219,17 +4380,52 @@
     }
   }
 
+  function syncBeatCircles() {
+    if (!circlesEl) return;
+    var p = ensureBeatPattern(timesig);
+    var n = p.length;
+    circlesEl.classList.toggle("many", n >= 8);
+    var existing = circlesEl.querySelectorAll(".metro-circle");
+    if (existing.length !== n) {
+      circlesEl.innerHTML = "";
+      for (var i = 0; i < n; i++) {
+        (function (idx) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "metro-circle";
+          b.setAttribute("data-beat", String(idx));
+          b.setAttribute("aria-label", "Beat " + (idx + 1));
+          b.addEventListener("click", function (e) {
+            e.stopPropagation();
+            cycleBeatState(idx);
+          });
+          circlesEl.appendChild(b);
+        })(i);
+      }
+    }
+    var btns = circlesEl.querySelectorAll(".metro-circle");
+    for (var j = 0; j < btns.length; j++) {
+      var st = p[j] || "normal";
+      btns[j].className = "metro-circle state-" + st;
+      btns[j].setAttribute("data-state", st);
+      btns[j].title = "Beat " + (j + 1) + ": " + st + " (tap to cycle)";
+      btns[j].setAttribute("aria-label", "Beat " + (j + 1) + ", " + st);
+    }
+  }
+
   function syncUi() {
     if (document.activeElement !== bpmEl) bpmEl.value = String(bpm);
     slider.value = String(bpm);
     bpmUnitEl.textContent = "BPM · " + unitLabel();
     timesigSel.value = timesig;
     polySel.value = poly;
+    if (kitSel) kitSel.value = kit;
     startBtn.textContent = running ? "Stop" : "Start";
     startBtn.setAttribute("aria-pressed", running ? "true" : "false");
     btn.classList.toggle("running", running);
     var polyOn = poly !== "off";
     beatPolyEl.hidden = !polyOn;
+    syncBeatCircles();
     if (timesig === "off") {
       unitHint.textContent = "BPM is the click pulse. No bar accents.";
     } else if (unitLabel() === "eighth") {
@@ -4272,6 +4468,7 @@
   }
   function setTimesig(v) {
     timesig = TIMESIGS.indexOf(v) >= 0 ? v : "4/4";
+    ensureBeatPattern(timesig);
     if (!patternAllowed(subdiv)) {
       subdiv = "quarter";
       savePrefs();
@@ -4280,6 +4477,22 @@
       savePrefs();
     }
     syncUi();
+  }
+  function setKit(v) {
+    kit = KIT_IDS.indexOf(v) >= 0 ? v : "click";
+    savePrefs();
+    syncUi();
+  }
+  function setBeatPattern(states) {
+    var n = beatsForMeter(timesig);
+    var p = [];
+    for (var i = 0; i < n; i++) {
+      var s = states && states[i];
+      p.push(BEAT_STATES.indexOf(s) >= 0 ? s : (i === 0 ? "accent" : "normal"));
+    }
+    beatPatterns[timesig] = p;
+    saveAllBeatPatterns();
+    syncBeatCircles();
   }
   function setSubdiv(v) {
     var id = normalizeSubdivId(v);
@@ -4332,22 +4545,111 @@
     });
   }
 
-  function playTone(time, freq, peak, dur, kind) {
-    toneLog.push({ time: time, freq: freq, peak: peak, dur: dur, kind: kind || "tone" });
+  function kitVoice(role) {
+    /* role: accent | normal | sub | poly — returns synth params for current kit */
+    var k = kit;
+    if (k === "wood") {
+      if (role === "accent") return { synth: "wood", freq: 1180, peak: 0.42, dur: 0.05 };
+      if (role === "sub") return { synth: "wood", freq: 620, peak: 0.12, dur: 0.028 };
+      if (role === "poly") return { synth: "wood", freq: 1500, peak: 0.28, dur: 0.04 };
+      return { synth: "wood", freq: 860, peak: 0.3, dur: 0.038 };
+    }
+    if (k === "beep") {
+      if (role === "accent") return { synth: "sine", freq: 1320, peak: 0.32, dur: 0.1 };
+      if (role === "sub") return { synth: "sine", freq: 660, peak: 0.1, dur: 0.05 };
+      if (role === "poly") return { synth: "sine", freq: 1760, peak: 0.22, dur: 0.07 };
+      return { synth: "sine", freq: 880, peak: 0.2, dur: 0.08 };
+    }
+    if (k === "rim") {
+      if (role === "accent") return { synth: "rim", freq: 1450, peak: 0.38, dur: 0.055 };
+      if (role === "sub") return { synth: "rim", freq: 720, peak: 0.1, dur: 0.03 };
+      if (role === "poly") return { synth: "rim", freq: 1800, peak: 0.26, dur: 0.04 };
+      return { synth: "rim", freq: 980, peak: 0.26, dur: 0.042 };
+    }
+    /* click (default) */
+    if (role === "accent") return { synth: "square", freq: 1500, peak: 0.36, dur: 0.055 };
+    if (role === "sub") return { synth: "square", freq: 800, peak: 0.12, dur: 0.035 };
+    if (role === "poly") return { synth: "square", freq: 1900, peak: 0.22, dur: 0.035 };
+    return { synth: "square", freq: 1000, peak: 0.22, dur: 0.04 };
+  }
+
+  function playKitSound(time, role, kind) {
+    var v = kitVoice(role);
+    toneLog.push({
+      time: time, freq: v.freq, peak: v.peak, dur: v.dur,
+      kind: kind || role, role: role, kit: kit, silent: false
+    });
     if (toneLog.length > 400) toneLog.shift();
     var ctx = audioCtx;
     if (!ctx) return;
-    var osc = ctx.createOscillator();
+
     var gain = ctx.createGain();
-    osc.type = "square";
-    osc.frequency.setValueAtTime(freq, time);
     gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0001), time + 0.001);
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
-    osc.connect(gain);
+    gain.gain.exponentialRampToValueAtTime(Math.max(v.peak, 0.0001), time + 0.0015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + v.dur);
     gain.connect(ctx.destination);
-    osc.start(time);
-    osc.stop(time + dur + 0.02);
+
+    if (v.synth === "wood") {
+      var osc = ctx.createOscillator();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(v.freq, time);
+      var bp = ctx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.setValueAtTime(v.freq * 1.2, time);
+      bp.Q.setValueAtTime(4, time);
+      osc.connect(bp);
+      bp.connect(gain);
+      osc.start(time);
+      osc.stop(time + v.dur + 0.02);
+      /* short noise burst */
+      try {
+        var len = Math.max(1, Math.floor(ctx.sampleRate * 0.02));
+        var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+        var data = buf.getChannelData(0);
+        for (var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+        var src = ctx.createBufferSource();
+        src.buffer = buf;
+        var ng = ctx.createGain();
+        ng.gain.setValueAtTime(v.peak * 0.45, time);
+        ng.gain.exponentialRampToValueAtTime(0.0001, time + 0.025);
+        var hp = ctx.createBiquadFilter();
+        hp.type = "highpass";
+        hp.frequency.setValueAtTime(1200, time);
+        src.connect(hp);
+        hp.connect(ng);
+        ng.connect(ctx.destination);
+        src.start(time);
+      } catch (e) {}
+      return;
+    }
+
+    if (v.synth === "rim") {
+      var o1 = ctx.createOscillator();
+      var o2 = ctx.createOscillator();
+      o1.type = "square";
+      o2.type = "square";
+      o1.frequency.setValueAtTime(v.freq, time);
+      o2.frequency.setValueAtTime(v.freq * 1.48, time);
+      var bp2 = ctx.createBiquadFilter();
+      bp2.type = "bandpass";
+      bp2.frequency.setValueAtTime(v.freq * 1.1, time);
+      bp2.Q.setValueAtTime(2.5, time);
+      o1.connect(bp2);
+      o2.connect(bp2);
+      bp2.connect(gain);
+      o1.start(time);
+      o2.start(time);
+      o1.stop(time + v.dur + 0.02);
+      o2.stop(time + v.dur + 0.02);
+      return;
+    }
+
+    var osc2 = ctx.createOscillator();
+    osc2.type = v.synth === "sine" ? "sine" : "square";
+    osc2.frequency.setValueAtTime(v.freq, time);
+    osc2.connect(gain);
+    osc2.start(time);
+    osc2.stop(time + v.dur + 0.02);
   }
 
   function flash(el, accentClass, time) {
@@ -4364,22 +4666,41 @@
     flashTimers.push(t);
   }
 
-  function scheduleMain(time, accent) {
-    var freq = accent === "strong" ? 1500 : (accent === "medium" ? 1200 : 1000);
-    var peak = accent === "strong" ? 0.36 : (accent === "medium" ? 0.28 : 0.2);
-    var dur = accent === "strong" ? 0.055 : 0.04;
-    playTone(time, freq, peak, dur, "main");
-    flash(beatEl, accent === "strong" ? "accent" : null, time);
+  function pulseBeatCircle(beatIndex, time, state) {
+    if (!circlesEl) return;
+    var delay = 0;
+    if (audioCtx) delay = Math.max(0, (time - audioCtx.currentTime) * 1000);
+    var t = setTimeout(function () {
+      var nodes = circlesEl.querySelectorAll(".metro-circle");
+      for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove("now");
+      var idx = ((beatIndex % nodes.length) + nodes.length) % nodes.length;
+      if (nodes[idx]) {
+        nodes[idx].classList.add("now");
+        setTimeout(function () { nodes[idx].classList.remove("now"); }, 110);
+      }
+    }, delay);
+    flashTimers.push(t);
   }
 
-  /* ~800 Hz, ~half the weak-beat gain — distinct from the main click */
+  function scheduleMain(time, beatIndex) {
+    var state = getBeatState(beatIndex);
+    pulseBeatCircle(beatIndex, time, state);
+    flash(beatEl, state === "accent" ? "accent" : null, time);
+    if (state === "silent") {
+      toneLog.push({ time: time, freq: 0, peak: 0, dur: 0, kind: "main", role: "silent", kit: kit, silent: true });
+      if (toneLog.length > 400) toneLog.shift();
+      return;
+    }
+    playKitSound(time, state === "accent" ? "accent" : "normal", "main");
+  }
+
   function scheduleSub(time) {
-    playTone(time, 800, 0.12, 0.035, "sub");
+    playKitSound(time, "sub", "sub");
     flash(beatEl, "sub", time);
   }
 
   function schedulePolyClick(time) {
-    playTone(time, 1900, 0.22, 0.035, "poly");
+    playKitSound(time, "poly", "poly");
     flash(beatPolyEl, null, time);
   }
 
@@ -4398,9 +4719,9 @@
     for (var i = i0; i <= i1; i++) {
       var t = origin + i * beat;
       if (t >= from - 1e-9 && t < to) {
-        var barPos = info.clicksPerBar > 0 ? ((i % info.clicksPerBar) + info.clicksPerBar) % info.clicksPerBar : 0;
-        var accent = timesig === "off" ? null : info.accent(barPos);
-        scheduleMain(t, accent);
+        var barPos = info.clicksPerBar > 0 ? ((i % info.clicksPerBar) + info.clicksPerBar) % info.clicksPerBar : (i % 4);
+        if (timesig === "off") barPos = i % 4;
+        scheduleMain(t, barPos);
       }
 
       /* Extra onsets belong to beat i even when the main click was in an earlier window. */
@@ -4450,8 +4771,12 @@
   function clearFlashTimers() {
     for (var i = 0; i < flashTimers.length; i++) clearTimeout(flashTimers[i]);
     flashTimers = [];
-    beatEl.classList.remove("on", "accent");
+    beatEl.classList.remove("on", "accent", "sub");
     beatPolyEl.classList.remove("on", "accent");
+    if (circlesEl) {
+      var nodes = circlesEl.querySelectorAll(".metro-circle.now");
+      for (var j = 0; j < nodes.length; j++) nodes[j].classList.remove("now");
+    }
   }
 
   function stopMetronome() {
@@ -4580,6 +4905,7 @@
 
   timesigSel.addEventListener("change", function () { setTimesig(timesigSel.value); });
   polySel.addEventListener("change", function () { setPoly(polySel.value); });
+  if (kitSel) kitSel.addEventListener("change", function () { setKit(kitSel.value); });
 
   moreToggle.addEventListener("click", function () {
     if (moreEl.classList.contains("open")) closeMore();
@@ -4634,17 +4960,23 @@
     planPolyTimes: planPolyTimes,
     meterInfo: meterInfo,
     patterns: SUBDIV_PATTERNS,
+    kitVoice: kitVoice,
     getBpm: function () { return bpm; },
     getTimesig: function () { return timesig; },
     getSubdiv: function () { return subdiv; },
     getOnsets: function () { return patternOnsets(subdiv); },
     getPoly: function () { return poly; },
+    getKit: function () { return kit; },
+    getBeatPattern: function () { return ensureBeatPattern(timesig).slice(); },
     getMeter: function () { return timesig; },
     isRunning: function () { return running; },
     setBpm: setBpm,
     setTimesig: setTimesig,
     setSubdiv: setSubdiv,
     setPoly: setPoly,
+    setKit: setKit,
+    setBeatPattern: setBeatPattern,
+    cycleBeatState: cycleBeatState,
     setMeter: function (n) {
       var map = { 0: "off", 2: "2/4", 3: "3/4", 4: "4/4", 6: "6/8" };
       setTimesig(map[n] || "4/4");
