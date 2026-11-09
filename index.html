@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- sr-build runner-scale -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1766,7 +1765,7 @@
 }
 .sr-runner-stage {
   position: relative; background: #fffef9; border: 1px solid var(--border);
-  border-radius: 0.55rem; height: 176px; overflow: hidden;
+  border-radius: 0.55rem; height: 178px; overflow: hidden;
 }
 #sr-runner-vf { width: 100%; height: 100%; }
 #sr-runner-vf svg {
@@ -1775,7 +1774,7 @@
   height: 100% !important;
 }
 .sr-hit-line {
-  position: absolute; left: 22%; top: 6%; bottom: 6%; width: 2.5px;
+  position: absolute; left: 24%; top: 4%; bottom: 4%; width: 2px;
   background: var(--accent); box-shadow: 0 0 0 3px rgba(139,105,20,0.18);
   z-index: 2; pointer-events: none;
 }
@@ -6083,8 +6082,8 @@ const bridge = window.__scalesNotes;
     let speed = 48; /* notes/min */
     let streak = 0, lives = 3, sinceSpeed = 0;
     let notes = []; /* {key, letter, x, line} */
-    let staffTop = 0, gap = 10, hitX = 80;
-    let runW = 400;
+    let staffTop = 0, gap = 10, hitX = 40;
+    let runW = 152;
     let lastTs = 0;
     let answerHlTimer = 0;
 
@@ -6107,15 +6106,14 @@ const bridge = window.__scalesNotes;
       const host = document.getElementById("sr-runner-vf");
       if (!host) return;
       host.innerHTML = "";
-      /* Wide enough for scrolling notes; tall line spacing so the staff reads large on phones. */
-      const width = 400;
-      const lineSpace = 30;
+      /* Default VF spacing (10px). Narrow logical width so viewBox/meet scales
+         the WHOLE engraving uniformly to ~80–90px staff on a phone. */
+      const width = 152;
+      const paintH = 160;
       const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
-      /* Temporary canvas tall enough for VF to place a large-spacing stave */
-      const paintH = 320;
       renderer.resize(width, paintH);
       const ctx = renderer.getContext();
-      const stave = new VF.Stave(10, 24, width - 20, { spacing_between_lines_px: lineSpace });
+      const stave = new VF.Stave(4, 36, width - 8); /* default spacing_between_lines_px = 10 */
       stave.addClef("treble");
       stave.setContext(ctx).draw();
       const svg = host.querySelector("svg");
@@ -6123,12 +6121,12 @@ const bridge = window.__scalesNotes;
       staffTop = stave.getYForLine(0);
       gap = stave.getYForLine(1) - stave.getYForLine(0);
       const yBot = stave.getYForLine(4);
-      /* Crop to staff + ~1.5 ledger spaces above/below; aspect ~ stage */
-      const pad = gap * 1.35;
+      /* Two ledger lines above + below fully inside the viewBox */
+      const pad = gap * 2.15;
       const vbY = staffTop - pad;
       const vbH = (yBot - staffTop) + pad * 2;
       runW = width;
-      hitX = width * 0.22;
+      hitX = width * 0.24;
       svg.setAttribute("viewBox", "0 " + vbY + " " + width + " " + vbH);
       svg.setAttribute("preserveAspectRatio", "xMinYMid meet");
       svg.style.width = "100%";
@@ -6140,54 +6138,52 @@ const bridge = window.__scalesNotes;
       });
       svg.querySelectorAll(".vf-stave path").forEach(function (p) {
         p.setAttribute("stroke", "#2c2416");
-        p.setAttribute("stroke-width", "1.85");
+        p.setAttribute("stroke-width", "1.15");
         p.setAttribute("fill", "none");
       });
       svg.querySelectorAll(".vf-clef path").forEach(function (p) {
         p.setAttribute("fill", "#2c2416");
       });
-      const headRx = gap * 0.40;
-      const headRy = gap * 0.29;
-      const stemLen = gap * 3.0;
-      const stemW = Math.max(1.7, gap * 0.075);
-      const hotSlop = Math.max(18, width * 0.055);
+      /* Note-naming game: noteheads only (standard head size relative to gap). */
+      const headRx = gap * 0.55;
+      const headRy = gap * 0.40;
+      const hotSlop = Math.max(12, width * 0.08);
       const NS = "http://www.w3.org/2000/svg";
       notes.forEach(function (pn) {
         const line = staffYForKey(pn.key);
         const y = staffTop + line * gap;
         const x = pn.x;
-        if (x < hitX - 10) return;
+        if (x < hitX - 8) return;
         const hot = !pn.answered && Math.abs(x - hitX) < hotSlop;
         const g = document.createElementNS(NS, "g");
         if (line >= 5 || line <= -0.5) {
           const led = document.createElementNS(NS, "line");
           const ly = staffTop + Math.round(line) * gap;
-          led.setAttribute("x1", x - headRx * 1.65); led.setAttribute("x2", x + headRx * 1.65);
-          led.setAttribute("y1", ly); led.setAttribute("y2", ly);
-          led.setAttribute("stroke", "#2c2416"); led.setAttribute("stroke-width", "1.6");
+          led.setAttribute("x1", x - headRx * 1.55);
+          led.setAttribute("x2", x + headRx * 1.55);
+          led.setAttribute("y1", ly);
+          led.setAttribute("y2", ly);
+          led.setAttribute("stroke", "#2c2416");
+          led.setAttribute("stroke-width", "1.15");
           g.appendChild(led);
         }
         if (hot) {
           const glow = document.createElementNS(NS, "circle");
-          glow.setAttribute("cx", x); glow.setAttribute("cy", y); glow.setAttribute("r", String(headRx * 2.05));
-          glow.setAttribute("fill", "rgba(139,105,20,0.2)");
+          glow.setAttribute("cx", x);
+          glow.setAttribute("cy", y);
+          glow.setAttribute("r", String(headRx * 1.85));
+          glow.setAttribute("fill", "rgba(139,105,20,0.22)");
           g.appendChild(glow);
           pn._hot = true;
         } else pn._hot = false;
         const head = document.createElementNS(NS, "ellipse");
-        head.setAttribute("cx", x); head.setAttribute("cy", y);
-        head.setAttribute("rx", String(headRx)); head.setAttribute("ry", String(headRy));
+        head.setAttribute("cx", x);
+        head.setAttribute("cy", y);
+        head.setAttribute("rx", String(headRx));
+        head.setAttribute("ry", String(headRy));
         head.setAttribute("transform", "rotate(-20 " + x + " " + y + ")");
         head.setAttribute("fill", hot ? "#8b6914" : "#2c2416");
         g.appendChild(head);
-        const stemUp = line > 2;
-        const stem = document.createElementNS(NS, "line");
-        const sx = x + (stemUp ? headRx * 0.88 : -headRx * 0.88);
-        stem.setAttribute("x1", sx); stem.setAttribute("x2", sx);
-        stem.setAttribute("y1", y); stem.setAttribute("y2", y + (stemUp ? -stemLen : stemLen));
-        stem.setAttribute("stroke", hot ? "#8b6914" : "#2c2416");
-        stem.setAttribute("stroke-width", String(stemW));
-        g.appendChild(stem);
         svg.appendChild(g);
       });
     }
@@ -6247,7 +6243,7 @@ const bridge = window.__scalesNotes;
       if (!lastTs) lastTs = ts;
       const dt = Math.min(0.05, (ts - lastTs) / 1000);
       lastTs = ts;
-      const pxPerSec = (speed / 60) * 72; /* ~spacing in runW coords */
+      const pxPerSec = (speed / 60) * 36; /* ~spacing in runW coords */
       notes.forEach(function (n) { n.x -= pxPerSec * dt; });
       /* miss if crossed hit line unanswered */
       notes.forEach(function (n) {
@@ -6262,23 +6258,23 @@ const bridge = window.__scalesNotes;
       /* Drop notes once past the hit line so they never overlap the clef */
       notes = notes.filter(function (n) { return n.x > hitX - 12; });
       const maxX = notes.reduce(function (m, n) { return Math.max(m, n.x); }, 0);
-      if (maxX < runW - 50) notes.push(spawnNote(maxX + 55 + Math.random() * 20));
+      if (maxX < runW - 18) notes.push(spawnNote(maxX + 24 + Math.random() * 8));
       drawFrame();
       raf = requestAnimationFrame(tick);
     }
     function start() {
       if (playing) { playing = false; cancelAnimationFrame(raf); syncHud(); return; }
       notes = [];
-      for (let i = 0; i < 5; i++) notes.push(spawnNote(100 + i * 58));
+      for (let i = 0; i < 5; i++) notes.push(spawnNote(48 + i * 26));
       playing = true; lastTs = 0;
       syncHud();
       raf = requestAnimationFrame(tick);
     }
     function resetVisual() {
       notes = [];
-      for (let i = 0; i < 5; i++) notes.push(spawnNote(100 + i * 58));
+      for (let i = 0; i < 5; i++) notes.push(spawnNote(48 + i * 26));
       /* mid-game look: first near hit */
-      notes[0].x = hitX + 8;
+      notes[0].x = hitX + 6;
       drawFrame();
       syncHud();
     }
