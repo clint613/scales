@@ -6106,9 +6106,15 @@ const bridge = window.__scalesNotes;
       const host = document.getElementById("sr-runner-vf");
       if (!host) return;
       host.innerHTML = "";
-      /* Default VF spacing (10px). Narrow logical width so viewBox/meet scales
-         the WHOLE engraving uniformly to ~80–90px staff on a phone. */
-      const width = 152;
+      /* Default VF spacing (10px). Scale the WHOLE engraving uniformly via
+         viewBox/meet so clef/heads/ledgers keep standard proportions.
+         Logical width tracks stage aspect so the staff fills the stage. */
+      const stageEl = document.getElementById("sr-runner-stage");
+      const stageW = Math.max(280, (stageEl && stageEl.clientWidth) || host.clientWidth || 320);
+      const stageH = Math.max(140, (stageEl && stageEl.clientHeight) || 178);
+      /* vbH for default gap=10 + 2.15-gap pad each side = 40 + 43 = 83 */
+      const vbHGuess = 83;
+      const width = Math.max(152, Math.round(stageW * vbHGuess / stageH));
       const paintH = 160;
       const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
       renderer.resize(width, paintH);
@@ -6126,7 +6132,7 @@ const bridge = window.__scalesNotes;
       const vbY = staffTop - pad;
       const vbH = (yBot - staffTop) + pad * 2;
       runW = width;
-      hitX = width * 0.24;
+      hitX = Math.max(36, width * 0.18);
       svg.setAttribute("viewBox", "0 " + vbY + " " + width + " " + vbH);
       svg.setAttribute("preserveAspectRatio", "xMinYMid meet");
       svg.style.width = "100%";
