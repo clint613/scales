@@ -1684,11 +1684,13 @@
 .sr-chip.active { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
 .sr-source { font-size: 0.78rem; color: var(--ink-soft); font-style: italic; margin: -0.25rem 0 0.7rem; }
 .sr-staff-frame {
+  position: relative;
   background: #fffef9; border: 1px solid var(--border); border-radius: 0.55rem;
-  padding: 0.5rem 0.3rem 0.2rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 0.6rem 0.45rem 0.5rem; overflow: hidden;
 }
-#sr-drill-staff { width: 100%; min-height: 180px; }
-#sr-drill-staff svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+#sr-drill-staff { width: 100%; min-height: 120px; }
+#sr-drill-staff svg { width: 100%; height: auto; display: block; margin: 0 auto; }
+#sr-drill-staff .vf-stavenote { transition: opacity 0.12s ease; }
 #sr-drill-staff .sr-hl { fill: var(--accent) !important; }
 #sr-drill-staff .sr-hl-glow { fill: rgba(139,105,20,0.2); }
 .sr-controls {
@@ -1707,14 +1709,54 @@
 .sr-tempo input[type=range] { width: 7rem; accent-color: var(--accent); }
 .sr-tempo-val {
   font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700;
-  font-size: 1.15rem; color: var(--ink); min-width: 2.5rem;
+  font-size: 1.2rem; color: var(--ink); min-width: 2rem; text-align: right;
+  font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1;
 }
+.sr-tempo span:last-child { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.sr-controls .sr-btn { min-width: 5.2rem; }
+#sr-drill-new { margin-left: auto; }
+/* Count-in overlay (drill + Note Runner) */
+.sr-countin {
+  position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(255, 254, 249, 0.9); pointer-events: none; gap: 0.15rem;
+}
+.sr-countin[hidden] { display: none; }
+.sr-countin-num {
+  font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700; line-height: 1;
+  font-size: 4.2rem; color: var(--accent);
+  font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1;
+}
+.sr-countin-of { font-size: 0.7rem; color: var(--ink-soft); letter-spacing: 0.04em; }
+.sr-countin-label {
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft);
+}
+.sr-countin.pulse .sr-countin-num { animation: srPulse 0.32s ease-out; }
+@keyframes srPulse { from { transform: scale(1.35); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+/* Input row: mic + MIDI keyboard */
+.sr-btn.kb-btn { background: var(--cream); color: var(--ink); border-color: var(--border); display: inline-flex; align-items: center; gap: 0.35rem; }
+.sr-btn.kb-btn.on { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
+.sr-btn.icon-btn {
+  background: var(--cream); color: var(--ink); border-color: var(--border);
+  padding: 0.5rem 0.6rem; min-width: 0; line-height: 1;
+}
+.sr-btn.icon-btn[hidden] { display: none; }
+#sr-runner-toggle { margin-left: auto; min-width: 5.2rem; }
+.sr-input-status { margin-top: 0.45rem; font-size: 0.74rem; color: var(--ink-soft); line-height: 1.4; min-height: 0; }
+.sr-input-status:empty { display: none; }
+.sr-input-status span { display: block; }
+.sr-input-status span:empty { display: none; }
+.sr-input-status .warn { color: #8a3b1f; }
+.sr-input-status .ok { color: #2a6b3a; }
 .sr-letters {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.35rem;
 }
 .sr-letter {
   appearance: none; aspect-ratio: 1; border: 1px solid var(--border); background: var(--cream);
   border-radius: 0.45rem; font: inherit; font-weight: 700; font-size: 1rem; color: var(--ink); cursor: pointer;
+}
+@media (min-width: 601px) {
+  .sr-letter { aspect-ratio: auto; height: 3rem; }
 }
 .sr-letter:hover, .sr-letter.hot { background: var(--accent-pale); border-color: var(--accent-soft); }
 .sr-letter.ok { background: #d4e8d4; border-color: #6a9a6a; }
@@ -1725,6 +1767,7 @@
 }
 .sr-hearing { font-size: 0.82rem; color: var(--ink-soft); }
 .sr-hearing strong {
+  font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1;
   color: var(--accent); font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.1rem; font-weight: 700;
 }
@@ -1779,13 +1822,19 @@
   z-index: 2; pointer-events: none;
 }
 .sr-hit-label {
-  position: absolute; left: 22%; top: 4px; transform: translateX(-50%);
+  position: absolute; left: 22%; top: 4px; transform: translateX(calc(-100% - 5px));
   font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
   text-transform: uppercase; color: var(--accent); z-index: 3;
 }
 .sr-runner-hint { margin-top: 0.55rem; font-size: 0.75rem; color: var(--ink-soft); }
 .sr-mic-limits { margin-top: 0.45rem; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.4; }
 @media (max-width: 600px) {
+  .sr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .sr-controls .sr-tempo { grid-column: 1 / -1; order: -1; }
+  .sr-controls .sr-tempo input[type=range] { flex: 1; width: auto; }
+  .sr-controls .sr-btn { width: 100%; }
+  #sr-drill-new { margin-left: 0; }
+  .sr-countin-num { font-size: 3.4rem; }
   .sr-progress { grid-template-columns: repeat(3, 1fr); }
   .sr-progress .sr-spark { grid-column: 1 / -1; }
   .skill-tab { font-size: 0.85rem; padding: 0.5rem 0.85rem 0.6rem; }
@@ -2027,7 +2076,7 @@ body.sr-sight-open header::after { display: none; }
         </div>
       </div>
       <p class="sr-source" id="sr-drill-source"></p>
-      <div class="sr-staff-frame"><div id="sr-drill-staff" role="img" aria-label="Sight-reading exercise"></div></div>
+      <div class="sr-staff-frame"><div id="sr-drill-staff" role="img" aria-label="Sight-reading exercise"></div><div class="sr-countin" id="sr-drill-countin" hidden aria-live="polite"></div></div>
       <div class="sr-controls">
         <button type="button" class="sr-btn" id="sr-drill-start">Start</button>
         <div class="sr-tempo">
@@ -2056,6 +2105,7 @@ body.sr-sight-open header::after { display: none; }
         <span class="sr-hit-label">Hit</span>
         <div class="sr-hit-line" aria-hidden="true"></div>
         <div id="sr-runner-vf"></div>
+        <div class="sr-countin" id="sr-runner-countin" hidden aria-live="polite"></div>
       </div>
       <p class="sr-runner-hint">Speed increases every 10 correct · name each note before it crosses the gold line · pool follows drill level</p>
       <div class="sr-letters" id="sr-runner-letters" role="group" aria-label="Answer with letter name" style="margin-top:0.75rem">
@@ -2070,13 +2120,16 @@ body.sr-sight-open header::after { display: none; }
       <div class="sr-kb" id="sr-runner-kb" aria-label="On-screen keyboard"></div>
       <div class="sr-mic-row">
         <button type="button" class="sr-btn mic-btn" id="sr-runner-mic" aria-pressed="false">🎤 Mic</button>
+        <button type="button" class="sr-btn kb-btn" id="sr-runner-kbd" aria-pressed="false" title="Use a USB/Bluetooth MIDI keyboard">🎹 Keyboard</button>
+        <button type="button" class="sr-btn icon-btn" id="sr-runner-sound" aria-pressed="true" aria-label="Keyboard sound on" title="Keyboard sound on" hidden>🔊</button>
         <span class="sr-hearing" id="sr-runner-hearing">hearing: <strong>—</strong></span>
         <label class="sr-match">Match
           <select id="sr-runner-match"><option value="letter">letter only</option><option value="exact">exact octave</option></select>
         </label>
         <button type="button" class="sr-btn secondary" id="sr-runner-toggle">Play</button>
       </div>
-      <p class="sr-mic-limits">Mic: monophonic only · ~50–100 ms latency · needs HTTPS + permission · iPad Safari needs a tap to start AudioContext · octave slips on low notes / noise</p>
+      <p class="sr-input-status" id="sr-input-status" aria-live="polite"><span id="sr-mic-status"></span><span id="sr-kbd-status"></span></p>
+      <p class="sr-mic-limits">Mic: one note at a time · ~50–100 ms delay · octave slips on low notes / noise. Keyboard (MIDI): exact pitch, Chrome on Android/Mac; not available in iPad Safari.</p>
     </div>
   </section>
 </div>
@@ -5618,32 +5671,96 @@ const bridge = window.__scalesNotes;
   })();
   window.SightReadPitch = Pitch;
 
+  /* ---------- Shared audio (one AudioContext for clicks, count-in, keyboard synth, mic) ---------- */
+  const SRAudio = (function () {
+    let ctx = null, out = null;
+    function get() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!ctx) {
+        ctx = new AC();
+        out = ctx.createDynamicsCompressor();
+        try {
+          out.threshold.value = -14; out.knee.value = 12; out.ratio.value = 4;
+          out.attack.value = 0.003; out.release.value = 0.2;
+        } catch (e) {}
+        out.connect(ctx.destination);
+      }
+      return ctx;
+    }
+    /* Call synchronously inside a tap/click so iOS + Chrome autoplay allow sound. */
+    function unlock() {
+      const c = get();
+      if (!c) return Promise.resolve(null);
+      let p = Promise.resolve();
+      if (c.state === "suspended") { try { p = c.resume(); } catch (e) {} }
+      try {
+        const b = c.createBuffer(1, 1, c.sampleRate);
+        const src = c.createBufferSource();
+        src.buffer = b; src.connect(c.destination); src.start(0);
+      } catch (e) {}
+      return Promise.resolve(p).then(function () { return c; }, function () { return c; });
+    }
+    function output() { get(); return out; }
+    /* First tap anywhere unlocks audio (MIDI note-ons are not user gestures). */
+    function onFirstGesture() { if (ctx && ctx.state === "suspended") unlock(); }
+    ["pointerdown", "keydown", "touchend"].forEach(function (ev) {
+      document.addEventListener(ev, onFirstGesture, { capture: true, passive: true });
+    });
+    return { get: get, unlock: unlock, output: output, peek: function () { return ctx; } };
+  })();
+  window.SightReadAudio = SRAudio;
+
   /* ---------- Mic ---------- */
   const Mic = (function () {
-    let ctx = null, stream = null, analyser = null, raf = 0, running = false;
+    let stream = null, src = null, analyser = null, raf = 0, running = false, starting = false;
     let stable = [];
     const NEED = 3;
     const listeners = [];
     function onNote(cb) { listeners.push(cb); }
-    function emit(p) { listeners.forEach(function (cb) { try { cb(p); } catch (e) {} }); }
+    function emit(p) { listeners.forEach(function (cb) { try { cb(p); } catch (e) { console.warn("[sight-reading] mic listener", e); } }); }
+    function classify(e) {
+      const name = (e && e.name) || "";
+      if (/NotAllowed|PermissionDenied|Security/i.test(name)) return "denied";
+      if (/NotFound|DevicesNotFound|Overconstrained/i.test(name)) return "nodevice";
+      if (/NotReadable|TrackStart|Abort/i.test(name)) return "busy";
+      return "error";
+    }
+    /* Must be called from the tap handler: the getUserMedia call below is what
+       makes the browser show its microphone permission prompt. */
     async function start() {
-      if (running) return true;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-        });
-      } catch (e) {
-        console.warn("[sight-reading] mic denied", e);
-        return false;
+      if (running) return { ok: true };
+      if (starting) return { ok: false, reason: "pending" };
+      if (!window.isSecureContext) return { ok: false, reason: "insecure" };
+      if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
+        return { ok: false, reason: "unsupported" };
       }
-      ctx = new (window.AudioContext || window.webkitAudioContext)();
-      if (ctx.state === "suspended") await ctx.resume();
-      const src = ctx.createMediaStreamSource(stream);
+      const unlocked = SRAudio.unlock(); /* same tap: resume AudioContext (iOS) */
+      starting = true;
+      try {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+          });
+        } catch (e1) {
+          if (classify(e1) === "nodevice" && /Overconstrained/i.test(e1.name || "")) {
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } else { throw e1; }
+        }
+      } catch (e) {
+        starting = false;
+        console.warn("[sight-reading] mic unavailable:", e && e.name);
+        return { ok: false, reason: classify(e) };
+      }
+      const ctx = await unlocked;
+      if (!ctx) { starting = false; stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; return { ok: false, reason: "unsupported" }; }
+      if (ctx.state === "suspended") { try { await ctx.resume(); } catch (e) {} }
+      src = ctx.createMediaStreamSource(stream);
       analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
       src.connect(analyser);
       const buf = new Float32Array(analyser.fftSize);
-      running = true;
+      running = true; starting = false;
       function tick() {
         if (!running) return;
         analyser.getFloatTimeDomainData(buf);
@@ -5659,14 +5776,14 @@ const bridge = window.__scalesNotes;
         raf = requestAnimationFrame(tick);
       }
       tick();
-      return true;
+      return { ok: true };
     }
     function stop() {
       running = false;
       if (raf) cancelAnimationFrame(raf);
+      try { if (src) src.disconnect(); } catch (e) {}
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
-      if (ctx) ctx.close().catch(function () {});
-      stream = null; ctx = null; analyser = null; stable = [];
+      stream = null; src = null; analyser = null; stable = [];
     }
     function isOn() { return running; }
     document.addEventListener("visibilitychange", function () {
@@ -5675,12 +5792,185 @@ const bridge = window.__scalesNotes;
         document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
           b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
         });
-          setHearing(document.getElementById("sr-runner-hearing"), null);
+        setHearing(document.getElementById("sr-runner-hearing"), null);
       }
     });
     return { start: start, stop: stop, isOn: isOn, onNote: onNote };
   })();
   window.SightReadMic = Mic;
+
+  /* ---------- MIDI keyboard (Web MIDI) + piano-like playback ---------- */
+  const Keys = (function () {
+    const PREF = "pianoSkills.sightReading.kbSound";
+    let access = null, enabled = false;
+    const inputs = new Map(); /* id -> MIDIInput */
+    const voices = new Map(); /* midi -> voice */
+    const order = [];
+    let sustain = false;
+    const held = new Set();
+    let soundOn = true;
+    try { soundOn = localStorage.getItem(PREF) !== "off"; } catch (e) {}
+    let lastNoteAt = -Infinity;
+    const noteListeners = [], statusListeners = [];
+    function supported() { return typeof navigator.requestMIDIAccess === "function"; }
+    function status() {
+      const names = [];
+      inputs.forEach(function (inp) { names.push(inp.name || "MIDI keyboard"); });
+      return { supported: supported(), enabled: enabled, devices: names, soundOn: soundOn };
+    }
+    function notify() { const st = status(); statusListeners.forEach(function (cb) { try { cb(st); } catch (e) {} }); }
+    function refresh() {
+      if (!access) return;
+      const seen = new Set();
+      access.inputs.forEach(function (inp) {
+        if (inp.state === "disconnected") return;
+        seen.add(inp.id);
+        if (!inputs.has(inp.id)) {
+          inputs.set(inp.id, inp);
+          inp.onmidimessage = onMessage;
+        }
+      });
+      inputs.forEach(function (inp, id) {
+        if (!seen.has(id)) { try { inp.onmidimessage = null; } catch (e) {} inputs.delete(id); }
+      });
+      if (!inputs.size) releaseAll();
+      notify();
+    }
+    async function enable() {
+      if (!supported()) return { ok: false, reason: "unsupported" };
+      if (!window.isSecureContext) return { ok: false, reason: "insecure" };
+      try {
+        access = access || await navigator.requestMIDIAccess({ sysex: false });
+      } catch (e) {
+        console.warn("[sight-reading] MIDI unavailable:", e && e.name);
+        return { ok: false, reason: "denied" };
+      }
+      enabled = true;
+      access.onstatechange = function () { if (enabled) refresh(); };
+      refresh();
+      return { ok: true };
+    }
+    function disable() {
+      enabled = false;
+      inputs.forEach(function (inp) { try { inp.onmidimessage = null; } catch (e) {} });
+      inputs.clear();
+      releaseAll();
+      notify();
+    }
+    function setSound(on) {
+      soundOn = !!on;
+      try { localStorage.setItem(PREF, soundOn ? "on" : "off"); } catch (e) {}
+      if (!soundOn) releaseAll();
+      notify();
+    }
+    function onMessage(e) {
+      const d = e && e.data;
+      if (!d || d.length < 2) return;
+      const st = d[0] & 0xf0;
+      if (st === 0x90 && (d[2] || 0) > 0) noteOn(d[1], d[2]);
+      else if (st === 0x80 || (st === 0x90 && !(d[2] || 0))) noteOff(d[1]);
+      else if (st === 0xb0 && d[1] === 64) pedal((d[2] || 0) >= 64);
+    }
+    /* Simple piano: 5 partials, fast attack, partial-dependent exponential decay,
+       velocity-shaped level + brightness, short release on note-off. */
+    const PARTIALS = [[1, 1], [2, 0.42], [3, 0.2], [4, 0.1], [5, 0.05]];
+    function startVoice(midi, vel) {
+      const ctx = SRAudio.get();
+      if (!ctx) return null;
+      if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+      const t = ctx.currentTime + 0.005;
+      const f = 440 * Math.pow(2, (midi - 69) / 12);
+      const v = Math.max(0.03, Math.pow(vel / 127, 1.6)) * 0.32;
+      const decay = Math.min(4.5, Math.max(0.7, 2.6 * Math.pow(0.5, (midi - 60) / 20)));
+      const amp = ctx.createGain();
+      amp.gain.setValueAtTime(0.0001, t);
+      amp.gain.exponentialRampToValueAtTime(v, t + 0.006);
+      amp.gain.setTargetAtTime(v * 0.45, t + 0.006, 0.09);      /* hammer transient */
+      amp.gain.setTargetAtTime(0, t + 0.12, decay / 3);          /* long ring */
+      const filt = ctx.createBiquadFilter();
+      filt.type = "lowpass";
+      filt.frequency.setValueAtTime(Math.min(18000, f * (3 + 9 * vel / 127)), t);
+      filt.frequency.setTargetAtTime(Math.min(18000, f * 2.5), t + 0.02, decay / 2);
+      filt.Q.value = 0.4;
+      filt.connect(amp);
+      amp.connect(SRAudio.output());
+      const oscs = [];
+      PARTIALS.forEach(function (pt, i) {
+        const pf = f * pt[0] * (1 + 0.0004 * pt[0] * pt[0]); /* slight stretch */
+        if (pf > 16000) return;
+        const o = ctx.createOscillator();
+        o.type = i === 0 ? "triangle" : "sine";
+        o.frequency.value = pf;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(pt[1], t);
+        g.gain.setTargetAtTime(0, t + 0.01, decay / (2 + i * 1.6));
+        o.connect(g); g.connect(filt);
+        o.start(t);
+        o.stop(t + decay * 2.2 + 0.1);
+        oscs.push(o);
+      });
+      const voice = { amp: amp, oscs: oscs, midi: midi, ctx: ctx, done: false };
+      oscs[0] && (oscs[0].onended = function () { voice.done = true; try { amp.disconnect(); } catch (e) {} });
+      return voice;
+    }
+    function releaseVoice(voice, quick) {
+      if (!voice || voice.done) return;
+      const ctx = voice.ctx, t = ctx.currentTime;
+      try {
+        const cur = Math.max(0.0001, voice.amp.gain.value);
+        voice.amp.gain.cancelScheduledValues(t);
+        voice.amp.gain.setValueAtTime(cur, t);
+        voice.amp.gain.setTargetAtTime(0, t, quick ? 0.015 : 0.07);
+        voice.oscs.forEach(function (o) { try { o.stop(t + (quick ? 0.12 : 0.5)); } catch (e) {} });
+      } catch (e) {}
+      voice.done = true;
+    }
+    function noteOn(midi, vel) {
+      lastNoteAt = performance.now();
+      if (soundOn) {
+        if (voices.has(midi)) releaseVoice(voices.get(midi), true);
+        const v = startVoice(midi, vel);
+        if (v) {
+          voices.set(midi, v);
+          order.push(midi);
+          while (order.length > 24) {
+            const old = order.shift();
+            if (old !== midi && voices.has(old)) { releaseVoice(voices.get(old), true); voices.delete(old); }
+          }
+        }
+      }
+      held.delete(midi);
+      const note = Pitch.midiToName(midi);
+      noteListeners.forEach(function (cb) { try { cb({ midi: midi, velocity: vel, note: note }); } catch (e) { console.warn("[sight-reading] kb listener", e); } });
+    }
+    function noteOff(midi) {
+      if (sustain) { held.add(midi); return; }
+      const v = voices.get(midi);
+      if (v) { releaseVoice(v, false); voices.delete(midi); }
+    }
+    function pedal(down) {
+      sustain = down;
+      if (!down) { held.forEach(function (m) { noteOff(m); }); held.clear(); }
+    }
+    function releaseAll() {
+      voices.forEach(function (v) { releaseVoice(v, true); });
+      voices.clear(); order.length = 0; held.clear(); sustain = false;
+    }
+    /* Mic should not answer while a MIDI keyboard is driving input (or just after a key). */
+    function suppressMic() {
+      return (enabled && inputs.size > 0) || (performance.now() - lastNoteAt < 1500);
+    }
+    return {
+      supported: supported, enable: enable, disable: disable, setSound: setSound,
+      status: status, isEnabled: function () { return enabled; },
+      onNote: function (cb) { noteListeners.push(cb); },
+      onStatus: function (cb) { statusListeners.push(cb); },
+      suppressMic: suppressMic,
+      activeVoices: function () { let c = 0; voices.forEach(function (v) { if (!v.done) c++; }); return c; },
+      _message: onMessage /* test hook */
+    };
+  })();
+  window.SightReadKeys = Keys;
 
   /* ---------- Note helpers ---------- */
   function n(clef, key, dur) {
@@ -5688,10 +5978,11 @@ const bridge = window.__scalesNotes;
     if (dur.charAt(dur.length - 1) === ".") { dots = 1; dur = dur.slice(0, -1); }
     if (key.charAt(0) === "r") {
       const rest = new VF.StaveNote({ clef: clef, keys: [clef === "bass" ? "d/3" : "b/4"], duration: dur + "r", dots: dots });
+    if (dur === "w") { try { rest.setCenterAlignment(true); } catch (e) {} }
       if (dots) VF.Dot.buildAndAttach([rest], { all: true });
       return rest;
     }
-    const note = new VF.StaveNote({ clef: clef, keys: [key], duration: dur, dots: dots });
+    const note = new VF.StaveNote({ clef: clef, keys: [key], duration: dur, dots: dots, auto_stem: true });
     if (dots) VF.Dot.buildAndAttach([note], { all: true });
     if (key.indexOf("#") !== -1) {
       try { note.addModifier(new VF.Accidental("#"), 0); } catch (e) {}
@@ -5863,22 +6154,31 @@ const bridge = window.__scalesNotes;
     opts = opts || {};
     const playable = notes.filter(function (x) { return !x.isRest(); });
     if (playable.length < 2) return [];
+    /* auto_stem = true: stem direction follows the group's average pitch */
     if (opts.beamGroups) {
-      return opts.beamGroups.map(function (pair) { return new VF.Beam(notes.slice(pair[0], pair[1])); });
+      return opts.beamGroups.map(function (pair) { return new VF.Beam(notes.slice(pair[0], pair[1]), true); });
     }
     if (opts.beamPairs) {
       const beams = [];
       const eighths = notes.filter(function (x) { return !x.isRest() && String(x.getDuration()) === "8"; });
-      for (var k = 0; k + 1 < eighths.length; k += 2) beams.push(new VF.Beam([eighths[k], eighths[k + 1]]));
+      for (var k = 0; k + 1 < eighths.length; k += 2) beams.push(new VF.Beam([eighths[k], eighths[k + 1]], true));
       return beams;
     }
-    try {
-      return VF.Beam.generateBeams(playable, {
-        groups: [new VF.Fraction(1,4), new VF.Fraction(1,4), new VF.Fraction(1,4), new VF.Fraction(1,4)]
-      });
-    } catch (e) {
-      try { return VF.Beam.generateBeams(playable); } catch (e2) { return []; }
-    }
+    /* group 8ths/16ths inside each quarter-note beat */
+    const beams = [];
+    let t = 0, group = [], groupBeat = -1;
+    function flush() { if (group.length >= 2) beams.push(new VF.Beam(group, true)); group = []; }
+    notes.forEach(function (note) {
+      const d = String(note.getDuration());
+      const beats = d === "w" ? 4 : d === "h" ? 2 : d === "q" ? 1 : d === "8" ? 0.5 : d === "16" ? 0.25 : 1;
+      const beat = Math.floor(t + 1e-6);
+      const short = (d === "8" || d === "16") && !note.isRest() && !(note.dots > 0);
+      if (!short || beat !== groupBeat) flush();
+      if (short) { group.push(note); groupBeat = beat; }
+      t += beats * ((note.dots > 0) ? 1.5 : 1);
+    });
+    flush();
+    return beams;
   }
 
   /* continue in part 2 */
@@ -5886,6 +6186,52 @@ const bridge = window.__scalesNotes;
 
   /* ---------- Drill rendering ---------- */
   let lastMeasures = [];
+  const DRILL_MIN_SCALE = 0.74;
+  function onsetInfo(measure) {
+    /* distinct onsets across both hands + shortest value -> natural width */
+    const set = new Set();
+    let shortest = 4;
+    [measure.treble, measure.bass].forEach(function (voice) {
+      let t = 0;
+      voice.forEach(function (note) {
+        const d = String(note.getDuration());
+        let beats = d === "w" ? 4 : d === "h" ? 2 : d === "q" ? 1 : d === "8" ? 0.5 : d === "16" ? 0.25 : 1;
+        if (note.dots > 0 || (note.getModifiersByType && note.getModifiersByType("Dot").length)) beats *= 1.5;
+        if (!note.isRest()) { set.add(Math.round(t * 16)); shortest = Math.min(shortest, beats); }
+        t += beats;
+      });
+    });
+    return { onsets: Math.max(1, set.size), shortest: shortest };
+  }
+  function measureMinWidth(measure) {
+    const info = onsetInfo(measure);
+    const per = info.shortest <= 0.25 ? 16 : info.shortest <= 0.5 ? 16 : 25;
+    return 26 + info.onsets * per;
+  }
+  function headerWidth(level, withTime) {
+    const st = new VF.Stave(0, 0, 400);
+    st.addClef("treble");
+    if (level.key && level.key !== "C") st.addKeySignature(level.key);
+    if (withTime) st.addTimeSignature(level.time || "4/4");
+    return Math.ceil(st.getNoteStartX() - st.getX()) + 6;
+  }
+  function planSystems(level, measures, containerW) {
+    const mins = measures.map(measureMinWidth);
+    const n = measures.length;
+    const h1 = headerWidth(level, true), hN = headerWidth(level, false);
+    const opts = [];
+    for (let b = n; b >= 1; b--) {
+      if (b < n && n % b !== 0 && b !== Math.ceil(n / 2)) continue;
+      let need = 0;
+      for (let s0 = 0; s0 < n; s0 += b) {
+        const w = (s0 === 0 ? h1 : hN) + 10 + mins.slice(s0, s0 + b).reduce(function (x, y) { return x + y; }, 0);
+        need = Math.max(need, w);
+      }
+      opts.push({ per: b, need: need, scale: Math.min(1, containerW / need) });
+    }
+    let pick = opts.find(function (o) { return o.scale >= DRILL_MIN_SCALE; }) || opts[opts.length - 1];
+    return { per: pick.per, width: Math.max(containerW, pick.need + 12), mins: mins, h1: h1, hN: hN };
+  }
   function drawDrill() {
     const level = LEVELS[currentLevel];
     const el = document.getElementById("sr-drill-staff");
@@ -5893,195 +6239,219 @@ const bridge = window.__scalesNotes;
     el.innerHTML = "";
     const measures = level.measures();
     lastMeasures = measures;
-    const containerW = Math.max(300, el.clientWidth || 640);
-    const bars = measures.length;
-    const narrow = containerW < 520;
-    const systems = (narrow && bars >= 4) ? 2 : 1;
-    const barsPerSystem = Math.ceil(bars / systems);
-    const systemGap = 200;
-    const height = 16 + systems * systemGap;
+    const containerW = Math.max(260, el.clientWidth || 640);
+    const plan = planSystems(level, measures, containerW);
+    const width = plan.width;
     const beatsPerBar = level.beatsPerBar || 4;
-    const padL = 8;
-
-    function measureMinWidth(measure, isFirst) {
-      const nCount = measure.treble.filter(function (x) { return !x.isRest(); }).length
-        + measure.bass.filter(function (x) { return !x.isRest(); }).length;
-      var w = 70 + nCount * 14;
-      if (isFirst) w += 64;
-      return Math.max(isFirst ? 140 : 100, w);
-    }
-    var sysWidths = [];
-    for (var s = 0; s < systems; s++) {
-      const slice = measures.slice(s * barsPerSystem, s * barsPerSystem + barsPerSystem);
-      var sum = padL + 8;
-      slice.forEach(function (m, mi) { sum += measureMinWidth(m, mi === 0); });
-      sysWidths.push(Math.max(containerW, sum));
-    }
-    const width = Math.max.apply(null, sysWidths.concat([containerW]));
+    const padL = 16, padR = 4;
+    const STAFF_GAP = 92;    /* treble -> bass stave y */
+    const SYSTEM_GAP = 196;  /* system -> system */
+    const systems = Math.ceil(measures.length / plan.per);
     const renderer = new VF.Renderer(el, VF.Renderer.Backends.SVG);
-    renderer.resize(width, height);
+    renderer.resize(width, 40 + systems * SYSTEM_GAP + 60);
     const ctx = renderer.getContext();
 
-    for (var sys = 0; sys < systems; sys++) {
-      const start = sys * barsPerSystem;
-      const slice = measures.slice(start, start + barsPerSystem);
-      if (!slice.length) continue;
-      const yT = 8 + sys * systemGap;
-      const yB = yT + 100;
-      const usable = sysWidths[sys] - padL - 8;
-      var widths = slice.map(function (m, mi) { return measureMinWidth(m, mi === 0); });
-      var sumW = widths.reduce(function (a, b) { return a + b; }, 0);
-      if (sumW < usable) {
-        var densest = 0;
-        for (var i = 1; i < slice.length; i++) {
-          if (slice[i].treble.length >= slice[densest].treble.length) densest = i;
-        }
-        widths[densest] += usable - sumW;
-      }
-      var x = padL;
+    for (let sys = 0; sys < systems; sys++) {
+      const startIdx = sys * plan.per;
+      const slice = measures.slice(startIdx, startIdx + plan.per);
+      const mins = plan.mins.slice(startIdx, startIdx + plan.per);
+      const header = sys === 0 ? plan.h1 : plan.hN;
+      const yT = sys * SYSTEM_GAP;
+      const yB = yT + STAFF_GAP;
+      const usable = width - padL - padR - header;
+      const sumMin = mins.reduce(function (x, y) { return x + y; }, 0);
+      const widths = mins.map(function (m, i) { return Math.floor(m * usable / sumMin) + (i === 0 ? header : 0); });
+      let x = padL;
       slice.forEach(function (measure, mi) {
         const isFirst = mi === 0;
-        const isLast = mi === slice.length - 1;
-        const mW = widths[mi];
+        const isLastBar = startIdx + mi === measures.length - 1;
+        const mW = mi === slice.length - 1 ? (width - padR - x) : widths[mi];
         const treble = new VF.Stave(x, yT, mW);
         const bass = new VF.Stave(x, yB, mW);
-        if (!isFirst) {
-          treble.setBegBarType(VF.Barline.type.SINGLE);
-          bass.setBegBarType(VF.Barline.type.SINGLE);
-        }
         if (isFirst) {
-          treble.addClef("treble");
-          bass.addClef("bass");
-          if (level.key && level.key !== "C") {
-            treble.addKeySignature(level.key);
-            bass.addKeySignature(level.key);
-          }
-          treble.addTimeSignature(level.time || "4/4");
-          bass.addTimeSignature(level.time || "4/4");
+          treble.addClef("treble"); bass.addClef("bass");
+          if (level.key && level.key !== "C") { treble.addKeySignature(level.key); bass.addKeySignature(level.key); }
+          if (sys === 0) { treble.addTimeSignature(level.time || "4/4"); bass.addTimeSignature(level.time || "4/4"); }
+        } else {
+          treble.setBegBarType(VF.Barline.type.NONE); bass.setBegBarType(VF.Barline.type.NONE);
         }
-        if (isLast) {
-          treble.setEndBarType(VF.Barline.type.SINGLE);
-          bass.setEndBarType(VF.Barline.type.SINGLE);
-        }
+        const endType = isLastBar ? VF.Barline.type.END : VF.Barline.type.SINGLE;
+        treble.setEndBarType(endType); bass.setEndBarType(endType);
         treble.setContext(ctx).draw();
         bass.setContext(ctx).draw();
         if (isFirst) {
           new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.BRACE).setContext(ctx).draw();
           new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.SINGLE_LEFT).setContext(ctx).draw();
         }
-        if (isLast) {
-          new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.SINGLE_RIGHT).setContext(ctx).draw();
-        }
+        new VF.StaveConnector(treble, bass).setType(isLastBar ? VF.StaveConnector.type.BOLD_DOUBLE_RIGHT : VF.StaveConnector.type.SINGLE_RIGHT).setContext(ctx).draw();
         const tNotes = measure.treble;
         const bNotes = measure.bass;
         const beamsT = makeBeams(tNotes, { beamPairs: !!measure.beamPairs, beamGroups: measure.beamGroups });
         const beamsB = makeBeams(bNotes, { beamGroups: measure.beamGroupsBass });
         const voiceT = new VF.Voice({ num_beats: beatsPerBar, beat_value: 4 }).setStrict(true).addTickables(tNotes);
         const voiceB = new VF.Voice({ num_beats: beatsPerBar, beat_value: 4 }).setStrict(true).addTickables(bNotes);
-        const avail = Math.max(40, treble.getNoteEndX() - treble.getNoteStartX() - 8);
-        new VF.Formatter().joinVoices([voiceT, voiceB]).format([voiceT, voiceB], avail);
+        const avail = Math.max(40, treble.getNoteEndX() - treble.getNoteStartX() - 14);
+        /* join each hand separately (own stems/modifier context), align ticks across both */
+        const fmt = new VF.Formatter();
+        fmt.joinVoices([voiceT]); fmt.joinVoices([voiceB]);
+        fmt.format([voiceT, voiceB], avail);
         voiceT.draw(ctx, treble);
         voiceB.draw(ctx, bass);
-        beamsT.forEach(function (b) { b.setContext(ctx).draw(); });
-        beamsB.forEach(function (b) { b.setContext(ctx).draw(); });
-        /* stash for playback highlight */
-        tNotes.forEach(function (note) {
-          note.srStave = treble;
-          note.srSystem = sys;
-        });
+        beamsT.forEach(function (bm) { bm.setContext(ctx).draw(); });
+        beamsB.forEach(function (bm) { bm.setContext(ctx).draw(); });
+        tNotes.forEach(function (note) { note.srStave = treble; note.srSystem = sys; });
         x += mW;
       });
     }
+    /* Crop the canvas to the engraving so there is no dead space; scale uniformly. */
+    const svg = el.querySelector("svg");
+    if (svg) {
+      let bb = null;
+      try { bb = svg.getBBox(); } catch (e) {}
+      const top = bb ? Math.floor(bb.y) - 6 : 0;
+      const h = bb ? Math.ceil(bb.height) + 12 : (40 + systems * SYSTEM_GAP);
+      svg.setAttribute("viewBox", "0 " + top + " " + width + " " + h);
+      svg.setAttribute("preserveAspectRatio", "xMidYMin meet");
+      svg.setAttribute("width", String(width));
+      svg.setAttribute("height", String(h));
+      svg.style.width = "100%";
+      svg.style.maxWidth = width + "px";
+      svg.style.height = "auto";
+    }
+  }
+
+  /* ---------- Shared click + count-in ---------- */
+  function clickAt(ctx, time, accent, countIn) {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = countIn ? (accent ? 1500 : 1100) : (accent ? 1200 : 900);
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(countIn ? 0.22 : (accent ? 0.12 : 0.07), time + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(time); osc.stop(time + 0.07);
+    return osc;
+  }
+  const COUNT_IN_BEATS = 2;
+  /* Visible (big 1, 2 + dots) and audible count-in on the audio clock. */
+  function countIn(overlay, beatSec, done) {
+    const ctx = SRAudio.get();
+    const lead = 0.08;
+    const t0 = ctx ? ctx.currentTime + lead : 0;
+    const oscs = [], timers = [];
+    let cancelled = false;
+    for (let i = 0; i < COUNT_IN_BEATS; i++) {
+      if (ctx) oscs.push(clickAt(ctx, t0 + i * beatSec, i === 0, true));
+      timers.push(setTimeout(function () {
+        if (cancelled || !overlay) return;
+        overlay.innerHTML = '<span class="sr-countin-label">Count-in</span><span class="sr-countin-num">' + (i + 1) + '</span><span class="sr-countin-of">of ' + COUNT_IN_BEATS + '</span>';
+        overlay.dataset.beat = String(i + 1);
+        overlay.hidden = false;
+        overlay.classList.remove("pulse"); void overlay.offsetWidth; overlay.classList.add("pulse");
+      }, (lead + i * beatSec) * 1000));
+    }
+    timers.push(setTimeout(function () {
+      if (cancelled) return;
+      if (overlay) { overlay.hidden = true; overlay.dataset.beat = ""; }
+      done(ctx ? t0 + COUNT_IN_BEATS * beatSec : 0);
+    }, (lead + COUNT_IN_BEATS * beatSec) * 1000));
+    return {
+      cancel: function () {
+        cancelled = true;
+        timers.forEach(clearTimeout);
+        oscs.forEach(function (o) { try { o.stop(); } catch (e) {} });
+        if (overlay) { overlay.hidden = true; overlay.dataset.beat = ""; }
+      }
+    };
   }
 
   /* ---------- Drill playback ---------- */
   let drillPlaying = false;
   let drillTimers = [];
-  let drillAudioCtx = null;
-  function ensureDrillAudio() {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    if (!drillAudioCtx) drillAudioCtx = new AC();
-    return drillAudioCtx;
+  let drillCount = null;
+  function noteBeats(note) {
+    const dur = String(note.getDuration());
+    let beats = dur === "w" ? 4 : dur === "h" ? 2 : dur === "q" ? 1 : dur === "8" ? 0.5 : dur === "16" ? 0.25 : 1;
+    if (note.dots > 0 || (note.getModifiersByType && note.getModifiersByType("Dot").length)) beats *= 1.5;
+    return beats;
   }
-  function clickAt(ctx, time, accent) {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = accent ? 1200 : 900;
-    g.gain.setValueAtTime(accent ? 0.12 : 0.07, time);
-    g.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-    osc.connect(g); g.connect(ctx.destination);
-    osc.start(time); osc.stop(time + 0.06);
+  function noteEl(note) {
+    try { if (note.getSVGElement) { const e = note.getSVGElement(); if (e) return e; } } catch (e) {}
+    try { return note.getAttribute && note.getAttribute("el"); } catch (e) { return null; }
   }
   function stopDrill() {
     drillPlaying = false;
+    if (drillCount) { drillCount.cancel(); drillCount = null; }
     drillTimers.forEach(clearTimeout);
     drillTimers = [];
     const btn = document.getElementById("sr-drill-start");
     if (btn) btn.textContent = "Start";
     document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) {
       el.style.opacity = "";
+      el.style.filter = "";
       el.classList.remove("sr-now");
     });
   }
   function startDrill() {
     if (drillPlaying) { stopDrill(); return; }
-    const ctx = ensureDrillAudio();
-    if (!ctx) return;
-    const resume = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
-    resume.then(function () {
-      const bpm = parseInt(document.getElementById("sr-drill-bpm").textContent, 10) || 72;
-      const beatSec = 60 / bpm;
-      const level = LEVELS[currentLevel];
-      /* Flatten treble notes with durations in beats */
-      const flat = [];
-      lastMeasures.forEach(function (m) {
-        m.treble.forEach(function (note) {
-          if (note.isRest && note.isRest()) return;
-          const dur = note.getDuration();
-          let beats = dur === "w" ? 4 : dur === "h" ? 2 : dur === "q" ? 1 : dur === "8" ? 0.5 : dur === "16" ? 0.25 : 1;
-          if (note.dots && note.dots > 0) beats *= 1.5;
-          flat.push({ note: note, beats: beats });
+    const unlocked = SRAudio.unlock(); /* inside the tap (iOS) */
+    const bpm = parseInt(document.getElementById("sr-drill-bpm").textContent, 10) || 72;
+    const beatSec = 60 / bpm;
+    const flat = [];
+    lastMeasures.forEach(function (m) {
+      m.treble.forEach(function (note) {
+        flat.push({ note: note, beats: noteBeats(note), rest: !!(note.isRest && note.isRest()) });
+      });
+    });
+    if (!flat.some(function (f) { return !f.rest; })) return;
+    drillPlaying = true;
+    document.getElementById("sr-drill-start").textContent = "Stop";
+    unlocked.then(function () {
+      if (!drillPlaying) return;
+      drillCount = countIn(document.getElementById("sr-drill-countin"), beatSec, function (audioT0) {
+        drillCount = null;
+        if (!drillPlaying) return;
+        const ctx = SRAudio.get();
+        const all = [];
+        flat.forEach(function (f) { if (!f.rest) { const e = noteEl(f.note); if (e) all.push(e); } });
+        all.forEach(function (e) { e.style.opacity = "0.35"; });
+        let t = 0, idx = 0;
+        flat.forEach(function (item) {
+          const startT = t;
+          t += item.beats * beatSec;
+          if (item.rest) return;
+          const el = noteEl(item.note);
+          const first = idx === 0; idx++;
+          if (ctx) clickAt(ctx, audioT0 + startT, first, false);
+          drillTimers.push(setTimeout(function () {
+            if (!drillPlaying) return;
+            all.forEach(function (e) { e.style.opacity = "0.35"; e.style.filter = ""; });
+            if (el) { el.style.opacity = "1"; el.style.filter = "drop-shadow(0 0 3px #8b6914)"; }
+          }, startT * 1000));
         });
-      });
-      if (!flat.length) return;
-      drillPlaying = true;
-      document.getElementById("sr-drill-start").textContent = "Stop";
-      const svgNotes = document.querySelectorAll("#sr-drill-staff .vf-stavenote");
-      /* Map only treble-ish by y position: take first N matching flat length from upper system notes */
-      const trebleEls = [];
-      svgNotes.forEach(function (el) {
-        const bb = el.getBBox();
-        if (bb.y < 120 || (bb.y > 200 && bb.y < 320)) trebleEls.push(el); /* rough: upper staff of each system */
-      });
-      let t = 0;
-      flat.forEach(function (item, idx) {
-        const startT = t;
-        const el = trebleEls[idx];
+        const played = idx;
         drillTimers.push(setTimeout(function () {
-          if (!drillPlaying) return;
-          trebleEls.forEach(function (e) { e.style.opacity = "0.35"; });
-          if (el) { el.style.opacity = "1"; el.style.filter = "drop-shadow(0 0 3px #8b6914)"; }
-          clickAt(ctx, ctx.currentTime, idx === 0);
-        }, startT * 1000));
-        t += item.beats * beatSec;
+          stopDrill();
+          updateStats(played, 0);
+        }, t * 1000 + 80));
       });
-      drillTimers.push(setTimeout(function () {
-        stopDrill();
-        updateStats(flat.length, 0);
-      }, t * 1000 + 80));
     });
   }
 
-  /* ---------- Flash ---------- */
-
   /* ---------- Note Runner game ---------- */
+  function keyToMidi(key) {
+    const m = String(key).match(/^([a-g])(#|b)?\/(\d+)$/i);
+    if (!m) return null;
+    const base = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[m[1].toLowerCase()];
+    const acc = m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0;
+    return (parseInt(m[3], 10) + 1) * 12 + base + acc;
+  }
   const Runner = (function () {
-    let playing = false, raf = 0;
+    let playing = false, counting = false, raf = 0, countHandle = null;
     let speed = 48; /* notes/min */
     let streak = 0, lives = 3, sinceSpeed = 0;
-    let notes = []; /* {key, letter, x, line} */
+    let notes = []; /* {key, letter, x} */
     let staffTop = 0, gap = 10, hitX = 40;
     let runW = 152;
     let lastTs = 0;
@@ -6093,33 +6463,28 @@ const bridge = window.__scalesNotes;
         "c/5": 1.5, "d/5": 1, "e/5": 0.5, "f/5": 0, "g/5": -0.5, "a/5": -1,
         "c#/4": 5, "d#/4": 4.5, "f#/4": 3.5, "g#/4": 3, "a#/4": 2.5
       };
-      /* normalize */
       const k = key.replace("♯", "#");
       return map[k] != null ? map[k] : 3;
     }
     function spawnNote(x) {
       const pool = LEVELS[currentLevel].runnerNotes;
       const pick = pool[Math.floor(Math.random() * pool.length)];
-      return { key: pick.key, letter: pick.letter, x: x, answered: false };
+      return { key: pick.key, letter: pick.letter, midi: keyToMidi(pick.key), x: x, answered: false };
     }
     function drawFrame() {
       const host = document.getElementById("sr-runner-vf");
       if (!host) return;
       host.innerHTML = "";
-      /* Default VF spacing (10px). Scale the WHOLE engraving uniformly via
-         viewBox/meet so clef/heads/ledgers keep standard proportions.
-         Logical width tracks stage aspect so the staff fills the stage. */
       const stageEl = document.getElementById("sr-runner-stage");
       const stageW = Math.max(280, (stageEl && stageEl.clientWidth) || host.clientWidth || 320);
       const stageH = Math.max(140, (stageEl && stageEl.clientHeight) || 178);
-      /* vbH for default gap=10 + 2.15-gap pad each side = 40 + 43 = 83 */
       const vbHGuess = 83;
       const width = Math.max(152, Math.round(stageW * vbHGuess / stageH));
       const paintH = 160;
       const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
       renderer.resize(width, paintH);
       const ctx = renderer.getContext();
-      const stave = new VF.Stave(4, 36, width - 8); /* default spacing_between_lines_px = 10 */
+      const stave = new VF.Stave(4, 36, width - 8);
       stave.addClef("treble");
       stave.setContext(ctx).draw();
       const svg = host.querySelector("svg");
@@ -6127,12 +6492,17 @@ const bridge = window.__scalesNotes;
       staffTop = stave.getYForLine(0);
       gap = stave.getYForLine(1) - stave.getYForLine(0);
       const yBot = stave.getYForLine(4);
-      /* Two ledger lines above + below fully inside the viewBox */
       const pad = gap * 2.15;
       const vbY = staffTop - pad;
       const vbH = (yBot - staffTop) + pad * 2;
       runW = width;
       hitX = Math.max(36, width * 0.18);
+      /* keep the gold line exactly where notes are scored */
+      const pct = (100 * hitX / width).toFixed(3) + "%";
+      const lineEl = stageEl && stageEl.querySelector(".sr-hit-line");
+      const labelEl = stageEl && stageEl.querySelector(".sr-hit-label");
+      if (lineEl && lineEl.style.left !== pct) { lineEl.style.left = pct; lineEl.style.marginLeft = "-1px"; }
+      if (labelEl && labelEl.style.left !== pct) labelEl.style.left = pct;
       svg.setAttribute("viewBox", "0 " + vbY + " " + width + " " + vbH);
       svg.setAttribute("preserveAspectRatio", "xMinYMid meet");
       svg.style.width = "100%";
@@ -6150,7 +6520,6 @@ const bridge = window.__scalesNotes;
       svg.querySelectorAll(".vf-clef path").forEach(function (p) {
         p.setAttribute("fill", "#2c2416");
       });
-      /* Note-naming game: noteheads only (standard head size relative to gap). */
       const headRx = gap * 0.55;
       const headRy = gap * 0.40;
       const hotSlop = Math.max(12, width * 0.08);
@@ -6160,8 +6529,9 @@ const bridge = window.__scalesNotes;
         const y = staffTop + line * gap;
         const x = pn.x;
         if (x < hitX - 8) return;
-        const hot = !pn.answered && Math.abs(x - hitX) < hotSlop;
+        const hot = playing && !pn.answered && Math.abs(x - hitX) < hotSlop;
         const g = document.createElementNS(NS, "g");
+        g.setAttribute("class", "sr-run-note");
         if (line >= 5 || line <= -0.5) {
           const led = document.createElementNS(NS, "line");
           const ly = staffTop + Math.round(line) * gap;
@@ -6201,7 +6571,7 @@ const bridge = window.__scalesNotes;
       for (let i = 0; i < 3; i++) hearts.push(i < lives ? "♥" : '<span style="opacity:.28">♥</span>');
       document.getElementById("sr-runner-hearts").innerHTML = hearts.join(" ");
       const btn = document.getElementById("sr-runner-toggle");
-      if (btn) btn.textContent = playing ? "Pause" : "Play";
+      if (btn) btn.textContent = (playing || counting) ? "Pause" : "Play";
     }
     function target() {
       let best = null, bestDist = 1e9;
@@ -6212,12 +6582,15 @@ const bridge = window.__scalesNotes;
       });
       return best;
     }
-    function answer(letter) {
-      if (!playing) return;
+    /* input: { letter, midi? } — midi is exact pitch (MIDI keyboard or mic) */
+    function answerNote(input) {
+      if (!playing) return; /* ignores the count-in too */
       const t = target();
       if (!t) return;
+      const letter = input.letter;
       const mode = document.getElementById("sr-runner-match").value;
-      let ok = (letter === t.letter);
+      let ok = letter === t.letter;
+      if (ok && mode === "exact" && input.midi != null && t.midi != null) ok = input.midi === t.midi;
       if (ok) {
         t.answered = true;
         streak++;
@@ -6244,14 +6617,14 @@ const bridge = window.__scalesNotes;
       }, 380);
       syncHud();
     }
+    function answer(letter) { answerNote({ letter: letter }); }
     function tick(ts) {
       if (!playing) return;
       if (!lastTs) lastTs = ts;
       const dt = Math.min(0.05, (ts - lastTs) / 1000);
       lastTs = ts;
-      const pxPerSec = (speed / 60) * 36; /* ~spacing in runW coords */
+      const pxPerSec = (speed / 60) * 36;
       notes.forEach(function (n) { n.x -= pxPerSec * dt; });
-      /* miss if crossed hit line unanswered */
       notes.forEach(function (n) {
         if (!n.answered && n.x < hitX - 18) {
           n.answered = true;
@@ -6261,30 +6634,60 @@ const bridge = window.__scalesNotes;
           syncHud();
         }
       });
-      /* Drop notes once past the hit line so they never overlap the clef */
       notes = notes.filter(function (n) { return n.x > hitX - 12; });
       const maxX = notes.reduce(function (m, n) { return Math.max(m, n.x); }, 0);
       if (maxX < runW - 18) notes.push(spawnNote(maxX + 24 + Math.random() * 8));
       drawFrame();
       raf = requestAnimationFrame(tick);
     }
-    function start() {
-      if (playing) { playing = false; cancelAnimationFrame(raf); syncHud(); return; }
+    function freshNotes() {
       notes = [];
-      for (let i = 0; i < 5; i++) notes.push(spawnNote(48 + i * 26));
-      playing = true; lastTs = 0;
-      syncHud();
-      raf = requestAnimationFrame(tick);
+      drawFrame(); /* sets hitX / runW for this stage size */
+      /* first note lands on the hit line one beat after the count-in */
+      for (let i = 0; i < 6; i++) notes.push(spawnNote(hitX + 36 + i * 26));
     }
-    function resetVisual() {
-      notes = [];
-      for (let i = 0; i < 5; i++) notes.push(spawnNote(48 + i * 26));
-      /* mid-game look: first near hit */
-      notes[0].x = hitX + 6;
+    function stop() {
+      if (countHandle) { countHandle.cancel(); countHandle = null; }
+      counting = false;
+      playing = false;
+      cancelAnimationFrame(raf);
       drawFrame();
       syncHud();
     }
-    return { start: start, answer: answer, resetVisual: resetVisual, syncHud: syncHud, isPlaying: function () { return playing; } };
+    function start() {
+      if (playing || counting) { stop(); return; }
+      const unlocked = SRAudio.unlock(); /* inside the tap (iOS) */
+      freshNotes();
+      counting = true;
+      drawFrame();
+      syncHud();
+      const beatSec = 60 / speed;
+      unlocked.then(function () {
+        if (!counting) return;
+        countHandle = countIn(document.getElementById("sr-runner-countin"), beatSec, function () {
+          countHandle = null;
+          if (!counting) return;
+          counting = false;
+          playing = true; lastTs = 0;
+          syncHud();
+          raf = requestAnimationFrame(tick);
+        });
+      });
+    }
+    function resetVisual() {
+      if (playing || counting) stop();
+      notes = [];
+      drawFrame();
+      for (let i = 0; i < 5; i++) notes.push(spawnNote(hitX + 6 + i * 26));
+      drawFrame();
+      syncHud();
+    }
+    return {
+      start: start, stop: stop, answer: answer, answerNote: answerNote, resetVisual: resetVisual, syncHud: syncHud,
+      isPlaying: function () { return playing; },
+      isCounting: function () { return counting; },
+      _state: function () { return { playing: playing, counting: counting, streak: streak, lives: lives, hitX: hitX, notes: notes.map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: n.x, answered: n.answered }; }) }; }
+    };
   })();
 
   /* ---------- UI helpers ---------- */
@@ -6376,38 +6779,89 @@ const bridge = window.__scalesNotes;
         b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
       });
       highlightLetter(document.getElementById("sr-runner-letters"), null);
-      if (Runner.isPlaying()) Runner.start(); /* toggle pauses */
+      if (Runner.isPlaying() || Runner.isCounting()) Runner.stop();
     }
   }
 
-  async function toggleMic(btn) {
+  /* ---------- Input status line (mic + keyboard) ---------- */
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+  function setStatus(id, text, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = cls || "";
+  }
+  const MIC_MSG = {
+    denied: isIOS()
+      ? "Mic blocked. Allow it: tap aA in the address bar → Website Settings → Microphone → Allow, then tap 🎤 again."
+      : "Mic blocked. Allow it: tap the lock/ⓘ icon by the address → Site settings → Microphone → Allow, then tap 🎤 again.",
+    nodevice: "No mic found. Connect or enable a microphone, then tap 🎤 again.",
+    busy: "The mic is in use by another app. Close it, then tap 🎤 again.",
+    insecure: "The mic only works on a secure (https://) page.",
+    unsupported: "This browser can't use the mic here. Try Chrome or Safari.",
+    error: "Couldn't start the mic. Tap 🎤 to try again.",
+    pending: ""
+  };
+  let micPermState = null;
+  function showMicPermission(state) {
+    micPermState = state;
+    if (Mic.isOn()) return;
+    if (state === "denied") setStatus("sr-mic-status", MIC_MSG.denied, "warn");
+    else if (state === "granted") setStatus("sr-mic-status", "Mic: allowed. Tap 🎤 to listen.", "");
+    else if (state === "prompt") setStatus("sr-mic-status", "", "");
+  }
+  function watchMicPermission() {
+    if (!window.isSecureContext) { setStatus("sr-mic-status", MIC_MSG.insecure, "warn"); return; }
+    try {
+      if (!navigator.permissions || !navigator.permissions.query) return;
+      navigator.permissions.query({ name: "microphone" }).then(function (ps) {
+        showMicPermission(ps.state);
+        ps.onchange = function () { showMicPermission(ps.state); };
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function setMicButtons(on) {
+    document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
+      b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on));
+    });
+  }
+  /* Tap handler: getUserMedia here is what triggers the browser permission prompt. */
+  function toggleMic(btn) {
     if (Mic.isOn()) {
       Mic.stop();
-      document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
-        b.classList.remove("on"); b.setAttribute("aria-pressed", "false");
-      });
+      setMicButtons(false);
       setHearing(document.getElementById("sr-runner-hearing"), null);
       lightKeyboard(document.getElementById("sr-runner-kb"), null);
       highlightLetter(document.getElementById("sr-runner-letters"), null);
-      return;
+      setStatus("sr-mic-status", "", "");
+      return Promise.resolve({ ok: true, off: true });
     }
-    const ok = await Mic.start();
-    if (ok) {
-      document.querySelectorAll(".sr-btn.mic-btn").forEach(function (b) {
-        b.classList.add("on"); b.setAttribute("aria-pressed", "true");
-      });
-    } else {
-      alert("Microphone permission is needed for pitch detection. You can still answer with the A–G buttons.");
-    }
+    setStatus("sr-mic-status", "Asking for the microphone…", "");
+    return Mic.start().then(function (res) {
+      if (res.ok) {
+        setMicButtons(true);
+        setStatus("sr-mic-status", Keys.suppressMic() ? "Listening (keyboard input takes priority while connected)." : "Listening… play one note at a time.", "ok");
+      } else if (res.reason !== "pending") {
+        setMicButtons(false);
+        setStatus("sr-mic-status", MIC_MSG[res.reason] || MIC_MSG.error, "warn");
+      }
+      return res;
+    });
   }
 
   let micCooldown = 0;
+  let micHeld = null, micLastAt = 0; /* one answer per played note, not per frame */
   Mic.onNote(function (payload) {
     if (!payload || !payload.hearing) return;
+    if (Keys.suppressMic()) return; /* keyboard is driving input; ignore the mic hearing the playback */
     const note = payload.hearing;
+    const tNow = performance.now();
+    if (!payload.stable || tNow - micLastAt > 160) micHeld = null;
+    micLastAt = tNow;
     setHearing(document.getElementById("sr-runner-hearing"), note, payload.stable);
     lightKeyboard(document.getElementById("sr-runner-kb"), note.label);
-    /* Letter buttons follow detected pitch when stable; clear while unstable so they reset between notes */
     if (payload.stable) {
       highlightLetter(document.getElementById("sr-runner-letters"), note.letter);
     } else {
@@ -6416,12 +6870,77 @@ const bridge = window.__scalesNotes;
     if (!payload.stable) return;
     if (document.getElementById("panel-sight").hidden) return;
     const now = performance.now();
-    if (now - micCooldown < 700) return;
+    if (micHeld === note.label) return; /* still the same sustained note */
+    if (now - micCooldown < 250) return;
     if (Runner.isPlaying()) {
-      micAudio = now;
-      Runner.answer(note.letter);
+      micCooldown = now;
+      micHeld = note.label;
+      Runner.answerNote({ letter: note.letter, midi: note.midi });
     }
   });
+
+  /* ---------- Keyboard (MIDI) wiring ---------- */
+  let kbHlTimer = 0;
+  Keys.onNote(function (ev) {
+    const note = ev.note;
+    setHearing(document.getElementById("sr-runner-hearing"), note, true);
+    lightKeyboard(document.getElementById("sr-runner-kb"), note.label);
+    highlightLetter(document.getElementById("sr-runner-letters"), note.letter);
+    clearTimeout(kbHlTimer);
+    kbHlTimer = setTimeout(function () {
+      lightKeyboard(document.getElementById("sr-runner-kb"), null);
+      if (!Mic.isOn()) highlightLetter(document.getElementById("sr-runner-letters"), null);
+    }, 450);
+    if (document.getElementById("panel-sight").hidden) return;
+    if (Runner.isPlaying()) Runner.answerNote({ letter: note.letter, midi: ev.midi });
+  });
+  function renderKeysStatus(st) {
+    const btn = document.getElementById("sr-runner-kbd");
+    const snd = document.getElementById("sr-runner-sound");
+    if (!btn) return;
+    const on = st.enabled && st.devices.length > 0;
+    btn.classList.toggle("on", st.enabled);
+    btn.setAttribute("aria-pressed", String(st.enabled));
+    if (snd) {
+      snd.hidden = !st.enabled;
+      snd.textContent = st.soundOn ? "🔊" : "🔇";
+      snd.setAttribute("aria-pressed", String(st.soundOn));
+      snd.setAttribute("aria-label", st.soundOn ? "Keyboard sound on" : "Keyboard sound off");
+      snd.title = st.soundOn ? "Keyboard sound on — tap to mute" : "Keyboard sound off — tap to hear what you play";
+    }
+    if (!st.enabled) { setStatus("sr-kbd-status", "", ""); return; }
+    if (on) setStatus("sr-kbd-status", "🎹 " + st.devices.join(", ") + " connected · sound " + (st.soundOn ? "on" : "off"), "ok");
+    else setStatus("sr-kbd-status", "🎹 No keyboard found. Plug in a USB or Bluetooth MIDI keyboard; it will connect automatically.", "");
+  }
+  Keys.onStatus(renderKeysStatus);
+  function toggleKeys() {
+    SRAudio.unlock(); /* same tap: lets the synth sound on iOS/Chrome */
+    if (Keys.isEnabled()) { Keys.disable(); return Promise.resolve({ ok: true, off: true }); }
+    if (!Keys.supported()) {
+      setStatus("sr-kbd-status", isIOS()
+        ? "🎹 iPad/iPhone browsers don't support MIDI keyboards. Use the 🎤 mic, or Chrome on Android/Mac."
+        : "🎹 This browser doesn't support MIDI keyboards. Use Chrome or Edge, or the 🎤 mic.", "");
+      return Promise.resolve({ ok: false, reason: "unsupported" });
+    }
+    setStatus("sr-kbd-status", "🎹 Connecting…", "");
+    return Keys.enable().then(function (res) {
+      if (!res.ok) {
+        setStatus("sr-kbd-status", res.reason === "denied"
+          ? "🎹 MIDI access was blocked. Allow MIDI devices in site settings, then tap Keyboard again."
+          : "🎹 MIDI keyboards need a secure (https://) page.", "warn");
+      }
+      return res;
+    });
+  }
+  function autoConnectKeys() {
+    /* Reconnect silently only when MIDI permission was already granted */
+    try {
+      if (!Keys.supported() || !navigator.permissions || !navigator.permissions.query) return;
+      navigator.permissions.query({ name: "midi" }).then(function (ps) {
+        if (ps.state === "granted") Keys.enable();
+      }).catch(function () {});
+    } catch (e) {}
+  }
 
   function bind() {
     document.getElementById("tab-scales").addEventListener("click", function () { setTab("scales"); });
@@ -6445,14 +6964,25 @@ const bridge = window.__scalesNotes;
       b.addEventListener("click", function () { Runner.answer(b.dataset.letter); });
     });
     document.getElementById("sr-runner-mic").addEventListener("click", function () { toggleMic(this); });
+    document.getElementById("sr-runner-kbd").addEventListener("click", function () { toggleKeys(); });
+    document.getElementById("sr-runner-sound").addEventListener("click", function () {
+      SRAudio.unlock();
+      Keys.setSound(!Keys.status().soundOn);
+    });
     document.getElementById("sr-runner-toggle").addEventListener("click", function () { Runner.start(); });
     buildKeyboard(document.getElementById("sr-runner-kb"));
     window.addEventListener("resize", function () {
       clearTimeout(window.__srResize);
       window.__srResize = setTimeout(function () {
-        if (!document.getElementById("panel-sight").hidden) {
-          drawDrill(); Runner.resetVisual();
-        }
+        if (document.getElementById("panel-sight").hidden) return;
+        /* phones fire resize when the URL bar shows/hides: only re-engrave on width change,
+           and never interrupt a running game or count-in */
+        const w = window.innerWidth;
+        if (w === window.__srLastW) return;
+        window.__srLastW = w;
+        if (drillPlaying) stopDrill();
+        drawDrill();
+        if (!Runner.isPlaying() && !Runner.isCounting()) Runner.resetVisual();
       }, 150);
     });
   }
@@ -6460,6 +6990,8 @@ const bridge = window.__scalesNotes;
   function boot() {
     bind();
     renderStats();
+    watchMicPermission();
+    autoConnectKeys();
     /* Hash is source of truth on load so /scales/ always opens Scales.
        localStorage restores only when the hash already says sight-reading
        (or after an in-page tab click that set the hash). */
@@ -6476,6 +7008,7 @@ const bridge = window.__scalesNotes;
 
   window.__srSetLevel = setLevel;
   window.__srSetTab = setTab;
+  window.__srRunner = Runner;
 })();
 
 </script>
