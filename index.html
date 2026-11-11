@@ -1801,6 +1801,22 @@
 }
 .sr-runner-hud strong { color: var(--ink); font-weight: 600; }
 .sr-hearts { letter-spacing: 0.12em; color: #9a3b1f; font-size: 1rem; }
+.sr-switch {
+  appearance: none; border: 0; background: none; font: inherit; font-size: 0.78rem; font-weight: 600;
+  color: var(--ink-soft); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.15rem 0; cursor: pointer;
+}
+.sr-switch.on { color: var(--ink); }
+.sr-switch-track {
+  position: relative; width: 2rem; height: 1.1rem; border-radius: 999px;
+  background: var(--border); transition: background 0.15s ease; flex: none;
+}
+.sr-switch-knob {
+  position: absolute; top: 0.15rem; left: 0.15rem; width: 0.8rem; height: 0.8rem; border-radius: 50%;
+  background: #fffef9; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform 0.15s ease;
+}
+.sr-switch.on .sr-switch-track { background: var(--accent); }
+.sr-switch.on .sr-switch-knob { transform: translateX(0.9rem); }
+.sr-switch:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; border-radius: 0.3rem; }
 .sr-speed-pill {
   display: inline-flex; align-items: center; gap: 0.35rem;
   background: var(--accent-pale); border: 1px solid var(--accent-soft); color: var(--accent);
@@ -2100,6 +2116,7 @@ body.sr-sight-open header::after { display: none; }
         <span class="sr-speed-pill">Speed <strong id="sr-runner-speed">48</strong> notes/min</span>
         <span>Streak <strong id="sr-runner-streak">0</strong></span>
         <span class="sr-hearts" id="sr-runner-hearts" aria-label="3 of 3 lives">♥ ♥ ♥</span>
+        <button type="button" class="sr-switch on" id="sr-runner-wait" role="switch" aria-checked="true" title="Notes stop at the gold line until you play the right one"><span class="sr-switch-track" aria-hidden="true"><span class="sr-switch-knob"></span></span>Wait for me</button>
       </div>
       <div class="sr-runner-stage" id="sr-runner-stage" role="img" aria-label="Scrolling sight-reading game">
         <span class="sr-hit-label">Hit</span>
@@ -2107,7 +2124,7 @@ body.sr-sight-open header::after { display: none; }
         <div id="sr-runner-vf"></div>
         <div class="sr-countin" id="sr-runner-countin" hidden aria-live="polite"></div>
       </div>
-      <p class="sr-runner-hint">Speed increases every 10 correct · name each note before it crosses the gold line · pool follows drill level</p>
+      <p class="sr-runner-hint" id="sr-runner-hint">Each note waits at the gold line until you play it · a wrong note costs a heart · speed rises every 10 first-try notes</p>
       <div class="sr-letters" id="sr-runner-letters" role="group" aria-label="Answer with letter name" style="margin-top:0.75rem">
         <button type="button" class="sr-letter" data-letter="A">A</button>
         <button type="button" class="sr-letter" data-letter="B">B</button>
@@ -6333,9 +6350,11 @@ const bridge = window.__scalesNotes;
     osc.start(time); osc.stop(time + 0.07);
     return osc;
   }
-  const COUNT_IN_BEATS = 2;
+  const DRILL_COUNT_IN_BEATS = 2;
+  const RUNNER_COUNT_IN_BEATS = 4;
   /* Visible (big 1, 2 + dots) and audible count-in on the audio clock. */
-  function countIn(overlay, beatSec, done) {
+  function countIn(overlay, beatSec, done, beats) {
+    const COUNT_IN_BEATS = beats || DRILL_COUNT_IN_BEATS;
     const ctx = SRAudio.get();
     const lead = 0.08;
     const t0 = ctx ? ctx.currentTime + lead : 0;
@@ -6456,6 +6475,11 @@ const bridge = window.__scalesNotes;
     let runW = 152;
     let lastTs = 0;
     let answerHlTimer = 0;
+    /* Wait mode: the next note stops at the gold line until the right note is played */
+    const WAIT_KEY = "pianoSkills.sightReading.waitMode";
+    let waitMode = true;
+    try { waitMode = localStorage.getItem(WAIT_KEY) !== "off"; } catch (e) {}
+    let lastWrong = { id: null, t: -1e9 };
 
     function staffYForKey(key) {
       const map = {
@@ -6496,7 +6520,8 @@ const bridge = window.__scalesNotes;
       const vbY = staffTop - pad;
       const vbH = (yBot - staffTop) + pad * 2;
       runW = width;
-      hitX = Math.max(36, width * 0.18);
+      /* gold line sits just clear of the clef so a waiting note never overlaps it */
+      hitX = Math.max(36, stave.getNoteStartX() + gap * 1.2, width * 0.18);
       /* keep the gold line exactly where notes are scored */
       const pct = (100 * hitX / width).toFixed(3) + "%";
       const lineEl = stageEl && stageEl.querySelector(".sr-hit-line");
@@ -6558,13 +6583,26 @@ const bridge = window.__scalesNotes;
         head.setAttribute("rx", String(headRx));
         head.setAttribute("ry", String(headRy));
         head.setAttribute("transform", "rotate(-20 " + x + " " + y + ")");
-        head.setAttribute("fill", hot ? "#8b6914" : "#2c2416");
+        const flashing = pn.wrongUntil && pn.wrongUntil > performance.now();
+        head.setAttribute("fill", flashing ? "#b3361f" : (hot ? "#8b6914" : "#2c2416"));
+        if (flashing) head.setAttribute("class", "sr-wrong");
         g.appendChild(head);
         svg.appendChild(g);
       });
     }
 
+    function setWaitMode(on) {
+      waitMode = !!on;
+      try { localStorage.setItem(WAIT_KEY, waitMode ? "on" : "off"); } catch (e) {}
+      syncHud();
+    }
     function syncHud() {
+      const wt = document.getElementById("sr-runner-wait");
+      if (wt) { wt.setAttribute("aria-checked", String(waitMode)); wt.classList.toggle("on", waitMode); }
+      const hint = document.getElementById("sr-runner-hint");
+      if (hint) hint.textContent = waitMode
+        ? "Each note waits at the gold line until you play it · a wrong note costs a heart · speed rises every 10 first-try notes"
+        : "Name each note before it crosses the gold line · speed rises every 10 correct · pool follows drill level";
       document.getElementById("sr-runner-speed").textContent = String(Math.round(speed));
       document.getElementById("sr-runner-streak").textContent = String(streak);
       const hearts = [];
@@ -6582,7 +6620,8 @@ const bridge = window.__scalesNotes;
       });
       return best;
     }
-    /* input: { letter, midi? } — midi is exact pitch (MIDI keyboard or mic) */
+    /* input: { letter, midi? } — midi is exact pitch (MIDI keyboard or mic).
+       Callers deliver one input per fresh note-on (MIDI note-on, mic onset, button tap). */
     function answerNote(input) {
       if (!playing) return; /* ignores the count-in too */
       const t = target();
@@ -6591,24 +6630,33 @@ const bridge = window.__scalesNotes;
       const mode = document.getElementById("sr-runner-match").value;
       let ok = letter === t.letter;
       if (ok && mode === "exact" && input.midi != null && t.midi != null) ok = input.midi === t.midi;
+      const now = performance.now();
       if (ok) {
         t.answered = true;
-        streak++;
-        sinceSpeed++;
+        if (!t.missed) { streak++; sinceSpeed++; } /* streak = first-try correct notes */
         updateStats(1, 0);
         if (sinceSpeed >= 10) { speed = Math.min(120, speed + 8); sinceSpeed = 0; }
         highlightLetter(document.getElementById("sr-runner-letters"), letter);
+        lastWrong = { id: null, t: -1e9 };
       } else {
+        /* one wrong note-on = one heart: ignore a repeat of the same wrong pitch
+           (retrigger / mic hearing the playback) and near-simultaneous extras */
+        const id = input.midi != null ? "m" + input.midi : "l" + letter;
+        if ((id === lastWrong.id && now - lastWrong.t < 600) || now - lastWrong.t < 120) return;
+        lastWrong = { id: id, t: now };
         streak = 0;
         lives--;
-        speed = Math.max(32, speed - 6);
+        if (!waitMode) speed = Math.max(32, speed - 6);
         sinceSpeed = 0;
+        t.missed = true;
+        t.wrongUntil = now + 380;
         updateStats(0, 1);
         highlightLetter(document.getElementById("sr-runner-letters"), letter);
         document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) {
           b.classList.toggle("bad", b.dataset.letter === letter);
         });
         if (lives <= 0) { playing = false; lives = 3; streak = 0; }
+        drawFrame();
       }
       clearTimeout(answerHlTimer);
       answerHlTimer = setTimeout(function () {
@@ -6618,15 +6666,23 @@ const bridge = window.__scalesNotes;
       syncHud();
     }
     function answer(letter) { answerNote({ letter: letter }); }
-    function tick(ts) {
+    function tick() {
       if (!playing) return;
+      const ts = performance.now(); /* wall clock: rAF timestamps can lag (throttled/headless) */
       if (!lastTs) lastTs = ts;
       const dt = Math.min(0.05, (ts - lastTs) / 1000);
       lastTs = ts;
       const pxPerSec = (speed / 60) * 36;
-      notes.forEach(function (n) { n.x -= pxPerSec * dt; });
-      notes.forEach(function (n) {
-        if (!n.answered && n.x < hitX - 18) {
+      let step = pxPerSec * dt;
+      if (waitMode) {
+        /* halt with the next unanswered note exactly on the gold line */
+        const next = notes.filter(function (n) { return !n.answered; }).sort(function (a, b) { return a.x - b.x; })[0];
+        if (next) step = Math.max(0, Math.min(step, next.x - hitX));
+      }
+      notes.forEach(function (n) { n.x -= step; });
+      if (!waitMode) notes.forEach(function (n) {
+        /* missed once it slips past the line (must be < the cull at hitX - 12) */
+        if (!n.answered && n.x < hitX - 10) {
           n.answered = true;
           streak = 0; lives--; speed = Math.max(32, speed - 6); sinceSpeed = 0;
           updateStats(0, 1);
@@ -6671,7 +6727,7 @@ const bridge = window.__scalesNotes;
           playing = true; lastTs = 0;
           syncHud();
           raf = requestAnimationFrame(tick);
-        });
+        }, RUNNER_COUNT_IN_BEATS);
       });
     }
     function resetVisual() {
@@ -6686,7 +6742,8 @@ const bridge = window.__scalesNotes;
       start: start, stop: stop, answer: answer, answerNote: answerNote, resetVisual: resetVisual, syncHud: syncHud,
       isPlaying: function () { return playing; },
       isCounting: function () { return counting; },
-      _state: function () { return { playing: playing, counting: counting, streak: streak, lives: lives, hitX: hitX, notes: notes.map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: n.x, answered: n.answered }; }) }; }
+      setWaitMode: setWaitMode, isWaitMode: function () { return waitMode; },
+      _state: function () { return { playing: playing, counting: counting, streak: streak, lives: lives, hitX: hitX, notes: notes.map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: n.x, answered: n.answered, missed: !!n.missed }; }), waitMode: waitMode, speed: speed }; }
     };
   })();
 
@@ -6970,6 +7027,7 @@ const bridge = window.__scalesNotes;
       Keys.setSound(!Keys.status().soundOn);
     });
     document.getElementById("sr-runner-toggle").addEventListener("click", function () { Runner.start(); });
+    document.getElementById("sr-runner-wait").addEventListener("click", function () { Runner.setWaitMode(!Runner.isWaitMode()); });
     buildKeyboard(document.getElementById("sr-runner-kb"));
     window.addEventListener("resize", function () {
       clearTimeout(window.__srResize);
