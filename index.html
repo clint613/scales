@@ -7123,6 +7123,13 @@ const bridge = window.__scalesNotes;
     const snd = document.getElementById("sr-runner-sound");
     if (!btn) return;
     const on = st.enabled && st.devices.length > 0;
+    if (kbAuto && st.enabled && !on) {
+      /* connected quietly by Play with nothing plugged in: stay out of the way until a keyboard appears */
+      btn.classList.remove("on"); btn.setAttribute("aria-pressed", "false");
+      if (snd) snd.hidden = true;
+      setStatus("sr-kbd-status", "", "");
+      return;
+    }
     btn.classList.toggle("on", st.enabled);
     btn.setAttribute("aria-pressed", String(st.enabled));
     if (snd) {
@@ -7137,10 +7144,14 @@ const bridge = window.__scalesNotes;
     else setStatus("sr-kbd-status", "🎹 No keyboard found. Plug in a USB or Bluetooth MIDI keyboard; it will connect automatically.", "");
   }
   Keys.onStatus(renderKeysStatus);
-  let kbUserOff = false;
-  function toggleKeys() {
+  let kbUserOff = false, kbAuto = false;
+  function toggleKeys(auto) {
     SRAudio.unlock(); /* same tap: lets the synth sound on iOS/Chrome */
-    if (Keys.isEnabled()) { Keys.disable(); kbUserOff = true; return Promise.resolve({ ok: true, off: true }); }
+    if (Keys.isEnabled() && kbAuto && !Keys.status().devices.length && !auto) {
+      /* quietly auto-connected, nothing plugged in: a tap means "turn it on", show it */
+      kbAuto = false; renderKeysStatus(Keys.status()); return Promise.resolve({ ok: true });
+    }
+    if (Keys.isEnabled()) { Keys.disable(); kbUserOff = true; kbAuto = false; return Promise.resolve({ ok: true, off: true }); }
     kbUserOff = false;
     if (!Keys.supported()) {
       setStatus("sr-kbd-status", isIOS()
@@ -7148,8 +7159,10 @@ const bridge = window.__scalesNotes;
         : "🎹 This browser doesn't support MIDI keyboards. Use Chrome or Edge, or the 🎤 mic.", "");
       return Promise.resolve({ ok: false, reason: "unsupported" });
     }
-    setStatus("sr-kbd-status", "🎹 Connecting…", "");
+    kbAuto = !!auto;
+    if (!auto) setStatus("sr-kbd-status", "🎹 Connecting…", "");
     return Keys.enable().then(function (res) {
+      if (!res.ok && auto) { setStatus("sr-kbd-status", "", ""); return res; } /* mic/tap players: no MIDI nag */
       if (!res.ok) {
         setStatus("sr-kbd-status", res.reason === "denied"
           ? "🎹 MIDI access was blocked. Allow MIDI devices in site settings, then tap Keyboard again."
@@ -7163,7 +7176,7 @@ const bridge = window.__scalesNotes;
     try {
       if (!Keys.supported() || !navigator.permissions || !navigator.permissions.query) return;
       navigator.permissions.query({ name: "midi" }).then(function (ps) {
-        if (ps.state === "granted") Keys.enable();
+        if (ps.state === "granted") { kbAuto = true; Keys.enable(); }
       }).catch(function () {});
     } catch (e) {}
   }
@@ -7198,7 +7211,7 @@ const bridge = window.__scalesNotes;
     document.getElementById("sr-runner-toggle").addEventListener("click", function () {
       /* Play is a tap, so this is where Chrome may ask to "use MIDI devices": a plugged-in
          keyboard then works without hunting for the 🎹 button */
-      if (!Runner.isPlaying() && !Runner.isCounting() && Keys.supported() && !Keys.isEnabled() && !kbUserOff) toggleKeys();
+      if (!Runner.isPlaying() && !Runner.isCounting() && Keys.supported() && !Keys.isEnabled() && !kbUserOff) toggleKeys(true);
       Runner.start();
     });
     document.getElementById("sr-runner-wait").addEventListener("click", function () { Runner.setWaitMode(!Runner.isWaitMode()); });
