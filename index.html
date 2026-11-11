@@ -6745,7 +6745,7 @@ const bridge = window.__scalesNotes;
     let playing = false, counting = false, raf = 0, countHandle = null;
     const MAX_LIVES = 5;
     const BASE_SPEED = 48, MAX_SPEED = 132, RAMP_EVERY = 4, RAMP_STEP = 3; /* +3 notes/min every 4 correct */
-    const Q = 34, BREATH = 16; /* px per beat on the runner staff; extra gap after a cadence */
+    const Q = 34, BREATH = 12; /* px per beat on the runner staff; extra gap after a cadence */
     let speed = BASE_SPEED; /* beats (notes) per minute */
     let streak = 0, lives = MAX_LIVES, sinceSpeed = 0, correct = 0, over = false;
     let notes = []; /* {key, letter, x} */
@@ -6798,7 +6798,7 @@ const bridge = window.__scalesNotes;
       const letter = LETTERS.charAt(idx % 7), oct = Math.floor(idx / 7);
       const acc = (KEY_ACC[keyName] || {})[letter] || 0;
       return { key: letter + "/" + oct, letter: letter.toUpperCase(), midi: (oct + 1) * 12 + STEP_SEMI[idx % 7] + acc,
-        dur: dur || 1, end: !!end, space: Q * (dur || 1) + (end ? BREATH : 0) };
+        dur: dur || 1, end: !!end, space: Q * (dur > 1 ? 1.5 : 1) + (end ? BREATH : 0) };
     }
     let forced = []; /* test hook: deterministic note sequence */
     function spawnNote(x) {
@@ -6823,7 +6823,7 @@ const bridge = window.__scalesNotes;
       const stageEl = document.getElementById("sr-runner-stage");
       const stageW = Math.max(280, (stageEl && stageEl.clientWidth) || host.clientWidth || 320);
       const stageH = Math.max(140, (stageEl && stageEl.clientHeight) || 178);
-      const vbHGuess = 83;
+      const vbHGuess = 96; /* a little zoomed out: room to read ahead on phones */
       const width = Math.max(152, Math.round(stageW * vbHGuess / stageH));
       const paintH = 160;
       const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
@@ -6838,7 +6838,7 @@ const bridge = window.__scalesNotes;
       staffTop = stave.getYForLine(0);
       gap = stave.getYForLine(1) - stave.getYForLine(0);
       const yBot = stave.getYForLine(4);
-      const pad = gap * 2.15;
+      const pad = gap * 2.8;
       const vbY = staffTop - pad;
       const vbH = (yBot - staffTop) + pad * 2;
       runW = width;
