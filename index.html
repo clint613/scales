@@ -1704,6 +1704,10 @@
 .sr-btn.secondary { background: var(--cream); color: var(--ink); border-color: var(--border); }
 .sr-btn.mic-btn { background: var(--cream); color: var(--ink); border-color: var(--border); display: inline-flex; align-items: center; gap: 0.35rem; }
 .sr-btn.mic-btn.on { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
+.sr-btn.mic-btn { position: relative; }
+.sr-mic-meter { display: none; position: absolute; left: 0.55rem; right: 0.55rem; bottom: 0.2rem; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.28); overflow: hidden; }
+.sr-mic-meter i { display: block; height: 100%; width: 0; background: #e9f5df; border-radius: 2px; transition: width 60ms linear; }
+.sr-btn.mic-btn.on .sr-mic-meter { display: block; }
 .sr-btn:hover { filter: brightness(1.05); }
 .sr-tempo { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--ink-soft); }
 .sr-tempo input[type=range] { width: 7rem; accent-color: var(--accent); }
@@ -2136,7 +2140,7 @@ body.sr-sight-open header::after { display: none; }
       </div>
       <div class="sr-kb" id="sr-runner-kb" aria-label="On-screen keyboard"></div>
       <div class="sr-mic-row">
-        <button type="button" class="sr-btn mic-btn" id="sr-runner-mic" aria-pressed="false">🎤 Mic</button>
+        <button type="button" class="sr-btn mic-btn" id="sr-runner-mic" aria-pressed="false">🎤 Mic<span class="sr-mic-meter" aria-hidden="true"><i></i></span></button>
         <button type="button" class="sr-btn kb-btn" id="sr-runner-kbd" aria-pressed="false" title="Use a USB/Bluetooth MIDI keyboard">🎹 Keyboard</button>
         <button type="button" class="sr-btn icon-btn" id="sr-runner-sound" aria-pressed="true" aria-label="Keyboard sound on" title="Keyboard sound on" hidden>🔊</button>
         <span class="sr-hearing" id="sr-runner-hearing">hearing: <strong>—</strong></span>
@@ -5619,7 +5623,8 @@ const bridge = window.__scalesNotes;
     }
   }
 
-  /* ---------- Pitch detection ---------- */
+/* @@PITCH_CORE_BEGIN@@ */
+  /* ---------- Pitch detection (YIN) + note tracker — shared by the live mic loop and the tests ---------- */
   const Pitch = (function () {
     const NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
     function freqToMidi(f) { return 69 + 12 * Math.log2(f / 440); }
@@ -5629,63 +5634,136 @@ const bridge = window.__scalesNotes;
       const oct = Math.floor(rounded / 12) - 1;
       return { name: name, octave: oct, midi: rounded, label: name.replace("#","♯") + oct, letter: name.charAt(0) };
     }
-    function detectPitch(buf, sampleRate) {
-      const SIZE = buf.length;
-      let rms = 0;
-      for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
-      rms = Math.sqrt(rms / SIZE);
-      if (rms < 0.01) return null;
-      const r1 = Math.floor(sampleRate / 2100); /* allow up to ~C7 */
-      const r2 = Math.floor(sampleRate / 65); /* down to ~C2 */
-      const yin = new Float32Array(r2);
-      let tau, i, delta;
-      for (tau = 0; tau < r2; tau++) {
-        let sum = 0;
-        for (i = 0; i < SIZE - tau; i++) {
-          delta = buf[i] - buf[i + tau];
-          sum += delta * delta;
-        }
-        yin[tau] = sum;
-      }
-      yin[0] = 1;
-      let runningSum = 0;
-      for (tau = 1; tau < r2; tau++) {
-        runningSum += yin[tau];
-        yin[tau] *= tau / runningSum;
-      }
-      const threshold = 0.15;
-      let bestTau = -1;
-      for (tau = r1; tau < r2; tau++) {
-        if (yin[tau] < threshold) {
-          while (tau + 1 < r2 && yin[tau + 1] < yin[tau]) tau++;
-          bestTau = tau;
-          break;
-        }
-      }
-      if (bestTau < 0) {
-        let minVal = Infinity;
-        for (tau = r1; tau < r2; tau++) {
-          if (yin[tau] < minVal) { minVal = yin[tau]; bestTau = tau; }
-        }
-        if (minVal > 0.4) return null;
-      }
-      /* Prefer the fundamental: if tau/2 is also a strong valley, we locked an octave low. */
-      for (let div = 2; div <= 3; div++) {
-        const half = Math.floor(bestTau / div);
-        if (half >= r1 && yin[half] < Math.max(threshold * 2, yin[bestTau] * 1.8)) {
-          bestTau = half;
-        }
-      }
-      const x0 = bestTau > 0 ? yin[bestTau - 1] : yin[bestTau];
-      const x1 = yin[bestTau];
-      const x2 = bestTau + 1 < r2 ? yin[bestTau + 1] : yin[bestTau];
-      const better = bestTau + (x2 - x0) / (2 * (2 * x1 - x2 - x0));
-      const freq = sampleRate / better;
-      if (freq < 60 || freq > 2200) return null;
-      return { freq: freq, rms: rms, confidence: 1 - yin[bestTau], note: midiToName(freqToMidi(freq)) };
+    let scratch = null;
+    function rmsOf(buf) {
+      let s = 0, m = 0;
+      for (let i = 0; i < buf.length; i++) m += buf[i];
+      m /= buf.length;
+      for (let i = 0; i < buf.length; i++) { const v = buf[i] - m; s += v * v; }
+      return Math.sqrt(s / buf.length);
     }
-    return { detectPitch: detectPitch, midiToName: midiToName, freqToMidi: freqToMidi, NAMES: NAMES };
+    /* Returns {freq, rms, confidence, note} or null. Uses the real sampleRate (44.1k/48k/…). */
+    function detectPitch(buf, sampleRate) {
+      const N = buf.length;
+      const rms = rmsOf(buf);
+      if (rms < 1e-4) return null;
+      const minTau = Math.max(2, Math.floor(sampleRate / 2200));          /* up to ~C#7 */
+      const maxTau = Math.min(Math.floor(sampleRate / 60), Math.floor(N / 2)); /* down to ~B1 */
+      const W = N - maxTau;
+      if (!scratch || scratch.length < maxTau + 2) scratch = new Float32Array(maxTau + 2);
+      const d = scratch;
+      d[0] = 1;
+      let running = 0;
+      for (let tau = 1; tau <= maxTau; tau++) {
+        let sum = 0;
+        for (let i = 0; i < W; i++) { const v = buf[i] - buf[i + tau]; sum += v * v; }
+        running += sum;
+        d[tau] = running > 0 ? sum * tau / running : 1;
+      }
+      const TH = 0.2;
+      let best = -1;
+      for (let tau = minTau; tau <= maxTau; tau++) {
+        if (d[tau] < TH) {
+          while (tau + 1 <= maxTau && d[tau + 1] < d[tau]) tau++;
+          best = tau; break;
+        }
+      }
+      if (best < 0) {
+        let mv = Infinity;
+        for (let tau = minTau; tau <= maxTau; tau++) if (d[tau] < mv) { mv = d[tau]; best = tau; }
+        if (mv > 0.45) return null;
+      }
+      /* Weak-fundamental guard: if the dip at twice the period is much deeper, the
+         first dip was the 2nd partial (octave too high) — take the true period. */
+      const dbl = best * 2;
+      if (dbl + 2 <= maxTau && d[best] > 0.06) {
+        let m2 = dbl, v2 = d[dbl];
+        for (let k = dbl - 3; k <= dbl + 3; k++) if (k > 0 && k <= maxTau && d[k] < v2) { v2 = d[k]; m2 = k; }
+        if (v2 < d[best] * 0.45) best = m2;
+      }
+      const x0 = best > 1 ? d[best - 1] : d[best];
+      const x1 = d[best];
+      const x2 = best + 1 <= maxTau ? d[best + 1] : d[best];
+      const den = 2 * (2 * x1 - x2 - x0);
+      const better = den !== 0 ? best + (x2 - x0) / den : best;
+      const freq = sampleRate / better;
+      if (!(freq >= 60 && freq <= 2200)) return null;
+      return { freq: freq, rms: rms, confidence: Math.max(0, 1 - x1), note: midiToName(freqToMidi(freq)) };
+    }
+    /* Frame-by-frame tracker: adaptive noise gate, onset (new key strike) detection,
+       and "stable for N frames" so one played note gives one answer. */
+    function createTracker(opts) {
+      opts = opts || {};
+      const NEED = opts.need || 3;
+      let labels = [], hist = [], lastOnset = -1e9, peakEnv = 0;
+      const floorHist = []; /* ~2 s of frame levels: the room's noise floor is their minimum */
+      function rmsRange(buf, a, b) { let s = 0; for (let i = a; i < b; i++) s += buf[i] * buf[i]; return Math.sqrt(s / Math.max(1, b - a)); }
+      return {
+        process: function (buf, sampleRate, tMs) {
+          const rms = rmsOf(buf);
+          floorHist.push(rms); if (floorHist.length > 120) floorHist.shift();
+          let noise = Infinity; for (let i = 0; i < floorHist.length; i++) if (floorHist[i] < noise) noise = floorHist[i];
+          /* AGC is off, so a piano across the room is often only -55..-65 dBFS: gate on the room's own noise floor */
+          const gate = Math.max(0.0003, noise * 2.5);
+          const recentMin = hist.length ? Math.min.apply(null, hist) : 0;
+          const prev = hist.length ? hist[hist.length - 1] : 0;
+          hist.push(rms); if (hist.length > 8) hist.shift();
+          /* a key strike: the newest ~10 ms is much louder than the start of the window (sharp attack),
+             or the level jumps well above the recent trough and is still rising;
+             either way clearly above the ringing note's decaying envelope (string beating rebounds ~2x) */
+          const N = buf.length, q = Math.max(64, N >> 2);
+          const tail = rmsRange(buf, N - q, N), head = rmsRange(buf, 0, N >> 1);
+          const sharp = tail > gate && tail > head * 2.2;
+          const swell = rms > recentMin * 1.5 && rms > prev * 1.2;
+          const onset = (sharp || swell) && Math.max(rms, tail) > gate && Math.max(rms, tail) > peakEnv * 0.7 && tMs - lastOnset > 120;
+          peakEnv = Math.max(rms, peakEnv * 0.975);
+          if (onset) { lastOnset = tMs; labels = []; }
+          const out = { level: rms, gate: gate, onset: onset, hearing: null, stable: false, raw: null };
+          if (rms < gate) { labels = []; return out; }
+          const r = detectPitch(buf, sampleRate);
+          if (!r || r.confidence < 0.5) { labels = []; return out; }
+          labels.push(r.note.label);
+          if (labels.length > NEED) labels.shift();
+          out.hearing = r.note; out.raw = r;
+          out.stable = labels.length >= NEED && labels.every(function (x) { return x === labels[0]; });
+          return out;
+        }
+      };
+    }
+    /* Tracker frames -> answers. One answer per key strike: an onset re-arms the same
+       pitch; a different pitch held steady (~100 ms) counts even if its attack was masked
+       by the previous note; a ringing or re-swelling tail never answers twice. */
+    function createAnswerer(opts) {
+      opts = opts || {};
+      const CHANGE_RUN = opts.changeRun || 6;
+      let lastAns = null, lastMidi = null, struck = false, lastHeard = -1e9, run = 0, runLabel = null;
+      return {
+        step: function (o, tMs) {
+          if (o.onset) struck = true;
+          if (!o.hearing) { run = 0; runLabel = null; return null; }
+          const afterSilence = tMs - lastHeard > 700; /* a new pitch after a pause needs no extra steadiness */
+          lastHeard = tMs;
+          const label = o.hearing.label;
+          if (o.stable) { if (label === runLabel) run++; else { runLabel = label; run = 1; } } else { run = 0; runLabel = null; }
+          if (!o.stable) return null;
+          if (!struck) {
+            if (label === lastAns) return null;
+            if (lastAns !== null && !afterSilence) {
+              if (run < CHANGE_RUN) return null;
+              /* the same letter an octave away without a new strike = a decaying tail misread */
+              if (lastMidi !== null && (o.hearing.midi - lastMidi) % 12 === 0) return null;
+            }
+          }
+          lastAns = label; lastMidi = o.hearing.midi; struck = false;
+          return o.hearing;
+        },
+        /* while the MIDI keyboard is being played: swallow what the mic hears */
+        mute: function (o, tMs) { if (o.hearing) { lastAns = o.hearing.label; lastHeard = tMs; } struck = false; }
+      };
+    }
+    return { detectPitch: detectPitch, createTracker: createTracker, createAnswerer: createAnswerer, midiToName: midiToName, freqToMidi: freqToMidi, NAMES: NAMES, rms: rmsOf };
   })();
+/* @@PITCH_CORE_END@@ */
   window.SightReadPitch = Pitch;
 
   /* ---------- Shared audio (one AudioContext for clicks, count-in, keyboard synth, mic) ---------- */
@@ -5710,7 +5788,7 @@ const bridge = window.__scalesNotes;
       const c = get();
       if (!c) return Promise.resolve(null);
       let p = Promise.resolve();
-      if (c.state === "suspended") { try { p = c.resume(); } catch (e) {} }
+      if (c.state !== "running" && c.state !== "closed") { try { p = c.resume(); } catch (e) {} }
       try {
         const b = c.createBuffer(1, 1, c.sampleRate);
         const src = c.createBufferSource();
@@ -5720,7 +5798,7 @@ const bridge = window.__scalesNotes;
     }
     function output() { get(); return out; }
     /* First tap anywhere unlocks audio (MIDI note-ons are not user gestures). */
-    function onFirstGesture() { if (ctx && ctx.state === "suspended") unlock(); }
+    function onFirstGesture() { if (ctx && ctx.state !== "running" && ctx.state !== "closed") unlock(); }
     ["pointerdown", "keydown", "touchend"].forEach(function (ev) {
       document.addEventListener(ev, onFirstGesture, { capture: true, passive: true });
     });
@@ -5730,9 +5808,8 @@ const bridge = window.__scalesNotes;
 
   /* ---------- Mic ---------- */
   const Mic = (function () {
-    let stream = null, src = null, analyser = null, raf = 0, running = false, starting = false;
-    let stable = [];
-    const NEED = 3;
+    let stream = null, src = null, analyser = null, sink = null, ctx = null, ownCtx = false;
+    let raf = 0, running = false, starting = false, tracker = null, lastProc = 0;
     const listeners = [];
     function onNote(cb) { listeners.push(cb); }
     function emit(p) { listeners.forEach(function (cb) { try { cb(p); } catch (e) { console.warn("[sight-reading] mic listener", e); } }); }
@@ -5743,6 +5820,25 @@ const bridge = window.__scalesNotes;
       if (/NotReadable|TrackStart|Abort/i.test(name)) return "busy";
       return "error";
     }
+    function resumeCtx() {
+      if (ctx && ctx.state !== "running" && ctx.state !== "closed") { try { return ctx.resume(); } catch (e) {} }
+      return Promise.resolve();
+    }
+    /* any later tap also wakes the mic context (iOS can suspend/interrupt it) */
+    ["pointerdown", "keydown", "touchend"].forEach(function (ev) {
+      document.addEventListener(ev, function () { if (running) resumeCtx(); }, { capture: true, passive: true });
+    });
+    function waitRunning(c, ms) {
+      return new Promise(function (res) {
+        if (c.state === "running") return res(true);
+        const t0 = performance.now();
+        (function poll() {
+          if (c.state === "running") return res(true);
+          if (performance.now() - t0 > ms) return res(false);
+          setTimeout(poll, 25);
+        })();
+      });
+    }
     /* Must be called from the tap handler: the getUserMedia call below is what
        makes the browser show its microphone permission prompt. */
     async function start() {
@@ -5752,12 +5848,13 @@ const bridge = window.__scalesNotes;
       if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
         return { ok: false, reason: "unsupported" };
       }
-      const unlocked = SRAudio.unlock(); /* same tap: resume AudioContext (iOS) */
+      const unlocked = SRAudio.unlock(); /* same tap: resume the shared AudioContext (iOS) */
       starting = true;
       try {
         try {
+          /* raw signal: AGC/noise suppression/echo cancellation smear or mute piano tones */
           stream = await navigator.mediaDevices.getUserMedia({
-            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 }
           });
         } catch (e1) {
           if (classify(e1) === "nodevice" && /Overconstrained/i.test(e1.name || "")) {
@@ -5769,28 +5866,45 @@ const bridge = window.__scalesNotes;
         console.warn("[sight-reading] mic unavailable:", e && e.name);
         return { ok: false, reason: classify(e) };
       }
-      const ctx = await unlocked;
+      const shared = await unlocked;
+      /* A context created AFTER the mic opens matches the mic's hardware rate (iOS Safari
+         garbles input when they differ); fall back to the tap-unlocked shared context. */
+      ctx = null; ownCtx = false;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) {
+        try {
+          const c = new AC();
+          try { c.resume(); } catch (e) {}
+          if (await waitRunning(c, 350)) { ctx = c; ownCtx = true; }
+          else { try { c.close(); } catch (e) {} }
+        } catch (e) {}
+      }
+      if (!ctx) ctx = shared;
       if (!ctx) { starting = false; stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; return { ok: false, reason: "unsupported" }; }
-      if (ctx.state === "suspended") { try { await ctx.resume(); } catch (e) {} }
+      await resumeCtx();
       src = ctx.createMediaStreamSource(stream);
       analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0;
       src.connect(analyser);
+      /* WebKit only pulls audio through nodes that reach the destination: silent tap */
+      try { sink = ctx.createGain(); sink.gain.value = 0; analyser.connect(sink); sink.connect(ctx.destination); } catch (e) { sink = null; }
       const buf = new Float32Array(analyser.fftSize);
-      running = true; starting = false;
+      const bytes = new Uint8Array(analyser.fftSize);
+      const hasFloat = typeof analyser.getFloatTimeDomainData === "function";
+      tracker = Pitch.createTracker();
+      running = true; starting = false; lastProc = 0;
       function tick() {
         if (!running) return;
-        analyser.getFloatTimeDomainData(buf);
-        const result = Pitch.detectPitch(buf, ctx.sampleRate);
-        if (result && result.rms >= 0.02 && result.confidence > 0.55) {
-          stable.push(result.note.label);
-          if (stable.length > NEED) stable.shift();
-          const ok = stable.length >= NEED && stable.every(function (x) { return x === stable[0]; });
-          emit({ hearing: result.note, raw: result, stable: ok });
-        } else {
-          stable = [];
-        }
         raf = requestAnimationFrame(tick);
+        const t = performance.now();
+        if (t - lastProc < 14) return; /* ~60 analyses/s even on 120 Hz screens */
+        lastProc = t;
+        if (hasFloat) analyser.getFloatTimeDomainData(buf);
+        else { analyser.getByteTimeDomainData(bytes); for (let i = 0; i < bytes.length; i++) buf[i] = (bytes[i] - 128) / 128; }
+        const o = tracker.process(buf, ctx.sampleRate, t); /* real device rate (44.1k/48k) */
+        o.t = t; o.ctxState = ctx.state;
+        emit(o);
       }
       tick();
       return { ok: true };
@@ -5799,8 +5913,12 @@ const bridge = window.__scalesNotes;
       running = false;
       if (raf) cancelAnimationFrame(raf);
       try { if (src) src.disconnect(); } catch (e) {}
+      try { if (analyser) analyser.disconnect(); } catch (e) {}
+      try { if (sink) sink.disconnect(); } catch (e) {}
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
-      stream = null; src = null; analyser = null; stable = [];
+      if (ownCtx && ctx) { try { ctx.close(); } catch (e) {} }
+      stream = null; src = null; analyser = null; sink = null; ctx = null; ownCtx = false; tracker = null;
+      emit({ level: 0, stopped: true, hearing: null, stable: false, onset: false });
     }
     function isOn() { return running; }
     document.addEventListener("visibilitychange", function () {
@@ -5812,7 +5930,8 @@ const bridge = window.__scalesNotes;
         setHearing(document.getElementById("sr-runner-hearing"), null);
       }
     });
-    return { start: start, stop: stop, isOn: isOn, onNote: onNote };
+    return { start: start, stop: stop, isOn: isOn, onNote: onNote,
+      _info: function () { return ctx ? { sampleRate: ctx.sampleRate, state: ctx.state, own: ownCtx, running: running } : { running: running }; } };
   })();
   window.SightReadMic = Mic;
 
@@ -5973,9 +6092,15 @@ const bridge = window.__scalesNotes;
       voices.forEach(function (v) { releaseVoice(v, true); });
       voices.clear(); order.length = 0; held.clear(); sustain = false;
     }
-    /* Mic should not answer while a MIDI keyboard is driving input (or just after a key). */
+    /* Mic ignores what it hears while the keyboard is actually being played (its own
+       speakers / our synth would double every note). A connected-but-idle port
+       (e.g. a Mac IAC bus, or a piano that is on but played acoustically) must NOT mute the mic. */
     function suppressMic() {
-      return (enabled && inputs.size > 0) || (performance.now() - lastNoteAt < 1500);
+      const since = performance.now() - lastNoteAt;
+      if (since < 10000) return true;
+      let sounding = false;
+      voices.forEach(function (v) { if (!v.done) sounding = true; });
+      return sounding && since < 15000;
     }
     return {
       supported: supported, enable: enable, disable: disable, setSound: setSound,
@@ -6481,19 +6606,33 @@ const bridge = window.__scalesNotes;
     try { waitMode = localStorage.getItem(WAIT_KEY) !== "off"; } catch (e) {}
     let lastWrong = { id: null, t: -1e9 };
 
+    const LETTERS = "cdefgab";
+    /* staff line (0 = top line F5, 4 = bottom line E4; 0.5 per step) for any natural key */
     function staffYForKey(key) {
-      const map = {
-        "c/4": 5, "d/4": 4.5, "e/4": 4, "f/4": 3.5, "g/4": 3, "a/4": 2.5, "b/4": 2,
-        "c/5": 1.5, "d/5": 1, "e/5": 0.5, "f/5": 0, "g/5": -0.5, "a/5": -1,
-        "c#/4": 5, "d#/4": 4.5, "f#/4": 3.5, "g#/4": 3, "a#/4": 2.5
-      };
-      const k = key.replace("♯", "#");
-      return map[k] != null ? map[k] : 3;
+      const m = String(key).match(/^([a-g])[#b♯♭]?\/(\d+)$/i);
+      if (!m) return 3;
+      return (38 - (parseInt(m[2], 10) * 7 + LETTERS.indexOf(m[1].toLowerCase()))) / 2;
     }
+    /* Runner draws plain noteheads (no accidentals), so use the natural note and keep
+       it between C4 and A5 (at most one ledger line). The answer is what is drawn. */
+    function runnerKey(key) {
+      const m = String(key).match(/^([a-g])[#b♯♭]?\/(\d+)$/i);
+      if (!m) return "g/4";
+      let idx = parseInt(m[2], 10) * 7 + LETTERS.indexOf(m[1].toLowerCase());
+      while (idx < 28) idx += 7;  /* below C4 */
+      while (idx > 40) idx -= 7;  /* above A5 */
+      return LETTERS.charAt(idx % 7) + "/" + Math.floor(idx / 7);
+    }
+    let forced = []; /* test hook: deterministic note sequence */
     function spawnNote(x) {
-      const pool = LEVELS[currentLevel].runnerNotes;
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      return { key: pick.key, letter: pick.letter, midi: keyToMidi(pick.key), x: x, answered: false };
+      let key;
+      if (forced.length) key = forced.shift();
+      else {
+        const pool = LEVELS[currentLevel].runnerNotes;
+        key = pool[Math.floor(Math.random() * pool.length)].key;
+      }
+      key = runnerKey(key);
+      return { key: key, letter: key.charAt(0).toUpperCase(), midi: keyToMidi(key), x: x, answered: false };
     }
     function drawFrame() {
       const host = document.getElementById("sr-runner-vf");
@@ -6557,9 +6696,12 @@ const bridge = window.__scalesNotes;
         const hot = playing && !pn.answered && Math.abs(x - hitX) < hotSlop;
         const g = document.createElementNS(NS, "g");
         g.setAttribute("class", "sr-run-note");
-        if (line >= 5 || line <= -0.5) {
+        const ledgers = [];
+        for (let k = 5; k <= line; k++) ledgers.push(k);
+        for (let k = -1; k >= line; k--) ledgers.push(k);
+        ledgers.forEach(function (k) {
           const led = document.createElementNS(NS, "line");
-          const ly = staffTop + Math.round(line) * gap;
+          const ly = staffTop + k * gap;
           led.setAttribute("x1", x - headRx * 1.55);
           led.setAttribute("x2", x + headRx * 1.55);
           led.setAttribute("y1", ly);
@@ -6567,7 +6709,7 @@ const bridge = window.__scalesNotes;
           led.setAttribute("stroke", "#2c2416");
           led.setAttribute("stroke-width", "1.15");
           g.appendChild(led);
-        }
+        });
         if (hot) {
           const glow = document.createElementNS(NS, "circle");
           glow.setAttribute("cx", x);
@@ -6743,6 +6885,8 @@ const bridge = window.__scalesNotes;
       isPlaying: function () { return playing; },
       isCounting: function () { return counting; },
       setWaitMode: setWaitMode, isWaitMode: function () { return waitMode; },
+      _forceNotes: function (keys) { forced = (keys || []).slice(); },
+      _runnerKey: runnerKey, _staffY: staffYForKey,
       _state: function () { return { playing: playing, counting: counting, streak: streak, lives: lives, hitX: hitX, notes: notes.map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: n.x, answered: n.answered, missed: !!n.missed }; }), waitMode: waitMode, speed: speed }; }
     };
   })();
@@ -6899,7 +7043,8 @@ const bridge = window.__scalesNotes;
     return Mic.start().then(function (res) {
       if (res.ok) {
         setMicButtons(true);
-        setStatus("sr-mic-status", Keys.suppressMic() ? "Listening (keyboard input takes priority while connected)." : "Listening… play one note at a time.", "ok");
+        micHintShown = false; micQuietSince = 0;
+        setStatus("sr-mic-status", "Listening… play one note at a time." + (Keys.status().devices.length ? " (While you play the MIDI keyboard, it takes priority.)" : ""), "ok");
       } else if (res.reason !== "pending") {
         setMicButtons(false);
         setStatus("sr-mic-status", MIC_MSG[res.reason] || MIC_MSG.error, "warn");
@@ -6908,33 +7053,55 @@ const bridge = window.__scalesNotes;
     });
   }
 
-  let micCooldown = 0;
-  let micHeld = null, micLastAt = 0; /* one answer per played note, not per frame */
-  Mic.onNote(function (payload) {
-    if (!payload || !payload.hearing) return;
-    if (Keys.suppressMic()) return; /* keyboard is driving input; ignore the mic hearing the playback */
-    const note = payload.hearing;
-    const tNow = performance.now();
-    if (!payload.stable || tNow - micLastAt > 160) micHeld = null;
-    micLastAt = tNow;
-    setHearing(document.getElementById("sr-runner-hearing"), note, payload.stable);
-    lightKeyboard(document.getElementById("sr-runner-kb"), note.label);
-    if (payload.stable) {
-      highlightLetter(document.getElementById("sr-runner-letters"), note.letter);
+  /* Mic → game. One answer per key strike: a new onset re-arms; a ringing or
+     re-swelling tail of the same note never answers twice. */
+  let micAns = Pitch.createAnswerer(); /* same rule the offline accuracy tests use */
+  let micQuietSince = 0, micHearClear = 0;
+  function renderMicMeter(level) {
+    /* -72 dBFS … -24 dBFS → 0 … 100% */
+    const db = level > 0 ? 20 * Math.log10(level) : -120;
+    const pct = Math.max(0, Math.min(100, (db + 72) / 48 * 100));
+    document.querySelectorAll(".sr-mic-meter i").forEach(function (el) { el.style.width = pct.toFixed(0) + "%"; });
+  }
+  Mic.onNote(function (p) {
+    if (!p) return;
+    const t = p.t || performance.now();
+    renderMicMeter(p.level || 0);
+    if (p.stopped) { micQuietSince = 0; micAns = Pitch.createAnswerer(); return; }
+    /* "not hearing anything": a dead/muted input reads ~digital silence */
+    if ((p.level || 0) < 0.0001) {
+      if (!micQuietSince) micQuietSince = t;
+      if (t - micQuietSince > 4000 && !micHintShown) {
+        micHintShown = true;
+        setStatus("sr-mic-status", "Mic isn't hearing anything — check that the mic isn't muted or used by another app, and put the device near the piano.", "warn");
+      }
     } else {
-      highlightLetter(document.getElementById("sr-runner-letters"), null);
+      micQuietSince = 0;
+      if (micHintShown) { micHintShown = false; setStatus("sr-mic-status", "Listening… play one note at a time.", "ok"); }
     }
-    if (!payload.stable) return;
+    if (Keys.suppressMic()) {
+      /* the MIDI keyboard is being played: ignore what the mic hears, and don't let a tail answer later */
+      micAns.mute(p, t);
+      return;
+    }
+    const hearingEl = document.getElementById("sr-runner-hearing");
+    if (p.hearing && p.stable) { /* only steady pitches: attack/decay flickers would confuse */
+      clearTimeout(micHearClear);
+      setHearing(hearingEl, p.hearing, true);
+      lightKeyboard(document.getElementById("sr-runner-kb"), p.hearing.label);
+      highlightLetter(document.getElementById("sr-runner-letters"), p.hearing.letter);
+      micHearClear = setTimeout(function () {
+        setHearing(hearingEl, null);
+        lightKeyboard(document.getElementById("sr-runner-kb"), null);
+        highlightLetter(document.getElementById("sr-runner-letters"), null);
+      }, 600);
+    }
+    const note = micAns.step(p, t);
+    if (!note) return;
     if (document.getElementById("panel-sight").hidden) return;
-    const now = performance.now();
-    if (micHeld === note.label) return; /* still the same sustained note */
-    if (now - micCooldown < 250) return;
-    if (Runner.isPlaying()) {
-      micCooldown = now;
-      micHeld = note.label;
-      Runner.answerNote({ letter: note.letter, midi: note.midi });
-    }
+    if (Runner.isPlaying()) Runner.answerNote({ letter: note.letter, midi: note.midi });
   });
+  let micHintShown = false;
 
   /* ---------- Keyboard (MIDI) wiring ---------- */
   let kbHlTimer = 0;
@@ -6970,9 +7137,11 @@ const bridge = window.__scalesNotes;
     else setStatus("sr-kbd-status", "🎹 No keyboard found. Plug in a USB or Bluetooth MIDI keyboard; it will connect automatically.", "");
   }
   Keys.onStatus(renderKeysStatus);
+  let kbUserOff = false;
   function toggleKeys() {
     SRAudio.unlock(); /* same tap: lets the synth sound on iOS/Chrome */
-    if (Keys.isEnabled()) { Keys.disable(); return Promise.resolve({ ok: true, off: true }); }
+    if (Keys.isEnabled()) { Keys.disable(); kbUserOff = true; return Promise.resolve({ ok: true, off: true }); }
+    kbUserOff = false;
     if (!Keys.supported()) {
       setStatus("sr-kbd-status", isIOS()
         ? "🎹 iPad/iPhone browsers don't support MIDI keyboards. Use the 🎤 mic, or Chrome on Android/Mac."
@@ -7026,7 +7195,12 @@ const bridge = window.__scalesNotes;
       SRAudio.unlock();
       Keys.setSound(!Keys.status().soundOn);
     });
-    document.getElementById("sr-runner-toggle").addEventListener("click", function () { Runner.start(); });
+    document.getElementById("sr-runner-toggle").addEventListener("click", function () {
+      /* Play is a tap, so this is where Chrome may ask to "use MIDI devices": a plugged-in
+         keyboard then works without hunting for the 🎹 button */
+      if (!Runner.isPlaying() && !Runner.isCounting() && Keys.supported() && !Keys.isEnabled() && !kbUserOff) toggleKeys();
+      Runner.start();
+    });
     document.getElementById("sr-runner-wait").addEventListener("click", function () { Runner.setWaitMode(!Runner.isWaitMode()); });
     buildKeyboard(document.getElementById("sr-runner-kb"));
     window.addEventListener("resize", function () {
