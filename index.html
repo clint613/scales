@@ -1804,7 +1804,24 @@
   gap: 0.5rem 1rem; margin-bottom: 0.7rem; font-size: 0.82rem;
 }
 .sr-runner-hud strong { color: var(--ink); font-weight: 600; }
-.sr-hearts { letter-spacing: 0.12em; color: #9a3b1f; font-size: 1rem; }
+.sr-hearts { display: inline-flex; gap: 0.18em; color: #9a3b1f; font-size: 1.05rem; line-height: 1; }
+.sr-heart { display: inline-block; width: 1em; text-align: center; transition: color 0.2s ease; }
+.sr-heart.lost { color: #bdb3a3; }
+.sr-heart.breaking { animation: srHeartBreak 0.6s ease-out; }
+@keyframes srHeartBreak {
+  0% { transform: scale(1.6); color: #d0381c; }
+  35% { transform: scale(0.75) rotate(-12deg); color: #d0381c; }
+  100% { transform: scale(1); color: #bdb3a3; }
+}
+.sr-speed-pill.bump { animation: srSpeedBump 0.7s ease-out; }
+@keyframes srSpeedBump { 0% { transform: scale(1.14); background: #f3dfa2; } 100% { transform: scale(1); } }
+.sr-gameover {
+  position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.25rem; background: rgba(255, 254, 249, 0.88); pointer-events: none; text-align: center; padding: 0 1rem;
+}
+.sr-gameover[hidden] { display: none; }
+.sr-over-title { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700; font-size: 1.7rem; color: #9a3b1f; }
+.sr-over-sub { font-size: 0.78rem; color: var(--ink-soft); }
 .sr-switch {
   appearance: none; border: 0; background: none; font: inherit; font-size: 0.78rem; font-weight: 600;
   color: var(--ink-soft); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.15rem 0; cursor: pointer;
@@ -2119,7 +2136,7 @@ body.sr-sight-open header::after { display: none; }
       <div class="sr-runner-hud">
         <span class="sr-speed-pill">Speed <strong id="sr-runner-speed">48</strong> notes/min</span>
         <span>Streak <strong id="sr-runner-streak">0</strong></span>
-        <span class="sr-hearts" id="sr-runner-hearts" aria-label="3 of 3 lives">♥ ♥ ♥</span>
+        <span class="sr-hearts" id="sr-runner-hearts" role="img" aria-label="5 of 5 lives"><span class="sr-heart">♥</span><span class="sr-heart">♥</span><span class="sr-heart">♥</span><span class="sr-heart">♥</span><span class="sr-heart">♥</span></span>
         <button type="button" class="sr-switch on" id="sr-runner-wait" role="switch" aria-checked="true" title="Notes stop at the gold line until you play the right one"><span class="sr-switch-track" aria-hidden="true"><span class="sr-switch-knob"></span></span>Wait for me</button>
       </div>
       <div class="sr-runner-stage" id="sr-runner-stage" role="img" aria-label="Scrolling sight-reading game">
@@ -2127,8 +2144,9 @@ body.sr-sight-open header::after { display: none; }
         <div class="sr-hit-line" aria-hidden="true"></div>
         <div id="sr-runner-vf"></div>
         <div class="sr-countin" id="sr-runner-countin" hidden aria-live="polite"></div>
+        <div class="sr-gameover" id="sr-runner-over" hidden aria-live="polite"></div>
       </div>
-      <p class="sr-runner-hint" id="sr-runner-hint">Each note waits at the gold line until you play it · a wrong note costs a heart · speed rises every 10 first-try notes</p>
+      <p class="sr-runner-hint" id="sr-runner-hint">Each note waits at the gold line until you play it · a wrong note costs a heart · it speeds up as you go</p>
       <div class="sr-letters" id="sr-runner-letters" role="group" aria-label="Answer with letter name" style="margin-top:0.75rem">
         <button type="button" class="sr-letter" data-letter="A">A</button>
         <button type="button" class="sr-letter" data-letter="B">B</button>
@@ -6591,10 +6609,145 @@ const bridge = window.__scalesNotes;
     const acc = m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0;
     return (parseInt(m[3], 10) + 1) * 12 + base + acc;
   }
+/* @@MELODY_CORE_BEGIN@@ */
+  /* ---------- Note Runner melody: Bach-style compound melody (two implied voices in one line) ----------
+     Works on staff steps (idx = octave*7 + letter, c=0). Phrases alternate an upper and a lower voice,
+     each moving mostly by step; vertical intervals are consonant; leading tone resolves; phrases end
+     on a half cadence (V) or an authentic cadence (V-I) with a held note and a breath. */
+  const Melody = (function () {
+    function mulberry(seed) { let a = seed >>> 0; return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+    function create(opts) {
+      const lo = opts.lo, hi = opts.hi, tonic = opts.tonic; /* tonic: letter index 0..6 */
+      const rnd = opts.rng || Math.random;
+      const deg = function (idx) { return (((idx - tonic) % 7) + 7) % 7; };
+      const R = hi - lo;
+      /* voice ranges overlap a little when the level's range is small */
+      const Lr = [lo, Math.min(hi - 1, lo + Math.max(2, Math.ceil(R * 0.65)))];
+      const Ur = [Math.max(lo + 1, lo + Math.min(R - 2, Math.floor(R * 0.35))), hi];
+      function inR(r, x) { return x >= r[0] && x <= r[1]; }
+      function pick(arr) { return arr[Math.floor(rnd() * arr.length)]; }
+      function cands(r) { const o = []; for (let x = r[0]; x <= r[1]; x++) o.push(x); return o; }
+      const LC = cands(Lr), UC = cands(Ur);
+      /* F-B in C: augmented 4th or diminished 5th, either direction */
+      const isTritone = function (a, b) { const da = deg(a), db = deg(b), st = Math.abs(a - b) % 7; return (st === 3 || st === 4) && ((da === 3 && db === 6) || (da === 6 && db === 3)); };
+      function melodicCost(prev, cur, prev2, isBass, atCadence) {
+        if (prev == null) return 0;
+        const m = cur - prev, a = Math.abs(m);
+        if (a > 5) return 99;
+        if (a === 4 && isBass && atCadence) return 0; /* bass 5->1 */
+        if (isTritone(prev, cur)) return 99;
+        let c = [1.2, 0, 0.6, 2.2, 3.2, 4.5][a];
+        if (prev2 != null) {
+          const pm = prev - prev2;
+          if (Math.abs(pm) >= 2 && !(Math.sign(m) === -Math.sign(pm) && a <= 1)) c += 1.6; /* leap -> step back */
+          if (m === 0 && pm === 0) c += 3;                                                   /* no droning */
+          if (Math.abs(pm) >= 2 && Math.abs(m) >= 2 && Math.sign(m) === Math.sign(pm)) c += 2.5; /* no stacked leaps */
+        }
+        return c;
+      }
+      function verticalCost(u, l) {
+        const iv = u - l;
+        if (iv <= 0) return 99;
+        if (isTritone(u, l)) return 3;
+        const s = iv % 7;
+        if (s === 2 || s === 5) return 0;        /* 3rd, 6th */
+        if (s === 4 || s === 0) return 0.4;      /* 5th, 8ve */
+        if (s === 3) return 1.5;                 /* 4th */
+        return 3;                                /* 2nd / 7th */
+      }
+      let prevPhraseEnd = null; /* {u, l} to connect phrases smoothly */
+      let phraseNo = 0;
+      function scorePhrase(U, L, cadence, order) {
+        let c = 0;
+        const n = U.length;
+        for (let i = 0; i < n; i++) {
+          const atCad = i === n - 1;
+          c += melodicCost(i ? U[i - 1] : (prevPhraseEnd && prevPhraseEnd.u), U[i], i > 1 ? U[i - 2] : null, false, atCad);
+          c += melodicCost(i ? L[i - 1] : (prevPhraseEnd && prevPhraseEnd.l), L[i], i > 1 ? L[i - 2] : null, true, atCad);
+          c += verticalCost(U[i], L[i]);
+          if (i) { /* parallel 5ths/8ves; similar motion into them */
+            const a = (U[i - 1] - L[i - 1]) % 7, b = (U[i] - L[i]) % 7;
+            if ((b === 4 || b === 0) && a === b && U[i] !== U[i - 1]) c += 4;
+            if (Math.sign(U[i] - U[i - 1]) === Math.sign(L[i] - L[i - 1]) && U[i] !== U[i - 1]) c += 0.5; /* prefer contrary */
+            if (deg(U[i - 1]) === 6 && deg(U[i]) !== 0) c += 5;   /* leading tone rises to tonic */
+            if (deg(U[i - 1]) === 3 && U[i] - U[i - 1] !== -1 && i === n - 1) c += 1.5; /* 4th degree falls */
+          }
+        }
+        /* phrase shape */
+        const first = 0;
+        if (deg(L[first]) !== 0 && deg(L[first]) !== 2 && deg(L[first]) !== 4) c += 2;
+        if (phraseNo === 0 && deg(L[first]) !== 0) c += 4; /* open on the tonic */
+        const lu = U[n - 1], ll = L[n - 1];
+        if (cadence === "PAC") {
+          if (deg(ll) !== 0) c += 20;
+          if (deg(lu) !== 0 && deg(lu) !== 2) c += 6;
+          if (n > 1 && deg(L[n - 2]) !== 4 && deg(L[n - 2]) !== 6 && deg(L[n - 2]) !== 1) c += 2;
+          if (n > 1 && deg(U[n - 2]) !== 1 && deg(U[n - 2]) !== 6 && deg(U[n - 2]) !== 3) c += 1.5;
+        } else {
+          if (deg(ll) !== 4 && deg(ll) !== 1 && deg(ll) !== 6) c += 6; /* half cadence on V */
+          if (deg(lu) !== 1 && deg(lu) !== 6 && deg(lu) !== 4) c += 4;
+        }
+        /* the single line as heard: no tritone between neighbouring notes */
+        const line = [];
+        for (let i = 0; i < n; i++) { if (order === "LU") line.push(L[i], U[i]); else line.push(U[i], L[i]); }
+        for (let i = 1; i < line.length; i++) if (isTritone(line[i - 1], line[i])) c += 4;
+        /* end the line itself on the tonic or its 3rd */
+        if (cadence === "PAC" && deg(line[line.length - 1]) !== 0 && deg(line[line.length - 1]) !== 2) c += 3;
+        /* each voice should go somewhere (no flat line), the upper voice has a high point */
+        const span = Math.max.apply(null, U) - Math.min.apply(null, U);
+        if (span < 2) c += 2;
+        return c;
+      }
+      function walk(r, C, start, n) {
+        const out = [start];
+        for (let i = 1; i < n; i++) {
+          const p = out[i - 1], k = rnd();
+          let step = k < 0.62 ? (rnd() < 0.5 ? -1 : 1) : k < 0.86 ? (rnd() < 0.5 ? -2 : 2) : k < 0.93 ? 0 : (rnd() < 0.5 ? -3 : 3);
+          let x = p + step;
+          if (!inR(r, x)) x = p - step;
+          if (!inR(r, x)) x = pick(C);
+          out.push(x);
+        }
+        return out;
+      }
+      function nextPhrase() {
+        const pairs = rnd() < 0.5 ? 4 : 3;
+        const cadence = phraseNo % 2 === 1 ? "PAC" : (rnd() < 0.7 ? "HC" : "PAC");
+        const order = pick(["LU", "LU", "UL"]); /* bass first (cello-suite style) more often */
+        let best = null, bestC = Infinity;
+        for (let t = 0; t < 400; t++) {
+          const l0 = prevPhraseEnd && rnd() < 0.7 ? Math.max(Lr[0], Math.min(Lr[1], prevPhraseEnd.l + (rnd() < 0.5 ? -1 : 1))) : pick(LC);
+          const u0 = prevPhraseEnd && rnd() < 0.7 ? Math.max(Ur[0], Math.min(Ur[1], prevPhraseEnd.u + (rnd() < 0.5 ? -1 : 1))) : pick(UC);
+          const L = walk(Lr, LC, l0, pairs), U = walk(Ur, UC, u0, pairs);
+          const c = scorePhrase(U, L, cadence, order) + rnd() * 0.8;
+          if (c < bestC) { bestC = c; best = { U: U, L: L }; }
+        }
+        prevPhraseEnd = { u: best.U[pairs - 1], l: best.L[pairs - 1] };
+        phraseNo++;
+        const notes = [];
+        for (let i = 0; i < pairs; i++) {
+          const a = order === "LU" ? best.L[i] : best.U[i], b = order === "LU" ? best.U[i] : best.L[i];
+          notes.push({ idx: a, dur: 1, voice: order.charAt(0) });
+          notes.push({ idx: b, dur: 1, voice: order.charAt(1) });
+        }
+        /* cadence: the last note is held, then a breath */
+        const last = notes[notes.length - 1];
+        last.dur = 2; last.end = true; last.cadence = cadence;
+        return { notes: notes, cost: bestC, cadence: cadence };
+      }
+      return { nextPhrase: nextPhrase, ranges: { L: Lr, U: Ur } };
+    }
+    return { create: create, rng: mulberry };
+  })();
+/* @@MELODY_CORE_END@@ */
+
   const Runner = (function () {
     let playing = false, counting = false, raf = 0, countHandle = null;
-    let speed = 48; /* notes/min */
-    let streak = 0, lives = 3, sinceSpeed = 0;
+    const MAX_LIVES = 5;
+    const BASE_SPEED = 48, MAX_SPEED = 132, RAMP_EVERY = 4, RAMP_STEP = 3; /* +3 notes/min every 4 correct */
+    const Q = 34, BREATH = 16; /* px per beat on the runner staff; extra gap after a cadence */
+    let speed = BASE_SPEED; /* beats (notes) per minute */
+    let streak = 0, lives = MAX_LIVES, sinceSpeed = 0, correct = 0, over = false;
     let notes = []; /* {key, letter, x} */
     let staffTop = 0, gap = 10, hitX = 40;
     let runW = 152;
@@ -6613,8 +6766,7 @@ const bridge = window.__scalesNotes;
       if (!m) return 3;
       return (38 - (parseInt(m[2], 10) * 7 + LETTERS.indexOf(m[1].toLowerCase()))) / 2;
     }
-    /* Runner draws plain noteheads (no accidentals), so use the natural note and keep
-       it between C4 and A5 (at most one ledger line). The answer is what is drawn. */
+    /* Runner notes are plain noteheads under the key signature, kept between C4 and A5 (at most one ledger line). */
     function runnerKey(key) {
       const m = String(key).match(/^([a-g])[#b♯♭]?\/(\d+)$/i);
       if (!m) return "g/4";
@@ -6623,17 +6775,47 @@ const bridge = window.__scalesNotes;
       while (idx > 40) idx -= 7;  /* above A5 */
       return LETTERS.charAt(idx % 7) + "/" + Math.floor(idx / 7);
     }
+    const KEY_ACC = { C: {}, G: { f: 1 }, D: { f: 1, c: 1 }, F: { b: -1 }, Bb: { b: -1, e: -1 } };
+    const STEP_SEMI = [0, 2, 4, 5, 7, 9, 11];
+    let keyName = "C", setup = null, gen = null, queue = [];
+    function computeSetup() {
+      keyName = currentLevel === 3 ? "G" : currentLevel === 5 ? "C" :
+        ({ "0": "C", "7": "G", "5": "F", "2": "D", "-5": "G" })[String(transposeSemis)] || "C";
+      const pool = LEVELS[currentLevel].runnerNotes.map(function (n) {
+        const m = String(n.key).match(/^([a-g])[#b]?\/(\d+)$/i);
+        return m ? parseInt(m[2], 10) * 7 + LETTERS.indexOf(m[1].toLowerCase()) : 32;
+      });
+      let lo = Math.min.apply(null, pool), hi = Math.max.apply(null, pool);
+      while (lo < 28 && hi + 7 <= 40) { lo += 7; hi += 7; }
+      lo = Math.max(28, lo); hi = Math.min(40, hi);
+      if (hi - lo < 4) hi = Math.min(40, lo + 4);
+      if (hi - lo < 4) lo = hi - 4;
+      setup = { key: keyName, lo: lo, hi: hi, tonic: LETTERS.indexOf(keyName.charAt(0).toLowerCase()) };
+      gen = Melody.create({ lo: lo, hi: hi, tonic: setup.tonic });
+      queue = [];
+    }
+    function noteFromIdx(idx, dur, end) {
+      const letter = LETTERS.charAt(idx % 7), oct = Math.floor(idx / 7);
+      const acc = (KEY_ACC[keyName] || {})[letter] || 0;
+      return { key: letter + "/" + oct, letter: letter.toUpperCase(), midi: (oct + 1) * 12 + STEP_SEMI[idx % 7] + acc,
+        dur: dur || 1, end: !!end, space: Q * (dur || 1) + (end ? BREATH : 0) };
+    }
     let forced = []; /* test hook: deterministic note sequence */
     function spawnNote(x) {
-      let key;
-      if (forced.length) key = forced.shift();
-      else {
-        const pool = LEVELS[currentLevel].runnerNotes;
-        key = pool[Math.floor(Math.random() * pool.length)].key;
+      if (!setup) computeSetup();
+      let n;
+      if (forced.length) {
+        const k = runnerKey(forced.shift());
+        n = noteFromIdx(parseInt(k.split("/")[1], 10) * 7 + LETTERS.indexOf(k.charAt(0)), 1, false);
+      } else {
+        if (!queue.length) queue = gen.nextPhrase().notes.slice();
+        const q = queue.shift();
+        n = noteFromIdx(q.idx, q.dur, q.end);
       }
-      key = runnerKey(key);
-      return { key: key, letter: key.charAt(0).toUpperCase(), midi: keyToMidi(key), x: x, answered: false };
+      n.x = x; n.answered = false;
+      return n;
     }
+    function lastNote() { return notes.reduce(function (m, n) { return !m || n.x > m.x ? n : m; }, null); }
     function drawFrame() {
       const host = document.getElementById("sr-runner-vf");
       if (!host) return;
@@ -6649,6 +6831,7 @@ const bridge = window.__scalesNotes;
       const ctx = renderer.getContext();
       const stave = new VF.Stave(4, 36, width - 8);
       stave.addClef("treble");
+      if (setup && setup.key !== "C") { try { stave.addKeySignature(setup.key); } catch (e) {} }
       stave.setContext(ctx).draw();
       const svg = host.querySelector("svg");
       if (!svg) return;
@@ -6743,15 +6926,55 @@ const bridge = window.__scalesNotes;
       if (wt) { wt.setAttribute("aria-checked", String(waitMode)); wt.classList.toggle("on", waitMode); }
       const hint = document.getElementById("sr-runner-hint");
       if (hint) hint.textContent = waitMode
-        ? "Each note waits at the gold line until you play it · a wrong note costs a heart · speed rises every 10 first-try notes"
-        : "Name each note before it crosses the gold line · speed rises every 10 correct · pool follows drill level";
-      document.getElementById("sr-runner-speed").textContent = String(Math.round(speed));
+        ? "Each note waits at the gold line until you play it · a wrong note costs a heart · it speeds up as you go"
+        : "Play each note before it crosses the gold line · a miss costs a heart · it speeds up as you go";
+      const sp = document.getElementById("sr-runner-speed");
+      const spTxt = String(Math.round(speed));
+      if (sp.textContent !== spTxt) {
+        const up = +spTxt > +sp.textContent;
+        sp.textContent = spTxt;
+        const pill = sp.closest(".sr-speed-pill");
+        if (pill && up && playing) { pill.classList.remove("bump"); void pill.offsetWidth; pill.classList.add("bump"); }
+      }
       document.getElementById("sr-runner-streak").textContent = String(streak);
-      const hearts = [];
-      for (let i = 0; i < 3; i++) hearts.push(i < lives ? "♥" : '<span style="opacity:.28">♥</span>');
-      document.getElementById("sr-runner-hearts").innerHTML = hearts.join(" ");
+      renderHearts();
       const btn = document.getElementById("sr-runner-toggle");
       if (btn) btn.textContent = (playing || counting) ? "Pause" : "Play";
+    }
+    /* Hearts always mirror `lives`: one span per heart, a lost one is an empty outline. */
+    function renderHearts(justLost) {
+      const el = document.getElementById("sr-runner-hearts");
+      if (!el) return;
+      let spans = el.querySelectorAll(".sr-heart");
+      if (spans.length !== MAX_LIVES) {
+        el.innerHTML = "";
+        for (let i = 0; i < MAX_LIVES; i++) { const h = document.createElement("span"); h.className = "sr-heart"; el.appendChild(h); }
+        spans = el.querySelectorAll(".sr-heart");
+      }
+      spans.forEach(function (h, i) {
+        const alive = i < lives;
+        h.classList.toggle("lost", !alive);
+        h.textContent = alive ? "♥" : "♡";
+      });
+      if (justLost != null && spans[justLost]) {
+        const h = spans[justLost];
+        h.classList.remove("breaking"); void h.offsetWidth; h.classList.add("breaking");
+        setTimeout(function () { h.classList.remove("breaking"); }, 650);
+      }
+      el.setAttribute("aria-label", lives + " of " + MAX_LIVES + " lives");
+    }
+    function loseHeart() {
+      if (over) return;
+      lives = Math.max(0, lives - 1);
+      renderHearts(lives);
+      if (lives <= 0) gameOver();
+    }
+    function gameOver() {
+      playing = false; over = true;
+      cancelAnimationFrame(raf);
+      const ov = document.getElementById("sr-runner-over");
+      if (ov) { ov.innerHTML = '<span class="sr-over-title">Out of hearts</span><span class="sr-over-sub">' + correct + " notes · top speed " + Math.round(speed) + " · tap Play for a new run</span>"; ov.hidden = false; }
+      syncHud();
     }
     function target() {
       let best = null, bestDist = 1e9;
@@ -6775,9 +6998,10 @@ const bridge = window.__scalesNotes;
       const now = performance.now();
       if (ok) {
         t.answered = true;
-        if (!t.missed) { streak++; sinceSpeed++; } /* streak = first-try correct notes */
+        if (!t.missed) streak++; /* streak = first-try correct notes */
+        correct++; sinceSpeed++;
         updateStats(1, 0);
-        if (sinceSpeed >= 10) { speed = Math.min(120, speed + 8); sinceSpeed = 0; }
+        if (sinceSpeed >= RAMP_EVERY) { speed = Math.min(MAX_SPEED, speed + RAMP_STEP); sinceSpeed = 0; } /* steady ramp, wait mode too */
         highlightLetter(document.getElementById("sr-runner-letters"), letter);
         lastWrong = { id: null, t: -1e9 };
       } else {
@@ -6787,9 +7011,7 @@ const bridge = window.__scalesNotes;
         if ((id === lastWrong.id && now - lastWrong.t < 600) || now - lastWrong.t < 120) return;
         lastWrong = { id: id, t: now };
         streak = 0;
-        lives--;
         if (!waitMode) speed = Math.max(32, speed - 6);
-        sinceSpeed = 0;
         t.missed = true;
         t.wrongUntil = now + 380;
         updateStats(0, 1);
@@ -6797,7 +7019,7 @@ const bridge = window.__scalesNotes;
         document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) {
           b.classList.toggle("bad", b.dataset.letter === letter);
         });
-        if (lives <= 0) { playing = false; lives = 3; streak = 0; }
+        loseHeart();
         drawFrame();
       }
       clearTimeout(answerHlTimer);
@@ -6814,11 +7036,13 @@ const bridge = window.__scalesNotes;
       if (!lastTs) lastTs = ts;
       const dt = Math.min(0.05, (ts - lastTs) / 1000);
       lastTs = ts;
-      const pxPerSec = (speed / 60) * 36;
+      const pxPerSec = (speed / 60) * Q; /* speed = beats per minute */
       let step = pxPerSec * dt;
       if (waitMode) {
         /* halt with the next unanswered note exactly on the gold line */
         const next = notes.filter(function (n) { return !n.answered; }).sort(function (a, b) { return a.x - b.x; })[0];
+        /* playing ahead of the scroll: glide the next note in quickly instead of making you wait */
+        if (next && next.x - hitX > Q * 1.5) step = Math.max(step, (next.x - hitX - Q) * Math.min(1, dt * 4));
         if (next) step = Math.max(0, Math.min(step, next.x - hitX));
       }
       notes.forEach(function (n) { n.x -= step; });
@@ -6826,23 +7050,31 @@ const bridge = window.__scalesNotes;
         /* missed once it slips past the line (must be < the cull at hitX - 12) */
         if (!n.answered && n.x < hitX - 10) {
           n.answered = true;
-          streak = 0; lives--; speed = Math.max(32, speed - 6); sinceSpeed = 0;
+          streak = 0; speed = Math.max(32, speed - 6);
           updateStats(0, 1);
-          if (lives <= 0) { playing = false; lives = 3; }
+          loseHeart();
           syncHud();
         }
       });
+      if (!playing) return; /* game over inside the miss check */
       notes = notes.filter(function (n) { return n.x > hitX - 12; });
-      const maxX = notes.reduce(function (m, n) { return Math.max(m, n.x); }, 0);
-      if (maxX < runW - 18) notes.push(spawnNote(maxX + 24 + Math.random() * 8));
+      let ln = lastNote();
+      const ahead = function () { return notes.filter(function (n) { return !n.answered; }).length; };
+      /* keep the staff filled to the edge, and always a few unplayed notes queued (even off-screen) */
+      while (!ln || ln.x + ln.space < runW + Q || ahead() < 3) { notes.push(spawnNote(ln ? ln.x + ln.space : hitX + 36)); ln = lastNote(); }
       drawFrame();
       raf = requestAnimationFrame(tick);
     }
+    function fillFrom(x0) {
+      let x = x0;
+      while (x < runW + Q) { const n = spawnNote(x); notes.push(n); x += n.space; }
+    }
     function freshNotes() {
       notes = [];
+      computeSetup(); /* key, range and a new melody for this run */
       drawFrame(); /* sets hitX / runW for this stage size */
       /* first note lands on the hit line one beat after the count-in */
-      for (let i = 0; i < 6; i++) notes.push(spawnNote(hitX + 36 + i * 26));
+      fillFrom(hitX + Q);
     }
     function stop() {
       if (countHandle) { countHandle.cancel(); countHandle = null; }
@@ -6855,6 +7087,10 @@ const bridge = window.__scalesNotes;
     function start() {
       if (playing || counting) { stop(); return; }
       const unlocked = SRAudio.unlock(); /* inside the tap (iOS) */
+      /* every Play is a new run: full hearts, starting speed */
+      lives = MAX_LIVES; streak = 0; correct = 0; sinceSpeed = 0; speed = BASE_SPEED; over = false;
+      lastWrong = { id: null, t: -1e9 };
+      const ov = document.getElementById("sr-runner-over"); if (ov) ov.hidden = true;
       freshNotes();
       counting = true;
       drawFrame();
@@ -6875,8 +7111,9 @@ const bridge = window.__scalesNotes;
     function resetVisual() {
       if (playing || counting) stop();
       notes = [];
+      computeSetup();
       drawFrame();
-      for (let i = 0; i < 5; i++) notes.push(spawnNote(hitX + 6 + i * 26));
+      fillFrom(hitX + 6);
       drawFrame();
       syncHud();
     }
@@ -6886,8 +7123,10 @@ const bridge = window.__scalesNotes;
       isCounting: function () { return counting; },
       setWaitMode: setWaitMode, isWaitMode: function () { return waitMode; },
       _forceNotes: function (keys) { forced = (keys || []).slice(); },
+      _hearts: function () { const el = document.getElementById("sr-runner-hearts"); return { full: el.querySelectorAll(".sr-heart:not(.lost)").length, total: el.querySelectorAll(".sr-heart").length, lives: lives, max: MAX_LIVES, over: over }; },
+      _setup: function () { return setup; }, _melody: Melody,
       _runnerKey: runnerKey, _staffY: staffYForKey,
-      _state: function () { return { playing: playing, counting: counting, streak: streak, lives: lives, hitX: hitX, notes: notes.map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: n.x, answered: n.answered, missed: !!n.missed }; }), waitMode: waitMode, speed: speed }; }
+      _state: function () { return { playing: playing, counting: counting, streak: streak, lives: lives, correct: correct, over: over, hitX: hitX, notes: notes.map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: n.x, answered: n.answered, missed: !!n.missed }; }), waitMode: waitMode, speed: speed }; }
     };
   })();
 
