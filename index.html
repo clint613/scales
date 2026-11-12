@@ -7859,6 +7859,7 @@ const bridge = window.__scalesNotes;
     });
     document.getElementById("sr-runner-wait").addEventListener("click", function () { Runner.setWaitMode(!Runner.isWaitMode()); });
     buildKeyboard(document.getElementById("sr-runner-kb"));
+    window.__srLastW = window.innerWidth; /* so the first URL-bar resize doesn't count as a width change */
     window.addEventListener("resize", function () {
       clearTimeout(window.__srResize);
       window.__srResize = setTimeout(function () {
@@ -7869,6 +7870,7 @@ const bridge = window.__scalesNotes;
         if (w === window.__srLastW) return;
         window.__srLastW = w;
         if (drillPlaying) stopDrill();
+        stopListen();
         drawDrill();
         if (!Runner.isPlaying() && !Runner.isCounting()) Runner.resetVisual();
       }, 150);
