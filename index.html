@@ -1610,6 +1610,7 @@
   padding: 0.3rem 1rem 0.65rem;
 }
 #panel-scales[hidden], #panel-sight[hidden] { display: none !important; }
+html { scroll-padding-top: 6.5rem; } /* things scrolled into view land below the sticky tab bar */
 #panel-sight {
   max-width: 56rem;
   margin: 0 auto;
@@ -1719,6 +1720,47 @@
 .sr-tempo span:last-child { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .sr-controls .sr-btn { min-width: 5.2rem; }
 #sr-drill-new { margin-left: auto; }
+.sr-done-btn { color: #2a6b3a !important; }
+.sr-drill-note { min-height: 1.1em; margin-top: 0.5rem; font-size: 0.78rem; color: #2a6b3a; transition: opacity 0.3s ease; }
+.sr-drill-note:empty { min-height: 0; margin: 0; }
+.sr-drill-mic-status { margin-top: 0.35rem; font-size: 0.75rem; color: var(--ink-soft); }
+.sr-drill-mic-status:empty { display: none; }
+.sr-drill-mic-status.ok { color: #2a6b3a; }
+.sr-drill-mic-status.warn { color: #9a3b1f; }
+#sr-drill-staff .vf-stavenote.sr-ok, #sr-drill-staff .vf-stavenote.sr-ok * { fill: #2a7a3a !important; stroke-opacity: 1; }
+#sr-drill-staff .vf-stavenote.sr-bad, #sr-drill-staff .vf-stavenote.sr-bad * { fill: #c0391b !important; }
+#sr-drill-staff .vf-stavenote.sr-ok, #sr-drill-staff .vf-stavenote.sr-bad { opacity: 1 !important; }
+/* Pieces */
+.sr-piece-new { display: flex; gap: 0.5rem; }
+.sr-piece-new input, .sr-sec-add input {
+  flex: 1; min-width: 0; font: inherit; font-size: 0.88rem; color: var(--ink);
+  background: #fffef9; border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.45rem 0.6rem;
+}
+.sr-piece-new input:focus, .sr-sec-add input:focus { outline: 2px solid var(--accent-soft); outline-offset: 1px; }
+.sr-piece { margin-top: 0.85rem; padding: 0.7rem 0.8rem 0.75rem; background: var(--cream); border: 1px solid var(--border); border-radius: 0.6rem; }
+.sr-piece-top { display: flex; align-items: baseline; gap: 0.5rem; }
+.sr-piece-title { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 700; font-size: 1.2rem; line-height: 1.2; color: var(--ink); flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.sr-piece-count { font-size: 0.72rem; color: var(--ink-soft); white-space: nowrap; }
+.sr-secs { list-style: none; margin: 0.45rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.sr-sec { display: flex; align-items: center; gap: 0.5rem; font-size: 0.86rem; color: var(--ink); }
+.sr-sec label { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0; padding: 0.22rem 0; cursor: pointer; }
+.sr-sec input[type=checkbox] { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); flex: none; }
+.sr-sec.done span { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: rgba(0,0,0,0.25); }
+.sr-x { appearance: none; border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 1rem; line-height: 1; padding: 0.2rem 0.35rem; cursor: pointer; border-radius: 0.3rem; }
+.sr-x:hover { color: #9a3b1f; background: rgba(154,59,31,0.07); }
+.sr-sec-add { display: flex; gap: 0.4rem; margin-top: 0.45rem; }
+.sr-sec-add input { font-size: 0.82rem; padding: 0.35rem 0.55rem; }
+.sr-sec-add button { font-size: 0.8rem; padding: 0.35rem 0.7rem; }
+.sr-piece-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.65rem; }
+.sr-piece-actions .sr-btn { font-size: 0.82rem; padding: 0.4rem 0.8rem; }
+.sr-linkbtn { appearance: none; border: 0; background: none; font: inherit; font-size: 0.75rem; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 0.2rem; }
+.sr-piece-done-wrap { margin-top: 1rem; }
+.sr-piece-done { list-style: none; margin: 0.35rem 0 0; padding: 0; }
+.sr-piece-done li { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; border-top: 1px dashed var(--border); font-size: 0.86rem; }
+.sr-piece-done li:first-child { border-top: 0; }
+.sr-piece-done .t { flex: 1; min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
+.sr-piece-done .t::before { content: "✓ "; color: #2a6b3a; font-weight: 700; }
+.sr-piece-done .d { font-size: 0.74rem; color: var(--ink-soft); white-space: nowrap; font-variant-numeric: lining-nums; }
 /* Count-in overlay (drill + Note Runner) */
 .sr-countin {
   position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column;
@@ -1866,7 +1908,9 @@
 .sr-runner-hint { margin-top: 0.55rem; font-size: 0.75rem; color: var(--ink-soft); }
 .sr-mic-limits { margin-top: 0.45rem; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.4; }
 @media (max-width: 600px) {
-  .sr-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .sr-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; }
+  #sr-drill-new { grid-column: span 2; }
+  .sr-controls .sr-btn { min-width: 0; padding-left: 0.4rem; padding-right: 0.4rem; }
   .sr-controls .sr-tempo { grid-column: 1 / -1; order: -1; }
   .sr-controls .sr-tempo input[type=range] { flex: 1; width: auto; }
   .sr-controls .sr-btn { width: 100%; }
@@ -2115,14 +2159,19 @@ body.sr-sight-open header::after { display: none; }
       <p class="sr-source" id="sr-drill-source"></p>
       <div class="sr-staff-frame"><div id="sr-drill-staff" role="img" aria-label="Sight-reading exercise"></div><div class="sr-countin" id="sr-drill-countin" hidden aria-live="polite"></div></div>
       <div class="sr-controls">
-        <button type="button" class="sr-btn" id="sr-drill-start">Start</button>
+        <button type="button" class="sr-btn" id="sr-drill-start" title="Play along: notes light up in time; with 🎤 on, each note you play is checked">Start</button>
+        <button type="button" class="sr-btn secondary" id="sr-drill-listen" title="Hear this drill played (both hands)">▶ Listen</button>
+        <button type="button" class="sr-btn mic-btn" id="sr-drill-mic" aria-pressed="false" title="Check the notes you play with the microphone">🎤 Mic<span class="sr-mic-meter" aria-hidden="true"><i></i></span></button>
         <div class="sr-tempo">
           <span class="sr-tempo-val" id="sr-drill-bpm">72</span>
           <input type="range" min="40" max="120" value="72" id="sr-drill-tempo" aria-label="Drill tempo">
           <span>BPM</span>
         </div>
+        <button type="button" class="sr-btn secondary sr-done-btn" id="sr-drill-done" title="Mark this drill complete and go on to the next one">✓ Done</button>
         <button type="button" class="sr-btn secondary" id="sr-drill-new">New exercise</button>
       </div>
+      <p class="sr-drill-note" id="sr-drill-note" aria-live="polite"></p>
+      <p class="sr-drill-mic-status" id="sr-drill-mic-status" aria-live="polite"></p>
     </div>
   </section>
 
@@ -2169,6 +2218,24 @@ body.sr-sight-open header::after { display: none; }
       </div>
       <p class="sr-input-status" id="sr-input-status" aria-live="polite"><span id="sr-mic-status"></span><span id="sr-kbd-status"></span></p>
       <p class="sr-mic-limits">Mic: one note at a time · ~50–100 ms delay · octave slips on low notes / noise. Keyboard (MIDI): exact pitch, Chrome on Android/Mac; not available in iPad Safari.</p>
+    </div>
+  </section>
+
+  <section class="sr-card" id="sr-pieces">
+    <div class="sr-card-head">
+      <h2>Pieces</h2>
+      <span class="sr-card-meta">Learn a piece section by section</span>
+    </div>
+    <div class="sr-card-body">
+      <form class="sr-piece-new" id="sr-piece-new" autocomplete="off">
+        <input type="text" id="sr-piece-title" maxlength="80" placeholder="Piece you're working on, e.g. Minuet in G" aria-label="Piece title">
+        <button type="submit" class="sr-btn secondary">Add</button>
+      </form>
+      <div id="sr-piece-active"></div>
+      <div class="sr-piece-done-wrap" id="sr-piece-done-wrap" hidden>
+        <div class="sr-chip-label">Completed</div>
+        <ul class="sr-piece-done" id="sr-piece-done"></ul>
+      </div>
     </div>
   </section>
 </div>
@@ -6481,7 +6548,19 @@ const bridge = window.__scalesNotes;
   }
 
   /* ---------- Shared click + count-in ---------- */
+  let noiseClicks = false;
+  function noiseTick(ctx, time, accent) {
+    const len = Math.round(ctx.sampleRate * 0.03), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const g = ctx.createGain(); g.gain.value = accent ? 0.5 : 0.32;
+    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 3500;
+    src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+    src.start(time);
+    return src;
+  }
   function clickAt(ctx, time, accent, countIn) {
+    if (noiseClicks) return noiseTick(ctx, time, accent);
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
     osc.type = "sine";
@@ -6528,6 +6607,161 @@ const bridge = window.__scalesNotes;
     };
   }
 
+  /* ---------- Drill: score timeline (both staves) ---------- */
+  /* One event per written note: onset in beats from the first downbeat, length, exact pitch, staff. */
+  function drillEvents() {
+    const level = LEVELS[currentLevel];
+    const bpb = level.beatsPerBar || 4;
+    const ev = [];
+    lastMeasures.forEach(function (m, mi) {
+      [["T", m.treble], ["B", m.bass]].forEach(function (pair) {
+        let t = mi * bpb;
+        pair[1].forEach(function (note) {
+          const beats = noteBeats(note);
+          const rest = !!(note.isRest && note.isRest());
+          if (!rest) {
+            const k = (note.getKeys && note.getKeys()[0]) || "";
+            ev.push({ t: t, beats: beats, midi: keyToMidi(k), key: k, staff: pair[0], note: note });
+          }
+          t += beats;
+        });
+      });
+    });
+    ev.sort(function (a, b) { return a.t - b.t || (a.staff === "T" ? -1 : 1); });
+    return ev;
+  }
+  window.__srDrillEvents = function () { return drillEvents().map(function (e) { return { t: e.t, beats: e.beats, midi: e.midi, key: e.key, staff: e.staff }; }); };
+  /* Piano-like tone on the audio clock (5 partials, hammer transient, decay, release at the written length). */
+  function pianoTone(ctx, bus, midi, t, dur, vel) {
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const v = Math.max(0.03, Math.pow(vel, 1.6)) * 0.3;
+    const decay = Math.min(4.5, Math.max(0.7, 2.6 * Math.pow(0.5, (midi - 60) / 20)));
+    const amp = ctx.createGain();
+    amp.gain.setValueAtTime(0.0001, t);
+    amp.gain.exponentialRampToValueAtTime(v, t + 0.006);
+    amp.gain.setTargetAtTime(v * 0.45, t + 0.006, 0.09);
+    amp.gain.setTargetAtTime(0, t + 0.12, decay / 3);
+    amp.gain.setTargetAtTime(0, t + Math.max(0.08, dur), 0.06); /* key released */
+    const filt = ctx.createBiquadFilter();
+    filt.type = "lowpass"; filt.Q.value = 0.4;
+    filt.frequency.setValueAtTime(Math.min(18000, f * (3 + 9 * vel)), t);
+    filt.frequency.setTargetAtTime(Math.min(18000, f * 2.5), t + 0.02, decay / 2);
+    filt.connect(amp); amp.connect(bus);
+    const end = t + Math.max(0.08, dur) + 0.5;
+    [[1, 1], [2, 0.42], [3, 0.2], [4, 0.1], [5, 0.05]].forEach(function (pt, i) {
+      const pf = f * pt[0] * (1 + 0.0004 * pt[0] * pt[0]);
+      if (pf > 16000) return;
+      const o = ctx.createOscillator();
+      o.type = i === 0 ? "triangle" : "sine";
+      o.frequency.value = pf;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(pt[1], t);
+      g.gain.setTargetAtTime(0, t + 0.01, decay / (2 + i * 1.6));
+      o.connect(g); g.connect(filt);
+      o.start(t); o.stop(end);
+    });
+  }
+  /* ▶ Listen: the written music, both hands, at the set BPM, after the 2-beat count-in. */
+  let listening = false, listenCount = null, listenTimers = [], listenBus = null, micQuietUntil = 0;
+  function drillBpm() { return parseInt(document.getElementById("sr-drill-bpm").textContent, 10) || 72; }
+  function setListenBtn() {
+    const b = document.getElementById("sr-drill-listen");
+    if (b) { b.textContent = listening ? "■ Stop" : "▶ Listen"; b.classList.toggle("on", listening); }
+  }
+  function stopListen() {
+    if (!listening && !listenCount) return;
+    listening = false;
+    if (listenCount) { listenCount.cancel(); listenCount = null; }
+    listenTimers.forEach(clearTimeout); listenTimers = [];
+    const ctx = SRAudio.peek();
+    if (listenBus && ctx) {
+      const bus = listenBus; listenBus = null;
+      try { bus.gain.cancelScheduledValues(ctx.currentTime); bus.gain.setTargetAtTime(0, ctx.currentTime, 0.03); } catch (e) {}
+      setTimeout(function () { try { bus.disconnect(); } catch (e) {} }, 400);
+    }
+    micQuietUntil = performance.now() + 900; /* let the room go quiet before the mic counts again */
+    clearDrillLights();
+    setListenBtn();
+  }
+  function clearDrillLights() {
+    document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) {
+      if (!el.classList.contains("sr-ok") && !el.classList.contains("sr-bad")) { el.style.opacity = ""; el.style.filter = ""; }
+    });
+  }
+  function listenDrill() {
+    if (listening || listenCount) { stopListen(); return; }
+    if (drillPlaying) stopDrill();
+    const unlocked = SRAudio.unlock();
+    const beatSec = 60 / drillBpm();
+    const ev = drillEvents();
+    if (!ev.length) return;
+    listening = true; setListenBtn();
+    clearDrillMarks();
+    unlocked.then(function () {
+      if (!listening) return;
+      listenCount = countIn(document.getElementById("sr-drill-countin"), beatSec, function (audioT0) {
+        listenCount = null;
+        if (!listening) return;
+        const ctx = SRAudio.get();
+        if (!ctx) { stopListen(); return; }
+        listenBus = ctx.createGain(); listenBus.gain.value = 1; listenBus.connect(SRAudio.output());
+        const sched = [];
+        let endBeat = 0;
+        ev.forEach(function (e) {
+          const t = audioT0 + e.t * beatSec;
+          pianoTone(ctx, listenBus, e.midi, t, e.beats * beatSec * 0.92, e.staff === "T" ? 0.72 : 0.55);
+          sched.push({ midi: e.midi, at: +(e.t * beatSec).toFixed(4), staff: e.staff });
+          endBeat = Math.max(endBeat, e.t + e.beats);
+          const el = noteEl(e.note);
+          listenTimers.push(setTimeout(function () {
+            if (!listening || !el) return;
+            el.style.opacity = "1"; el.style.filter = "drop-shadow(0 0 3px #8b6914)";
+            listenTimers.push(setTimeout(function () { if (el) { el.style.filter = ""; } }, Math.max(120, e.beats * beatSec * 1000 - 40)));
+          }, (t - ctx.currentTime) * 1000));
+        });
+        window.__srLastListen = { bpm: drillBpm(), events: sched };
+        listenTimers.push(setTimeout(stopListen, ((audioT0 - ctx.currentTime) + endBeat * beatSec) * 1000 + 250));
+      }, DRILL_COUNT_IN_BEATS);
+    });
+  }
+
+  /* ---------- Drill: mic / MIDI accuracy check during Start ---------- */
+  let drillCheck = null; /* { perfT0, beatSec, ev, ok, bad } while Start is running */
+  function clearDrillMarks() {
+    document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) { el.classList.remove("sr-ok", "sr-bad"); });
+    const st = document.getElementById("sr-drill-note"); if (st && /^🎤/.test(st.textContent)) st.textContent = "";
+  }
+  function markNote(e, ok) {
+    e.mark = ok ? "ok" : "bad";
+    const el = noteEl(e.note);
+    if (el) { el.classList.remove("sr-ok", "sr-bad"); el.classList.add(ok ? "sr-ok" : "sr-bad"); el.style.opacity = "1"; }
+    if (ok) drillCheck.ok++; else drillCheck.bad++;
+  }
+  /* A played pitch (mic or MIDI) at performance time tMs. Matching is letter + octave. */
+  function drillHeard(midi, tMs) {
+    if (!drillCheck || midi == null) return null;
+    const c = drillCheck, b = (tMs - c.perfT0) / 1000 / c.beatSec; /* beats since the first downbeat */
+    if (b < -0.6) return null;
+    const lateTol = Math.max(0.5, 0.4 / c.beatSec), earlyTol = Math.max(0.35, 0.25 / c.beatSec);
+    /* notes starting around now (newest first matter most), then notes still sounding (e.g. a held LH note) */
+    const near = c.ev.filter(function (e) { return e.t >= b - lateTol && e.t <= b + earlyTol; });
+    const sounding = c.ev.filter(function (e) { return e.t < b - lateTol && e.t + e.beats > b; });
+    const hit = near.filter(function (e) { return e.midi === midi && !e.mark; })
+      .sort(function (x, y) { return Math.abs(x.t - b) - Math.abs(y.t - b); })[0];
+    if (hit) { markNote(hit, true); return "ok"; }
+    if (near.some(function (e) { return e.midi === midi; })) return null;        /* already credited */
+    if (sounding.some(function (e) { return e.midi === midi; })) return null;    /* a held note: fine */
+    const miss = near.filter(function (e) { return !e.mark; })
+      .sort(function (x, y) { return (x.staff === "T" ? 0 : 1) - (y.staff === "T" ? 0 : 1) || Math.abs(x.t - b) - Math.abs(y.t - b); })[0];
+    if (miss) { markNote(miss, false); return "bad"; }
+    return null;
+  }
+  function drillCheckSummary() {
+    if (!drillCheck || (!drillCheck.ok && !drillCheck.bad)) return;
+    const el = document.getElementById("sr-drill-note");
+    if (el) { el.textContent = "🎤 " + drillCheck.ok + " right · " + drillCheck.bad + " wrong"; clearTimeout(drillNoteTimer); }
+  }
+
   /* ---------- Drill playback ---------- */
   let drillPlaying = false;
   let drillTimers = [];
@@ -6544,20 +6778,26 @@ const bridge = window.__scalesNotes;
   }
   function stopDrill() {
     drillPlaying = false;
+    if (drillCheck) { drillCheckSummary(); drillCheck = null; }
+    noiseClicks = false;
     if (drillCount) { drillCount.cancel(); drillCount = null; }
     drillTimers.forEach(clearTimeout);
     drillTimers = [];
     const btn = document.getElementById("sr-drill-start");
     if (btn) btn.textContent = "Start";
     document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) {
-      el.style.opacity = "";
       el.style.filter = "";
       el.classList.remove("sr-now");
+      if (!el.classList.contains("sr-ok") && !el.classList.contains("sr-bad")) el.style.opacity = "";
     });
   }
   function startDrill() {
     if (drillPlaying) { stopDrill(); return; }
+    stopListen();
+    clearDrillMarks();
     const unlocked = SRAudio.unlock(); /* inside the tap (iOS) */
+    /* with the mic listening, the beat is a soft unpitched tick so it can't be heard as a note */
+    noiseClicks = Mic.isOn();
     const bpm = parseInt(document.getElementById("sr-drill-bpm").textContent, 10) || 72;
     const beatSec = 60 / bpm;
     const flat = [];
@@ -6578,6 +6818,8 @@ const bridge = window.__scalesNotes;
         const all = [];
         flat.forEach(function (f) { if (!f.rest) { const e = noteEl(f.note); if (e) all.push(e); } });
         all.forEach(function (e) { e.style.opacity = "0.35"; });
+        drillCheck = { perfT0: performance.now() + ((ctx ? audioT0 - ctx.currentTime : 0) * 1000), beatSec: beatSec, ev: drillEvents(), ok: 0, bad: 0 };
+        window.__srDrillCheck = function () { return drillCheck && { ok: drillCheck.ok, bad: drillCheck.bad, marks: drillCheck.ev.map(function (e) { return e.key + ":" + (e.mark || "-"); }) }; };
         let t = 0, idx = 0;
         flat.forEach(function (item) {
           const startT = t;
@@ -6588,7 +6830,7 @@ const bridge = window.__scalesNotes;
           if (ctx) clickAt(ctx, audioT0 + startT, first, false);
           drillTimers.push(setTimeout(function () {
             if (!drillPlaying) return;
-            all.forEach(function (e) { e.style.opacity = "0.35"; e.style.filter = ""; });
+            all.forEach(function (e) { if (!e.classList.contains("sr-ok") && !e.classList.contains("sr-bad")) e.style.opacity = "0.35"; e.style.filter = ""; });
             if (el) { el.style.opacity = "1"; el.style.filter = "drop-shadow(0 0 3px #8b6914)"; }
           }, startT * 1000));
         });
@@ -7173,20 +7415,171 @@ const bridge = window.__scalesNotes;
     if (exact) exact.classList.add("lit");
   }
 
+  /* The current drill (level + key) is saved so a refresh, a hard reload or reopening
+     the site from a bookmark / home-screen icon comes back to the same drill. */
+  const DRILL_KEY = "pianoSkills.sightReading.drill";
+  const KEY_CYCLE = [0, 7, 5, 2, -5]; /* "New exercise": C, G, F, D, then G in the lower octave */
+  const KEY_NAME = { "0": "C", "7": "G", "5": "F", "2": "D", "-5": "G" };
+  function saveDrill() {
+    try { localStorage.setItem(DRILL_KEY, JSON.stringify({ level: currentLevel, semis: transposeSemis })); } catch (e) {}
+  }
+  function loadDrill() {
+    try {
+      const d = JSON.parse(localStorage.getItem(DRILL_KEY) || "null");
+      if (!d) return;
+      const lv = parseInt(d.level, 10), se = parseInt(d.semis, 10);
+      if (lv >= 1 && lv <= 5) currentLevel = lv;
+      if (KEY_CYCLE.indexOf(se) !== -1) transposeSemis = se;
+    } catch (e) {}
+  }
+  /* Done: L1 → L2 → L3 → L4 → L5, then back to L1 in the next key (C → G → F → D → C …) */
+  function nextDrill() {
+    if (currentLevel < 5) return { level: currentLevel + 1, semis: transposeSemis };
+    const keys = [0, 7, 5, 2];
+    const i = keys.indexOf(transposeSemis);
+    return { level: 1, semis: keys[(i + 1) % keys.length] };
+  }
+  let drillNoteTimer = 0;
+  function markDrillDone() {
+    const nx = nextDrill();
+    transposeSemis = nx.semis;
+    setLevel(nx.level);
+    const el = document.getElementById("sr-drill-note");
+    if (el) {
+      el.textContent = "✓ Done — on to Level " + nx.level + (nx.level === 1 || nx.level === 2 || nx.level === 4 ? " in " + KEY_NAME[String(nx.semis)] : "") + ".";
+      clearTimeout(drillNoteTimer);
+      drillNoteTimer = setTimeout(function () { el.textContent = ""; }, 4000);
+    }
+    const card = document.getElementById("sr-daily-drill");
+    if (card && card.getBoundingClientRect().top < 0) card.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function setLevel(lv) {
     currentLevel = lv;
     LEVELS = buildLevels(currentLevel === 3 ? 0 : transposeSemis);
+    saveDrill();
     const level = LEVELS[lv];
-    document.getElementById("sr-drill-meta").textContent = level.meta;
+    const keyed = (lv === 1 || lv === 2 || lv === 4) && transposeSemis !== 0;
+    document.getElementById("sr-drill-meta").textContent = level.meta + (keyed ? " · in " + KEY_NAME[String(transposeSemis)] : "");
     document.getElementById("sr-drill-source").textContent = level.source;
     document.getElementById("sr-style-tag").textContent = level.style;
     document.querySelectorAll("#sr-level-chips .sr-chip").forEach(function (c) {
       c.classList.toggle("active", +c.dataset.level === lv);
     });
     stopDrill();
+    stopListen();
     drawDrill();
     Runner.resetVisual();
   }
+
+  /* ---------- Pieces: learn section by section; small "Completed" list (not a drill log) ---------- */
+  const Pieces = (function () {
+    const KEY = "pianoSkills.pieces.v1", KEEP = 12;
+    function load() {
+      try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.active) && Array.isArray(d.completed)) return d; } catch (e) {}
+      return { active: [], completed: [] };
+    }
+    let data = load();
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} }
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); } catch (e) { return iso.slice(0, 10); }
+    }
+    function render() {
+      const host = document.getElementById("sr-piece-active");
+      if (!host) return;
+      host.innerHTML = "";
+      data.active.forEach(function (pc) {
+        const box = el("div", "sr-piece"); box.dataset.id = pc.id;
+        const top = el("div", "sr-piece-top");
+        top.appendChild(el("div", "sr-piece-title", pc.title));
+        const done = pc.sections.filter(function (x) { return x.done; }).length;
+        if (pc.sections.length) top.appendChild(el("span", "sr-piece-count", done + " of " + pc.sections.length + " sections"));
+        box.appendChild(top);
+        const ul = el("ul", "sr-secs");
+        pc.sections.forEach(function (sec, i) {
+          const li = el("li", "sr-sec" + (sec.done ? " done" : ""));
+          const lab = el("label");
+          const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!sec.done;
+          cb.addEventListener("change", function () { sec.done = cb.checked; save(); render(); });
+          lab.appendChild(cb); lab.appendChild(el("span", null, sec.name));
+          li.appendChild(lab);
+          const x = el("button", "sr-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Remove section " + sec.name);
+          x.addEventListener("click", function () { pc.sections.splice(i, 1); save(); render(); });
+          li.appendChild(x);
+          ul.appendChild(li);
+        });
+        box.appendChild(ul);
+        const add = el("form", "sr-sec-add"); add.setAttribute("autocomplete", "off");
+        const inp = document.createElement("input"); inp.type = "text"; inp.maxLength = 60;
+        inp.placeholder = pc.sections.length ? "Add a section" : "Add a section, e.g. Bars 1–8";
+        inp.setAttribute("aria-label", "Add a section to " + pc.title);
+        const ab = el("button", "sr-btn secondary", "Add"); ab.type = "submit";
+        add.appendChild(inp); add.appendChild(ab);
+        add.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const v = inp.value.trim(); if (!v) return;
+          pc.sections.push({ name: v, done: false }); save(); render();
+          const again = document.querySelector('.sr-piece[data-id="' + pc.id + '"] .sr-sec-add input'); if (again) again.focus();
+        });
+        box.appendChild(add);
+        const act = el("div", "sr-piece-actions");
+        const drop = el("button", "sr-linkbtn", "Remove"); drop.type = "button";
+        drop.addEventListener("click", function () {
+          if (!window.confirm("Remove “" + pc.title + "” (not completed)?")) return;
+          data.active = data.active.filter(function (x) { return x.id !== pc.id; }); save(); render();
+        });
+        const comp = el("button", "sr-btn", "✓ Piece complete"); comp.type = "button";
+        comp.addEventListener("click", function () { complete(pc.id); });
+        act.appendChild(drop); act.appendChild(comp);
+        box.appendChild(act);
+        host.appendChild(box);
+      });
+      const wrap = document.getElementById("sr-piece-done-wrap"), list = document.getElementById("sr-piece-done");
+      list.innerHTML = "";
+      wrap.hidden = !data.completed.length;
+      data.completed.forEach(function (c) {
+        const li = el("li");
+        li.appendChild(el("span", "t", c.title));
+        li.appendChild(el("span", "d", fmtDate(c.date)));
+        const x = el("button", "sr-x", "×"); x.type = "button"; x.setAttribute("aria-label", "Remove " + c.title + " from completed");
+        x.addEventListener("click", function () {
+          if (!window.confirm("Remove “" + c.title + "” from Completed?")) return;
+          data.completed = data.completed.filter(function (y) { return y.id !== c.id; }); save(); render();
+        });
+        li.appendChild(x);
+        list.appendChild(li);
+      });
+    }
+    function add(title) {
+      title = String(title || "").trim().slice(0, 80);
+      if (!title) return null;
+      const pc = { id: uid(), title: title, sections: [] };
+      data.active.push(pc); save(); render();
+      return pc.id;
+    }
+    function complete(id) {
+      const pc = data.active.filter(function (x) { return x.id === id; })[0];
+      if (!pc) return;
+      data.active = data.active.filter(function (x) { return x.id !== id; });
+      data.completed.unshift({ id: pc.id, title: pc.title, date: new Date().toISOString() });
+      data.completed = data.completed.slice(0, KEEP); /* small and tidy */
+      save(); render();
+    }
+    function init() {
+      const f = document.getElementById("sr-piece-new");
+      if (f) f.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const inp = document.getElementById("sr-piece-title");
+        if (add(inp.value)) { inp.value = ""; const last = document.querySelector("#sr-piece-active .sr-piece:last-child .sr-sec-add input"); if (last) last.focus(); }
+      });
+      window.addEventListener("storage", function (e) { if (e.key === KEY) { data = load(); render(); } });
+      render();
+    }
+    return { init: init, add: add, complete: complete, _data: function () { return data; } };
+  })();
+  window.__srPieces = Pieces;
 
   /* ---------- Tabs ---------- */
   function setTab(name) {
@@ -7232,6 +7625,10 @@ const bridge = window.__scalesNotes;
     if (!el) return;
     el.textContent = text || "";
     el.className = cls || "";
+    if (id === "sr-mic-status") { /* the Daily drill shows the same mic status (prompt, hint, errors) */
+      const d = document.getElementById("sr-drill-mic-status");
+      if (d) { d.textContent = text || ""; d.className = "sr-drill-mic-status" + (cls ? " " + cls : ""); }
+    }
   }
   const MIC_MSG = {
     denied: isIOS()
@@ -7318,8 +7715,9 @@ const bridge = window.__scalesNotes;
       micQuietSince = 0;
       if (micHintShown) { micHintShown = false; setStatus("sr-mic-status", "Listening… play one note at a time.", "ok"); }
     }
-    if (Keys.suppressMic()) {
-      /* the MIDI keyboard is being played: ignore what the mic hears, and don't let a tail answer later */
+    if (Keys.suppressMic() || listening || listenCount || t < micQuietUntil) {
+      /* the MIDI keyboard is being played, or the page is playing the drill: ignore what the
+         mic hears, and don't let a tail answer later */
       micAns.mute(p, t);
       return;
     }
@@ -7337,7 +7735,9 @@ const bridge = window.__scalesNotes;
     }
     const note = micAns.step(p, t);
     if (!note) return;
+    window.__srMicAnswers = (window.__srMicAnswers || 0) + 1;
     if (document.getElementById("panel-sight").hidden) return;
+    if (drillCheck) { drillHeard(note.midi, t); return; }
     if (Runner.isPlaying()) Runner.answerNote({ letter: note.letter, midi: note.midi });
   });
   let micHintShown = false;
@@ -7355,6 +7755,7 @@ const bridge = window.__scalesNotes;
       if (!Mic.isOn()) highlightLetter(document.getElementById("sr-runner-letters"), null);
     }, 450);
     if (document.getElementById("panel-sight").hidden) return;
+    if (drillCheck) { drillHeard(ev.midi, performance.now()); return; }
     if (Runner.isPlaying()) Runner.answerNote({ letter: note.letter, midi: ev.midi });
   });
   function renderKeysStatus(st) {
@@ -7430,11 +7831,14 @@ const bridge = window.__scalesNotes;
       document.getElementById("sr-drill-bpm").textContent = e.target.value;
     });
     document.getElementById("sr-drill-start").addEventListener("click", startDrill);
+    document.getElementById("sr-drill-done").addEventListener("click", markDrillDone);
+    document.getElementById("sr-drill-listen").addEventListener("click", listenDrill);
+    document.getElementById("sr-drill-mic").addEventListener("click", function () { toggleMic(this); });
+    Pieces.init();
     document.getElementById("sr-drill-new").addEventListener("click", function () {
       if (currentLevel === 3) { setLevel(3); return; }
-      const cycle = [0, 7, 5, 2, -5]; /* C G F D Bb */
-      const idx = cycle.indexOf(transposeSemis);
-      transposeSemis = cycle[(idx + 1) % cycle.length];
+      const idx = KEY_CYCLE.indexOf(transposeSemis);
+      transposeSemis = KEY_CYCLE[(idx + 1) % KEY_CYCLE.length];
       LEVELS = buildLevels(transposeSemis);
       setLevel(currentLevel);
     });
@@ -7472,6 +7876,7 @@ const bridge = window.__scalesNotes;
   }
 
   function boot() {
+    loadDrill();
     bind();
     renderStats();
     watchMicPermission();
@@ -7481,8 +7886,11 @@ const bridge = window.__scalesNotes;
        (or after an in-page tab click that set the hash). */
     let want = "scales";
     try {
-      /* Hash is source of truth on load. localStorage still updated on tab click for analytics. */
+      /* #sight-reading opens Sight Reading; a scale link (#scale-…) opens Scales; with no hash
+         (bookmark, home-screen icon, a browser that drops the fragment on reload) reopen the
+         tab Clint was last on, so the Daily drill doesn't vanish on refresh. */
       if (location.hash === "#sight-reading") want = "sight";
+      else if (!location.hash && localStorage.getItem(TAB_KEY) === "sight") want = "sight";
     } catch (e) {}
     setTab(want);
   }
