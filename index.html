@@ -1610,6 +1610,14 @@
   padding: 0.3rem 1rem 0.65rem;
 }
 #panel-scales[hidden], #panel-sight[hidden] { display: none !important; }
+/* Note Runner: own level/key picker and engraved notes */
+.sr-runner-pick { margin-bottom: 0.7rem; align-items: flex-end; }
+.sr-key-pick select { font: inherit; font-size: 0.85rem; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 0.5rem; background: var(--cream); color: var(--ink); }
+.sr-key-pick select:disabled { opacity: 0.6; }
+#sr-runner-vf .sr-rn.hot path, #sr-runner-vf .sr-rn.hot rect { fill: #8b6914; stroke: #8b6914; }
+#sr-runner-vf .sr-rn.wrong path, #sr-runner-vf .sr-rn.wrong rect { fill: #b3361f; stroke: #b3361f; }
+#sr-runner-vf .sr-rn.done { opacity: 0.4; }
+#sr-runner-vf .sr-rn.missed path { fill: #b3361f; stroke: #b3361f; }
 html { scroll-padding-top: 6.5rem; } /* things scrolled into view land below the sticky tab bar */
 #panel-sight {
   max-width: 56rem;
@@ -1689,11 +1697,6 @@ html { scroll-padding-top: 6.5rem; } /* things scrolled into view land below the
   background: #fffef9; border: 1px solid var(--border); border-radius: 0.55rem;
   padding: 0.6rem 0.45rem 0.5rem; overflow: hidden;
 }
-#sr-drill-staff { width: 100%; min-height: 120px; }
-#sr-drill-staff svg { width: 100%; height: auto; display: block; margin: 0 auto; }
-#sr-drill-staff .vf-stavenote { transition: opacity 0.12s ease; }
-#sr-drill-staff .sr-hl { fill: var(--accent) !important; }
-#sr-drill-staff .sr-hl-glow { fill: rgba(139,105,20,0.2); }
 .sr-controls {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-top: 0.85rem;
 }
@@ -1719,17 +1722,6 @@ html { scroll-padding-top: 6.5rem; } /* things scrolled into view land below the
 }
 .sr-tempo span:last-child { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .sr-controls .sr-btn { min-width: 5.2rem; }
-#sr-drill-new { margin-left: auto; }
-.sr-done-btn { color: #2a6b3a !important; }
-.sr-drill-note { min-height: 1.1em; margin-top: 0.5rem; font-size: 0.78rem; color: #2a6b3a; transition: opacity 0.3s ease; }
-.sr-drill-note:empty { min-height: 0; margin: 0; }
-.sr-drill-mic-status { margin-top: 0.35rem; font-size: 0.75rem; color: var(--ink-soft); }
-.sr-drill-mic-status:empty { display: none; }
-.sr-drill-mic-status.ok { color: #2a6b3a; }
-.sr-drill-mic-status.warn { color: #9a3b1f; }
-#sr-drill-staff .vf-stavenote.sr-ok, #sr-drill-staff .vf-stavenote.sr-ok * { fill: #2a7a3a !important; stroke-opacity: 1; }
-#sr-drill-staff .vf-stavenote.sr-bad, #sr-drill-staff .vf-stavenote.sr-bad * { fill: #c0391b !important; }
-#sr-drill-staff .vf-stavenote.sr-ok, #sr-drill-staff .vf-stavenote.sr-bad { opacity: 1 !important; }
 /* Pieces */
 .sr-piece-new { display: flex; gap: 0.5rem; }
 .sr-piece-new input, .sr-sec-add input {
@@ -1909,12 +1901,10 @@ html { scroll-padding-top: 6.5rem; } /* things scrolled into view land below the
 .sr-mic-limits { margin-top: 0.45rem; font-size: 0.68rem; color: var(--ink-soft); line-height: 1.4; }
 @media (max-width: 600px) {
   .sr-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; }
-  #sr-drill-new { grid-column: span 2; }
   .sr-controls .sr-btn { min-width: 0; padding-left: 0.4rem; padding-right: 0.4rem; }
   .sr-controls .sr-tempo { grid-column: 1 / -1; order: -1; }
   .sr-controls .sr-tempo input[type=range] { flex: 1; width: auto; }
   .sr-controls .sr-btn { width: 100%; }
-  #sr-drill-new { margin-left: 0; }
   .sr-countin-num { font-size: 3.4rem; }
   .sr-progress { grid-template-columns: repeat(3, 1fr); }
   .sr-progress .sr-spark { grid-column: 1 / -1; }
@@ -1947,7 +1937,7 @@ body.sr-sight-open header::after { display: none; }
     <span class="auth-msg" id="auth-msg" role="status" aria-live="polite" hidden></span>
   </div>
   <h1>Piano Skills</h1>
-  <p class="subtitle">Scales · Sight reading · Daily drills</p>
+  <p class="subtitle">Scales · Sight reading · Note Runner</p>
   <p class="intro">
     All twelve major keys and twelve minor keys — two octaves ascending, hands one octave apart — with sheet music and
     standard classical fingerings for both hands. Each scale fits on one line; tap it for a larger,
@@ -2134,16 +2124,16 @@ body.sr-sight-open header::after { display: none; }
     </div>
   </section>
 
-  <section class="sr-card" id="sr-daily-drill">
+  <section class="sr-card" id="sr-note-runner">
     <div class="sr-card-head">
-      <h2>Daily drill</h2>
-      <span class="sr-card-meta" id="sr-drill-meta">Level 1 · C major · RH · Czerny</span>
+      <h2>Note Runner</h2>
+      <span class="sr-card-meta" id="sr-runner-meta">Level 1 · C major</span>
     </div>
     <div class="sr-card-body">
-      <div class="sr-chips">
+      <div class="sr-chips sr-runner-pick">
         <div class="sr-chip-group">
           <span class="sr-chip-label">Level</span>
-          <div class="sr-chip-row" id="sr-level-chips">
+          <div class="sr-chip-row" id="sr-runner-levels" role="group" aria-label="Note Runner level">
             <button type="button" class="sr-chip active" data-level="1">1</button>
             <button type="button" class="sr-chip" data-level="2">2</button>
             <button type="button" class="sr-chip" data-level="3">3</button>
@@ -2151,39 +2141,13 @@ body.sr-sight-open header::after { display: none; }
             <button type="button" class="sr-chip" data-level="5">5</button>
           </div>
         </div>
-        <div class="sr-chip-group">
-          <span class="sr-chip-label">Style</span>
-          <div class="sr-chip-row"><button type="button" class="sr-chip active" id="sr-style-tag">Czerny 5-finger</button></div>
-        </div>
+        <label class="sr-chip-group sr-key-pick">
+          <span class="sr-chip-label">Key</span>
+          <select id="sr-runner-key" aria-label="Note Runner key"><option value="C">C major</option></select>
+        </label>
       </div>
-      <p class="sr-source" id="sr-drill-source"></p>
-      <div class="sr-staff-frame"><div id="sr-drill-staff" role="img" aria-label="Sight-reading exercise"></div><div class="sr-countin" id="sr-drill-countin" hidden aria-live="polite"></div></div>
-      <div class="sr-controls">
-        <button type="button" class="sr-btn" id="sr-drill-start" title="Play along: notes light up in time; with 🎤 on, each note you play is checked">Start</button>
-        <button type="button" class="sr-btn secondary" id="sr-drill-listen" title="Hear this drill played (both hands)">▶ Listen</button>
-        <button type="button" class="sr-btn mic-btn" id="sr-drill-mic" aria-pressed="false" title="Check the notes you play with the microphone">🎤 Mic<span class="sr-mic-meter" aria-hidden="true"><i></i></span></button>
-        <div class="sr-tempo">
-          <span class="sr-tempo-val" id="sr-drill-bpm">72</span>
-          <input type="range" min="40" max="120" value="72" id="sr-drill-tempo" aria-label="Drill tempo">
-          <span>BPM</span>
-        </div>
-        <button type="button" class="sr-btn secondary sr-done-btn" id="sr-drill-done" title="Mark this drill complete and go on to the next one">✓ Done</button>
-        <button type="button" class="sr-btn secondary" id="sr-drill-new">New exercise</button>
-      </div>
-      <p class="sr-drill-note" id="sr-drill-note" aria-live="polite"></p>
-      <p class="sr-drill-mic-status" id="sr-drill-mic-status" aria-live="polite"></p>
-    </div>
-  </section>
-
-
-  <section class="sr-card" id="sr-note-runner">
-    <div class="sr-card-head">
-      <h2>Note Runner</h2>
-      <span class="sr-card-meta">Scroll · name · survive</span>
-    </div>
-    <div class="sr-card-body">
       <div class="sr-runner-hud">
-        <span class="sr-speed-pill">Speed <strong id="sr-runner-speed">48</strong> notes/min</span>
+        <span class="sr-speed-pill">Speed <strong id="sr-runner-speed">75</strong> BPM</span>
         <span>Streak <strong id="sr-runner-streak">0</strong></span>
         <span class="sr-hearts" id="sr-runner-hearts" role="img" aria-label="5 of 5 lives"><span class="sr-heart">♥</span><span class="sr-heart">♥</span><span class="sr-heart">♥</span><span class="sr-heart">♥</span><span class="sr-heart">♥</span></span>
         <button type="button" class="sr-switch on" id="sr-runner-wait" role="switch" aria-checked="true" title="Notes stop at the gold line until you play the right one"><span class="sr-switch-track" aria-hidden="true"><span class="sr-switch-knob"></span></span>Wait for me</button>
@@ -6199,368 +6163,8 @@ const bridge = window.__scalesNotes;
   })();
   window.SightReadKeys = Keys;
 
-  /* ---------- Note helpers ---------- */
-  function n(clef, key, dur) {
-    var dots = 0;
-    if (dur.charAt(dur.length - 1) === ".") { dots = 1; dur = dur.slice(0, -1); }
-    if (key.charAt(0) === "r") {
-      const rest = new VF.StaveNote({ clef: clef, keys: [clef === "bass" ? "d/3" : "b/4"], duration: dur + "r", dots: dots });
-    if (dur === "w") { try { rest.setCenterAlignment(true); } catch (e) {} }
-      if (dots) VF.Dot.buildAndAttach([rest], { all: true });
-      return rest;
-    }
-    const note = new VF.StaveNote({ clef: clef, keys: [key], duration: dur, dots: dots, auto_stem: true });
-    if (dots) VF.Dot.buildAndAttach([note], { all: true });
-    if (key.indexOf("#") !== -1) {
-      try { note.addModifier(new VF.Accidental("#"), 0); } catch (e) {}
-    }
-    return note;
-  }
-  function letterOfKey(key) {
-    return key.charAt(0).toUpperCase();
-  }
-  function transposeKey(key, semitones) {
-    if (key.charAt(0) === "r") return key;
-    const m = key.match(/^([a-g])(#|b)?\/(\d+)$/i);
-    if (!m) return key;
-    const names = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"];
-    let idx = names.indexOf((m[1] + (m[2] || "")).toLowerCase());
-    if (idx < 0) idx = names.indexOf(m[1].toLowerCase());
-    let midi = (parseInt(m[3], 10) + 1) * 12 + idx;
-    midi += semitones;
-    const nIdx = ((midi % 12) + 12) % 12;
-    const oct = Math.floor(midi / 12) - 1;
-    return names[nIdx] + "/" + oct;
-  }
-
-  /* ---------- Levels (approved repertoire) ---------- */
-  let currentLevel = 1;
-  let transposeSemis = 0; /* New exercise cycles nearby keys */
-
-  function buildLevels(semis) {
-    const T = function (k) { return transposeKey(k, semis); };
-    return {
-      1: {
-        meta: "Level 1 · 5-finger · RH · Czerny",
-        style: "Czerny 5-finger",
-        source: "Czerny Op. 599 No. 1 — opening RH 5-finger pattern (public domain, adapted RH-only)",
-        key: semis === 0 ? "C" : (semis === 7 ? "G" : (semis === 5 ? "F" : (semis === 2 ? "D" : "C"))),
-        time: "4/4", beatsPerBar: 4,
-        notePool: [T("c/4"),T("d/4"),T("e/4"),T("f/4"),T("g/4")],
-        runnerNotes: [
-          { key: T("g/4"), letter: letterOfKey(T("g/4")) },
-          { key: T("e/4"), letter: letterOfKey(T("e/4")) },
-          { key: T("c/4"), letter: letterOfKey(T("c/4")) },
-          { key: T("d/4"), letter: letterOfKey(T("d/4")) },
-          { key: T("f/4"), letter: letterOfKey(T("f/4")) },
-          { key: T("g/4"), letter: letterOfKey(T("g/4")) }
-        ],
-        measures: function () {
-          return [
-            { treble: [n("treble",T("c/4"),"q"), n("treble",T("d/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("f/4"),"q")], bass: [n("bass",T("c/3"),"w")] },
-            { treble: [n("treble",T("g/4"),"q"), n("treble",T("f/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("d/4"),"q")], bass: [n("bass",T("c/3"),"w")] },
-            { treble: [n("treble",T("c/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("g/4"),"q"), n("treble",T("e/4"),"q")], bass: [n("bass",T("c/3"),"w")] },
-            { treble: [n("treble",T("c/4"),"h"), n("treble",T("c/4"),"h")], bass: [n("bass",T("c/3"),"w")] }
-          ];
-        }
-      },
-      2: {
-        meta: "Level 2 · Alberti LH · Czerny-style",
-        style: "Czerny Alberti",
-        source: "Original exercise in the style of Czerny Op. 599 / Op. 139",
-        key: semis === 0 ? "C" : (semis === 7 ? "G" : "F"),
-        time: "4/4", beatsPerBar: 4,
-        notePool: [T("c/4"),T("d/4"),T("e/4"),T("g/4"),T("a/4")],
-        runnerNotes: [
-          { key: T("g/4"), letter: letterOfKey(T("g/4")) },
-          { key: T("e/4"), letter: letterOfKey(T("e/4")) },
-          { key: T("c/4"), letter: letterOfKey(T("c/4")) },
-          { key: T("a/4"), letter: letterOfKey(T("a/4")) },
-          { key: T("f/4"), letter: letterOfKey(T("f/4")) },
-          { key: T("d/4"), letter: letterOfKey(T("d/4")) }
-        ],
-        measures: function () {
-          function alberti(c, e, g) {
-            return [n("bass",c,"8"), n("bass",g,"8"), n("bass",e,"8"), n("bass",g,"8"),
-                    n("bass",c,"8"), n("bass",g,"8"), n("bass",e,"8"), n("bass",g,"8")];
-          }
-          return [
-            { treble: [n("treble",T("e/4"),"q"), n("treble",T("d/4"),"q"), n("treble",T("c/4"),"q"), n("treble",T("d/4"),"q")], bass: alberti(T("c/3"),T("e/3"),T("g/3")) },
-            { treble: [n("treble",T("e/4"),"q"), n("treble",T("e/4"),"q"), n("treble",T("e/4"),"h")], bass: alberti(T("c/3"),T("e/3"),T("g/3")) },
-            { treble: [n("treble",T("d/4"),"q"), n("treble",T("d/4"),"q"), n("treble",T("d/4"),"h")], bass: alberti(T("g/2"),T("b/2"),T("d/3")) },
-            { treble: [n("treble",T("e/4"),"q"), n("treble",T("g/4"),"q"), n("treble",T("c/5"),"h")], bass: alberti(T("c/3"),T("e/3"),T("g/3")) }
-          ];
-        }
-      },
-      3: {
-        meta: "Level 3 · G major · minuet",
-        style: "Anna Magdalena minuet",
-        source: "Petzold — Minuet in G, BWV Anh. 114 — opening 4 bars (public domain)",
-        key: "G", time: "3/4", beatsPerBar: 3,
-        /* Keep authentic pitches; no transpose for L3 */
-        notePool: ["d/5","g/4","a/4","b/4","c/5","e/5","f/5","g/5"],
-        runnerNotes: [
-          { key: "g/4", letter: "G" }, { key: "a/4", letter: "A" }, { key: "b/4", letter: "B" },
-          { key: "c/5", letter: "C" }, { key: "d/5", letter: "D" }, { key: "e/5", letter: "E" }
-        ],
-        measures: function () {
-          return [
-            { treble: [n("treble","d/5","q"), n("treble","g/4","8"), n("treble","a/4","8"), n("treble","b/4","8"), n("treble","c/5","8")],
-              bass: [n("bass","g/3","h"), n("bass","a/3","q")], beamPairs: true },
-            { treble: [n("treble","d/5","q"), n("treble","g/4","q"), n("treble","g/4","q")],
-              bass: [n("bass","b/3","h.")] },
-            { treble: [n("treble","e/5","q"), n("treble","c/5","8"), n("treble","d/5","8"), n("treble","e/5","8"), n("treble","f/5","8")],
-              bass: [n("bass","c/4","h.")], beamPairs: true },
-            { treble: [n("treble","g/5","q"), n("treble","g/4","q"), n("treble","g/4","q")],
-              bass: [n("bass","b/3","h.")] }
-          ];
-        }
-      },
-      4: {
-        meta: "Level 4 · running 16ths",
-        style: "Little Prelude",
-        source: "Original exercise in the style of Bach Little Prelude BWV 939",
-        key: semis === 0 ? "C" : "G",
-        time: "4/4", beatsPerBar: 4,
-        notePool: [T("c/4"),T("d/4"),T("e/4"),T("f/4"),T("g/4"),T("a/4"),T("b/4"),T("c/5")],
-        runnerNotes: [
-          { key: T("g/4"), letter: letterOfKey(T("g/4")) },
-          { key: T("a/4"), letter: letterOfKey(T("a/4")) },
-          { key: T("b/4"), letter: letterOfKey(T("b/4")) },
-          { key: T("c/5"), letter: letterOfKey(T("c/5")) },
-          { key: T("e/4"), letter: letterOfKey(T("e/4")) },
-          { key: T("f/4"), letter: letterOfKey(T("f/4")) }
-        ],
-        measures: function () {
-          function six(keys) { return keys.map(function (k) { return n("treble", T(k), "16"); }); }
-          return [
-            { treble: six(["c/5","b/4","a/4","g/4","a/4","g/4","f/4","e/4","f/4","e/4","d/4","c/4","d/4","e/4","f/4","g/4"]),
-              bass: [n("bass",T("c/3"),"q"), n("bass",T("e/3"),"q"), n("bass",T("g/3"),"q"), n("bass",T("c/3"),"q")] },
-            { treble: six(["a/4","b/4","c/5","d/5","c/5","b/4","a/4","g/4","f/4","g/4","a/4","b/4","c/5","g/4","e/4","c/4"]),
-              bass: [n("bass",T("f/3"),"q"), n("bass",T("a/3"),"q"), n("bass",T("c/3"),"q"), n("bass",T("f/3"),"q")] },
-            { treble: six(["d/4","e/4","f/4","g/4","a/4","g/4","f/4","e/4","d/4","e/4","f/4","g/4","a/4","b/4","c/5","d/5"]),
-              bass: [n("bass",T("g/3"),"q"), n("bass",T("b/3"),"q"), n("bass",T("d/3"),"q"), n("bass",T("g/3"),"q")] },
-            { treble: six(["c/5","b/4","a/4","g/4","f/4","e/4","d/4","c/4","d/4","e/4","f/4","g/4","e/4","c/4","d/4","c/4"]),
-              bass: [n("bass",T("c/3"),"h"), n("bass",T("c/3"),"h")] }
-          ];
-        }
-      },
-      5: {
-        meta: "Level 5 · imitation · 2 bars",
-        style: "Invention imitation",
-        source: "Original exercise in the style of Bach Invention No. 1 BWV 772 — 2-bar subject + octave answer",
-        key: "C", time: "4/4", beatsPerBar: 4,
-        notePool: ["c/4","d/4","e/4","f/4","g/4","a/4","c/5","d/5","e/5","f/5","g/5"],
-        runnerNotes: [
-          { key: "g/4", letter: "G" }, { key: "c/5", letter: "C" }, { key: "d/5", letter: "D" },
-          { key: "e/5", letter: "E" }, { key: "f/4", letter: "F" }, { key: "a/4", letter: "A" }
-        ],
-        measures: function () {
-          function subject(clef, oct) {
-            const o = String(oct);
-            return [
-              n(clef,"c/"+o,"16"), n(clef,"d/"+o,"16"), n(clef,"e/"+o,"16"), n(clef,"f/"+o,"16"),
-              n(clef,"d/"+o,"16"), n(clef,"e/"+o,"16"), n(clef,"f/"+o,"16"), n(clef,"g/"+o,"16"),
-              n(clef,"e/"+o,"16"), n(clef,"f/"+o,"16"), n(clef,"g/"+o,"16"), n(clef,"a/"+o,"16"),
-              n(clef,"g/"+o,"8"), n(clef,"c/"+o,"8")
-            ];
-          }
-          const rh = subject("treble", 5);
-          const lh = subject("bass", 3);
-          return [
-            { treble: rh, bass: [n("bass","r/3","w")], beamGroups: [[0,4],[4,8],[8,12],[12,14]] },
-            { treble: [n("treble","e/5","h"), n("treble","c/5","h")], bass: lh, beamGroupsBass: [[0,4],[4,8],[8,12],[12,14]] }
-          ];
-        }
-      }
-    };
-  }
-  let LEVELS = buildLevels(0);
-
-  function makeBeams(notes, opts) {
-    opts = opts || {};
-    const playable = notes.filter(function (x) { return !x.isRest(); });
-    if (playable.length < 2) return [];
-    /* auto_stem = true: stem direction follows the group's average pitch */
-    if (opts.beamGroups) {
-      return opts.beamGroups.map(function (pair) { return new VF.Beam(notes.slice(pair[0], pair[1]), true); });
-    }
-    if (opts.beamPairs) {
-      const beams = [];
-      const eighths = notes.filter(function (x) { return !x.isRest() && String(x.getDuration()) === "8"; });
-      for (var k = 0; k + 1 < eighths.length; k += 2) beams.push(new VF.Beam([eighths[k], eighths[k + 1]], true));
-      return beams;
-    }
-    /* group 8ths/16ths inside each quarter-note beat */
-    const beams = [];
-    let t = 0, group = [], groupBeat = -1;
-    function flush() { if (group.length >= 2) beams.push(new VF.Beam(group, true)); group = []; }
-    notes.forEach(function (note) {
-      const d = String(note.getDuration());
-      const beats = d === "w" ? 4 : d === "h" ? 2 : d === "q" ? 1 : d === "8" ? 0.5 : d === "16" ? 0.25 : 1;
-      const beat = Math.floor(t + 1e-6);
-      const short = (d === "8" || d === "16") && !note.isRest() && !(note.dots > 0);
-      if (!short || beat !== groupBeat) flush();
-      if (short) { group.push(note); groupBeat = beat; }
-      t += beats * ((note.dots > 0) ? 1.5 : 1);
-    });
-    flush();
-    return beams;
-  }
-
-  /* continue in part 2 */
-  window.__SR_PART1_OK = true;
-
-  /* ---------- Drill rendering ---------- */
-  let lastMeasures = [];
-  const DRILL_MIN_SCALE = 0.74;
-  function onsetInfo(measure) {
-    /* distinct onsets across both hands + shortest value -> natural width */
-    const set = new Set();
-    let shortest = 4;
-    [measure.treble, measure.bass].forEach(function (voice) {
-      let t = 0;
-      voice.forEach(function (note) {
-        const d = String(note.getDuration());
-        let beats = d === "w" ? 4 : d === "h" ? 2 : d === "q" ? 1 : d === "8" ? 0.5 : d === "16" ? 0.25 : 1;
-        if (note.dots > 0 || (note.getModifiersByType && note.getModifiersByType("Dot").length)) beats *= 1.5;
-        if (!note.isRest()) { set.add(Math.round(t * 16)); shortest = Math.min(shortest, beats); }
-        t += beats;
-      });
-    });
-    return { onsets: Math.max(1, set.size), shortest: shortest };
-  }
-  function measureMinWidth(measure) {
-    const info = onsetInfo(measure);
-    const per = info.shortest <= 0.25 ? 16 : info.shortest <= 0.5 ? 16 : 25;
-    return 26 + info.onsets * per;
-  }
-  function headerWidth(level, withTime) {
-    const st = new VF.Stave(0, 0, 400);
-    st.addClef("treble");
-    if (level.key && level.key !== "C") st.addKeySignature(level.key);
-    if (withTime) st.addTimeSignature(level.time || "4/4");
-    return Math.ceil(st.getNoteStartX() - st.getX()) + 6;
-  }
-  function planSystems(level, measures, containerW) {
-    const mins = measures.map(measureMinWidth);
-    const n = measures.length;
-    const h1 = headerWidth(level, true), hN = headerWidth(level, false);
-    const opts = [];
-    for (let b = n; b >= 1; b--) {
-      if (b < n && n % b !== 0 && b !== Math.ceil(n / 2)) continue;
-      let need = 0;
-      for (let s0 = 0; s0 < n; s0 += b) {
-        const w = (s0 === 0 ? h1 : hN) + 10 + mins.slice(s0, s0 + b).reduce(function (x, y) { return x + y; }, 0);
-        need = Math.max(need, w);
-      }
-      opts.push({ per: b, need: need, scale: Math.min(1, containerW / need) });
-    }
-    let pick = opts.find(function (o) { return o.scale >= DRILL_MIN_SCALE; }) || opts[opts.length - 1];
-    return { per: pick.per, width: Math.max(containerW, pick.need + 12), mins: mins, h1: h1, hN: hN };
-  }
-  function drawDrill() {
-    const level = LEVELS[currentLevel];
-    const el = document.getElementById("sr-drill-staff");
-    if (!el) return;
-    el.innerHTML = "";
-    const measures = level.measures();
-    lastMeasures = measures;
-    const containerW = Math.max(260, el.clientWidth || 640);
-    const plan = planSystems(level, measures, containerW);
-    const width = plan.width;
-    const beatsPerBar = level.beatsPerBar || 4;
-    const padL = 16, padR = 4;
-    const STAFF_GAP = 92;    /* treble -> bass stave y */
-    const SYSTEM_GAP = 196;  /* system -> system */
-    const systems = Math.ceil(measures.length / plan.per);
-    const renderer = new VF.Renderer(el, VF.Renderer.Backends.SVG);
-    renderer.resize(width, 40 + systems * SYSTEM_GAP + 60);
-    const ctx = renderer.getContext();
-
-    for (let sys = 0; sys < systems; sys++) {
-      const startIdx = sys * plan.per;
-      const slice = measures.slice(startIdx, startIdx + plan.per);
-      const mins = plan.mins.slice(startIdx, startIdx + plan.per);
-      const header = sys === 0 ? plan.h1 : plan.hN;
-      const yT = sys * SYSTEM_GAP;
-      const yB = yT + STAFF_GAP;
-      const usable = width - padL - padR - header;
-      const sumMin = mins.reduce(function (x, y) { return x + y; }, 0);
-      const widths = mins.map(function (m, i) { return Math.floor(m * usable / sumMin) + (i === 0 ? header : 0); });
-      let x = padL;
-      slice.forEach(function (measure, mi) {
-        const isFirst = mi === 0;
-        const isLastBar = startIdx + mi === measures.length - 1;
-        const mW = mi === slice.length - 1 ? (width - padR - x) : widths[mi];
-        const treble = new VF.Stave(x, yT, mW);
-        const bass = new VF.Stave(x, yB, mW);
-        if (isFirst) {
-          treble.addClef("treble"); bass.addClef("bass");
-          if (level.key && level.key !== "C") { treble.addKeySignature(level.key); bass.addKeySignature(level.key); }
-          if (sys === 0) { treble.addTimeSignature(level.time || "4/4"); bass.addTimeSignature(level.time || "4/4"); }
-        } else {
-          treble.setBegBarType(VF.Barline.type.NONE); bass.setBegBarType(VF.Barline.type.NONE);
-        }
-        const endType = isLastBar ? VF.Barline.type.END : VF.Barline.type.SINGLE;
-        treble.setEndBarType(endType); bass.setEndBarType(endType);
-        treble.setContext(ctx).draw();
-        bass.setContext(ctx).draw();
-        if (isFirst) {
-          new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.BRACE).setContext(ctx).draw();
-          new VF.StaveConnector(treble, bass).setType(VF.StaveConnector.type.SINGLE_LEFT).setContext(ctx).draw();
-        }
-        new VF.StaveConnector(treble, bass).setType(isLastBar ? VF.StaveConnector.type.BOLD_DOUBLE_RIGHT : VF.StaveConnector.type.SINGLE_RIGHT).setContext(ctx).draw();
-        const tNotes = measure.treble;
-        const bNotes = measure.bass;
-        const beamsT = makeBeams(tNotes, { beamPairs: !!measure.beamPairs, beamGroups: measure.beamGroups });
-        const beamsB = makeBeams(bNotes, { beamGroups: measure.beamGroupsBass });
-        const voiceT = new VF.Voice({ num_beats: beatsPerBar, beat_value: 4 }).setStrict(true).addTickables(tNotes);
-        const voiceB = new VF.Voice({ num_beats: beatsPerBar, beat_value: 4 }).setStrict(true).addTickables(bNotes);
-        const avail = Math.max(40, treble.getNoteEndX() - treble.getNoteStartX() - 14);
-        /* join each hand separately (own stems/modifier context), align ticks across both */
-        const fmt = new VF.Formatter();
-        fmt.joinVoices([voiceT]); fmt.joinVoices([voiceB]);
-        fmt.format([voiceT, voiceB], avail);
-        voiceT.draw(ctx, treble);
-        voiceB.draw(ctx, bass);
-        beamsT.forEach(function (bm) { bm.setContext(ctx).draw(); });
-        beamsB.forEach(function (bm) { bm.setContext(ctx).draw(); });
-        tNotes.forEach(function (note) { note.srStave = treble; note.srSystem = sys; });
-        x += mW;
-      });
-    }
-    /* Crop the canvas to the engraving so there is no dead space; scale uniformly. */
-    const svg = el.querySelector("svg");
-    if (svg) {
-      let bb = null;
-      try { bb = svg.getBBox(); } catch (e) {}
-      const top = bb ? Math.floor(bb.y) - 6 : 0;
-      const h = bb ? Math.ceil(bb.height) + 12 : (40 + systems * SYSTEM_GAP);
-      svg.setAttribute("viewBox", "0 " + top + " " + width + " " + h);
-      svg.setAttribute("preserveAspectRatio", "xMidYMin meet");
-      svg.setAttribute("width", String(width));
-      svg.setAttribute("height", String(h));
-      svg.style.width = "100%";
-      svg.style.maxWidth = width + "px";
-      svg.style.height = "auto";
-    }
-  }
-
   /* ---------- Shared click + count-in ---------- */
-  let noiseClicks = false;
-  function noiseTick(ctx, time, accent) {
-    const len = Math.round(ctx.sampleRate * 0.03), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
-    const src = ctx.createBufferSource(); src.buffer = buf;
-    const g = ctx.createGain(); g.gain.value = accent ? 0.5 : 0.32;
-    const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 3500;
-    src.connect(hp); hp.connect(g); g.connect(ctx.destination);
-    src.start(time);
-    return src;
-  }
   function clickAt(ctx, time, accent, countIn) {
-    if (noiseClicks) return noiseTick(ctx, time, accent);
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
     osc.type = "sine";
@@ -6572,11 +6176,10 @@ const bridge = window.__scalesNotes;
     osc.start(time); osc.stop(time + 0.07);
     return osc;
   }
-  const DRILL_COUNT_IN_BEATS = 2;
   const RUNNER_COUNT_IN_BEATS = 4;
   /* Visible (big 1, 2 + dots) and audible count-in on the audio clock. */
   function countIn(overlay, beatSec, done, beats) {
-    const COUNT_IN_BEATS = beats || DRILL_COUNT_IN_BEATS;
+    const COUNT_IN_BEATS = beats || RUNNER_COUNT_IN_BEATS;
     const ctx = SRAudio.get();
     const lead = 0.08;
     const t0 = ctx ? ctx.currentTime + lead : 0;
@@ -6605,242 +6208,6 @@ const bridge = window.__scalesNotes;
         if (overlay) { overlay.hidden = true; overlay.dataset.beat = ""; }
       }
     };
-  }
-
-  /* ---------- Drill: score timeline (both staves) ---------- */
-  /* One event per written note: onset in beats from the first downbeat, length, exact pitch, staff. */
-  function drillEvents() {
-    const level = LEVELS[currentLevel];
-    const bpb = level.beatsPerBar || 4;
-    const ev = [];
-    lastMeasures.forEach(function (m, mi) {
-      [["T", m.treble], ["B", m.bass]].forEach(function (pair) {
-        let t = mi * bpb;
-        pair[1].forEach(function (note) {
-          const beats = noteBeats(note);
-          const rest = !!(note.isRest && note.isRest());
-          if (!rest) {
-            const k = (note.getKeys && note.getKeys()[0]) || "";
-            ev.push({ t: t, beats: beats, midi: keyToMidi(k), key: k, staff: pair[0], note: note });
-          }
-          t += beats;
-        });
-      });
-    });
-    ev.sort(function (a, b) { return a.t - b.t || (a.staff === "T" ? -1 : 1); });
-    return ev;
-  }
-  window.__srDrillEvents = function () { return drillEvents().map(function (e) { return { t: e.t, beats: e.beats, midi: e.midi, key: e.key, staff: e.staff }; }); };
-  /* Piano-like tone on the audio clock (5 partials, hammer transient, decay, release at the written length). */
-  function pianoTone(ctx, bus, midi, t, dur, vel) {
-    const f = 440 * Math.pow(2, (midi - 69) / 12);
-    const v = Math.max(0.03, Math.pow(vel, 1.6)) * 0.3;
-    const decay = Math.min(4.5, Math.max(0.7, 2.6 * Math.pow(0.5, (midi - 60) / 20)));
-    const amp = ctx.createGain();
-    amp.gain.setValueAtTime(0.0001, t);
-    amp.gain.exponentialRampToValueAtTime(v, t + 0.006);
-    amp.gain.setTargetAtTime(v * 0.45, t + 0.006, 0.09);
-    amp.gain.setTargetAtTime(0, t + 0.12, decay / 3);
-    amp.gain.setTargetAtTime(0, t + Math.max(0.08, dur), 0.06); /* key released */
-    const filt = ctx.createBiquadFilter();
-    filt.type = "lowpass"; filt.Q.value = 0.4;
-    filt.frequency.setValueAtTime(Math.min(18000, f * (3 + 9 * vel)), t);
-    filt.frequency.setTargetAtTime(Math.min(18000, f * 2.5), t + 0.02, decay / 2);
-    filt.connect(amp); amp.connect(bus);
-    const end = t + Math.max(0.08, dur) + 0.5;
-    [[1, 1], [2, 0.42], [3, 0.2], [4, 0.1], [5, 0.05]].forEach(function (pt, i) {
-      const pf = f * pt[0] * (1 + 0.0004 * pt[0] * pt[0]);
-      if (pf > 16000) return;
-      const o = ctx.createOscillator();
-      o.type = i === 0 ? "triangle" : "sine";
-      o.frequency.value = pf;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(pt[1], t);
-      g.gain.setTargetAtTime(0, t + 0.01, decay / (2 + i * 1.6));
-      o.connect(g); g.connect(filt);
-      o.start(t); o.stop(end);
-    });
-  }
-  /* ▶ Listen: the written music, both hands, at the set BPM, after the 2-beat count-in. */
-  let listening = false, listenCount = null, listenTimers = [], listenBus = null, micQuietUntil = 0;
-  function drillBpm() { return parseInt(document.getElementById("sr-drill-bpm").textContent, 10) || 72; }
-  function setListenBtn() {
-    const b = document.getElementById("sr-drill-listen");
-    if (b) { b.textContent = listening ? "■ Stop" : "▶ Listen"; b.classList.toggle("on", listening); }
-  }
-  function stopListen() {
-    if (!listening && !listenCount) return;
-    listening = false;
-    if (listenCount) { listenCount.cancel(); listenCount = null; }
-    listenTimers.forEach(clearTimeout); listenTimers = [];
-    const ctx = SRAudio.peek();
-    if (listenBus && ctx) {
-      const bus = listenBus; listenBus = null;
-      try { bus.gain.cancelScheduledValues(ctx.currentTime); bus.gain.setTargetAtTime(0, ctx.currentTime, 0.03); } catch (e) {}
-      setTimeout(function () { try { bus.disconnect(); } catch (e) {} }, 400);
-    }
-    micQuietUntil = performance.now() + 900; /* let the room go quiet before the mic counts again */
-    clearDrillLights();
-    setListenBtn();
-  }
-  function clearDrillLights() {
-    document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) {
-      if (!el.classList.contains("sr-ok") && !el.classList.contains("sr-bad")) { el.style.opacity = ""; el.style.filter = ""; }
-    });
-  }
-  function listenDrill() {
-    if (listening || listenCount) { stopListen(); return; }
-    if (drillPlaying) stopDrill();
-    const unlocked = SRAudio.unlock();
-    const beatSec = 60 / drillBpm();
-    const ev = drillEvents();
-    if (!ev.length) return;
-    listening = true; setListenBtn();
-    clearDrillMarks();
-    unlocked.then(function () {
-      if (!listening) return;
-      listenCount = countIn(document.getElementById("sr-drill-countin"), beatSec, function (audioT0) {
-        listenCount = null;
-        if (!listening) return;
-        const ctx = SRAudio.get();
-        if (!ctx) { stopListen(); return; }
-        listenBus = ctx.createGain(); listenBus.gain.value = 1; listenBus.connect(SRAudio.output());
-        const sched = [];
-        let endBeat = 0;
-        ev.forEach(function (e) {
-          const t = audioT0 + e.t * beatSec;
-          pianoTone(ctx, listenBus, e.midi, t, e.beats * beatSec * 0.92, e.staff === "T" ? 0.72 : 0.55);
-          sched.push({ midi: e.midi, at: +(e.t * beatSec).toFixed(4), staff: e.staff });
-          endBeat = Math.max(endBeat, e.t + e.beats);
-          const el = noteEl(e.note);
-          listenTimers.push(setTimeout(function () {
-            if (!listening || !el) return;
-            el.style.opacity = "1"; el.style.filter = "drop-shadow(0 0 3px #8b6914)";
-            listenTimers.push(setTimeout(function () { if (el) { el.style.filter = ""; } }, Math.max(120, e.beats * beatSec * 1000 - 40)));
-          }, (t - ctx.currentTime) * 1000));
-        });
-        window.__srLastListen = { bpm: drillBpm(), events: sched };
-        listenTimers.push(setTimeout(stopListen, ((audioT0 - ctx.currentTime) + endBeat * beatSec) * 1000 + 250));
-      }, DRILL_COUNT_IN_BEATS);
-    });
-  }
-
-  /* ---------- Drill: mic / MIDI accuracy check during Start ---------- */
-  let drillCheck = null; /* { perfT0, beatSec, ev, ok, bad } while Start is running */
-  function clearDrillMarks() {
-    document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) { el.classList.remove("sr-ok", "sr-bad"); });
-    const st = document.getElementById("sr-drill-note"); if (st && /^🎤/.test(st.textContent)) st.textContent = "";
-  }
-  function markNote(e, ok) {
-    e.mark = ok ? "ok" : "bad";
-    const el = noteEl(e.note);
-    if (el) { el.classList.remove("sr-ok", "sr-bad"); el.classList.add(ok ? "sr-ok" : "sr-bad"); el.style.opacity = "1"; }
-    if (ok) drillCheck.ok++; else drillCheck.bad++;
-  }
-  /* A played pitch (mic or MIDI) at performance time tMs. Matching is letter + octave. */
-  function drillHeard(midi, tMs) {
-    if (!drillCheck || midi == null) return null;
-    const c = drillCheck, b = (tMs - c.perfT0) / 1000 / c.beatSec; /* beats since the first downbeat */
-    if (b < -0.6) return null;
-    const lateTol = Math.max(0.5, 0.4 / c.beatSec), earlyTol = Math.max(0.35, 0.25 / c.beatSec);
-    /* notes starting around now (newest first matter most), then notes still sounding (e.g. a held LH note) */
-    const near = c.ev.filter(function (e) { return e.t >= b - lateTol && e.t <= b + earlyTol; });
-    const sounding = c.ev.filter(function (e) { return e.t < b - lateTol && e.t + e.beats > b; });
-    const hit = near.filter(function (e) { return e.midi === midi && !e.mark; })
-      .sort(function (x, y) { return Math.abs(x.t - b) - Math.abs(y.t - b); })[0];
-    if (hit) { markNote(hit, true); return "ok"; }
-    if (near.some(function (e) { return e.midi === midi; })) return null;        /* already credited */
-    if (sounding.some(function (e) { return e.midi === midi; })) return null;    /* a held note: fine */
-    const miss = near.filter(function (e) { return !e.mark; })
-      .sort(function (x, y) { return (x.staff === "T" ? 0 : 1) - (y.staff === "T" ? 0 : 1) || Math.abs(x.t - b) - Math.abs(y.t - b); })[0];
-    if (miss) { markNote(miss, false); return "bad"; }
-    return null;
-  }
-  function drillCheckSummary() {
-    if (!drillCheck || (!drillCheck.ok && !drillCheck.bad)) return;
-    const el = document.getElementById("sr-drill-note");
-    if (el) { el.textContent = "🎤 " + drillCheck.ok + " right · " + drillCheck.bad + " wrong"; clearTimeout(drillNoteTimer); }
-  }
-
-  /* ---------- Drill playback ---------- */
-  let drillPlaying = false;
-  let drillTimers = [];
-  let drillCount = null;
-  function noteBeats(note) {
-    const dur = String(note.getDuration());
-    let beats = dur === "w" ? 4 : dur === "h" ? 2 : dur === "q" ? 1 : dur === "8" ? 0.5 : dur === "16" ? 0.25 : 1;
-    if (note.dots > 0 || (note.getModifiersByType && note.getModifiersByType("Dot").length)) beats *= 1.5;
-    return beats;
-  }
-  function noteEl(note) {
-    try { if (note.getSVGElement) { const e = note.getSVGElement(); if (e) return e; } } catch (e) {}
-    try { return note.getAttribute && note.getAttribute("el"); } catch (e) { return null; }
-  }
-  function stopDrill() {
-    drillPlaying = false;
-    if (drillCheck) { drillCheckSummary(); drillCheck = null; }
-    noiseClicks = false;
-    if (drillCount) { drillCount.cancel(); drillCount = null; }
-    drillTimers.forEach(clearTimeout);
-    drillTimers = [];
-    const btn = document.getElementById("sr-drill-start");
-    if (btn) btn.textContent = "Start";
-    document.querySelectorAll("#sr-drill-staff .vf-stavenote").forEach(function (el) {
-      el.style.filter = "";
-      el.classList.remove("sr-now");
-      if (!el.classList.contains("sr-ok") && !el.classList.contains("sr-bad")) el.style.opacity = "";
-    });
-  }
-  function startDrill() {
-    if (drillPlaying) { stopDrill(); return; }
-    stopListen();
-    clearDrillMarks();
-    const unlocked = SRAudio.unlock(); /* inside the tap (iOS) */
-    /* with the mic listening, the beat is a soft unpitched tick so it can't be heard as a note */
-    noiseClicks = Mic.isOn();
-    const bpm = parseInt(document.getElementById("sr-drill-bpm").textContent, 10) || 72;
-    const beatSec = 60 / bpm;
-    const flat = [];
-    lastMeasures.forEach(function (m) {
-      m.treble.forEach(function (note) {
-        flat.push({ note: note, beats: noteBeats(note), rest: !!(note.isRest && note.isRest()) });
-      });
-    });
-    if (!flat.some(function (f) { return !f.rest; })) return;
-    drillPlaying = true;
-    document.getElementById("sr-drill-start").textContent = "Stop";
-    unlocked.then(function () {
-      if (!drillPlaying) return;
-      drillCount = countIn(document.getElementById("sr-drill-countin"), beatSec, function (audioT0) {
-        drillCount = null;
-        if (!drillPlaying) return;
-        const ctx = SRAudio.get();
-        const all = [];
-        flat.forEach(function (f) { if (!f.rest) { const e = noteEl(f.note); if (e) all.push(e); } });
-        all.forEach(function (e) { e.style.opacity = "0.35"; });
-        drillCheck = { perfT0: performance.now() + ((ctx ? audioT0 - ctx.currentTime : 0) * 1000), beatSec: beatSec, ev: drillEvents(), ok: 0, bad: 0 };
-        window.__srDrillCheck = function () { return drillCheck && { ok: drillCheck.ok, bad: drillCheck.bad, marks: drillCheck.ev.map(function (e) { return e.key + ":" + (e.mark || "-"); }) }; };
-        let t = 0, idx = 0;
-        flat.forEach(function (item) {
-          const startT = t;
-          t += item.beats * beatSec;
-          if (item.rest) return;
-          const el = noteEl(item.note);
-          const first = idx === 0; idx++;
-          if (ctx) clickAt(ctx, audioT0 + startT, first, false);
-          drillTimers.push(setTimeout(function () {
-            if (!drillPlaying) return;
-            all.forEach(function (e) { if (!e.classList.contains("sr-ok") && !e.classList.contains("sr-bad")) e.style.opacity = "0.35"; e.style.filter = ""; });
-            if (el) { el.style.opacity = "1"; el.style.filter = "drop-shadow(0 0 3px #8b6914)"; }
-          }, startT * 1000));
-        });
-        const played = idx;
-        drillTimers.push(setTimeout(function () {
-          stopDrill();
-          updateStats(played, 0);
-        }, t * 1000 + 80));
-      });
-    });
   }
 
   /* ---------- Note Runner game ---------- */
@@ -6952,8 +6319,8 @@ const bridge = window.__scalesNotes;
         }
         return out;
       }
-      function nextPhrase() {
-        const pairs = rnd() < 0.5 ? 4 : 3;
+      function nextPhrase(want) {
+        const pairs = want || (rnd() < 0.5 ? 4 : 3);
         const cadence = phraseNo % 2 === 1 ? "PAC" : (rnd() < 0.7 ? "HC" : "PAC");
         const order = pick(["LU", "LU", "UL"]); /* bass first (cello-suite style) more often */
         let best = null, bestC = Infinity;
@@ -6983,180 +6350,388 @@ const bridge = window.__scalesNotes;
   })();
 /* @@MELODY_CORE_END@@ */
 
+  /* ---------- Note Runner levels: its own difficulty + key (no longer tied to a drill) ---------- */
+  /* lo/hi are staff steps (octave*7 + letter, c4 = 28). Cells are one-beat or two-beat rhythm figures in 4/4. */
+  const RUNNER_LEVELS = {
+    1: { lo: 28, hi: 32, keys: ["C"], cells: ["q"], cad: ["q"], acc: 0, tie: 0, name: "quarters · C–G" },
+    2: { lo: 28, hi: 35, keys: ["C", "G", "F"], cells: ["q", "q", "q", "h"], cad: ["h"], acc: 0, tie: 0, name: "quarters & halves · one octave" },
+    3: { lo: 28, hi: 38, keys: ["C", "G", "F", "D"], cells: ["q", "q", "h", "88", "88"], cad: ["h"], acc: 0, tie: 0, name: "eighths · C4–F5" },
+    4: { lo: 28, hi: 40, keys: ["C", "G", "F", "D", "Bb"], cells: ["q", "q", "88", "88", "h", "q.8", "qr"], cad: ["h", "qQ"], acc: 0.75, tie: 0.25, name: "dotted rhythms · rests · accidentals" },
+    5: { lo: 27, hi: 42, keys: ["C", "G", "F", "D", "Bb"], cells: ["q", "88", "88", "8888", "q.8", "q.8", "h", "qr"], cad: ["h", "h.", "qQ"], acc: 0.95, tie: 0.4, name: "mixed rhythms · ties · B3–C6" }
+  };
+  /* [beats, vexflow duration, dots, beamed, rest] */
+  const CELLS = {
+    q: [[1, "q"]], h: [[2, "h"]], "h.": [[3, "h", 1]],
+    "88": [[0.5, "8", 0, 1], [0.5, "8", 0, 1]],
+    "8888": [[0.5, "8", 0, 1], [0.5, "8", 0, 1], [0.5, "8", 0, 1], [0.5, "8", 0, 1]],
+    "q.8": [[1.5, "q", 1], [0.5, "8"]],
+    qr: [[1, "q", 0, 0, 1]],
+    qQ: [[1, "q"], [1, "q", 0, 0, 1]]
+  };
+  const KEY_LABEL = { C: "C", G: "G", F: "F", D: "D", Bb: "B♭" };
+
   const Runner = (function () {
     let playing = false, counting = false, raf = 0, countHandle = null;
     const MAX_LIVES = 5;
-    const BASE_SPEED = 48, MAX_SPEED = 132, RAMP_EVERY = 4, RAMP_STEP = 3; /* +3 notes/min every 4 correct */
-    const Q = 34, BREATH = 12; /* px per beat on the runner staff; extra gap after a cadence */
-    let speed = BASE_SPEED; /* beats (notes) per minute */
+    /* speed is a tempo: quarter note = one beat */
+    const BASE_BPM = 75, MAX_BPM = 160, RAMP_EVERY = 5, RAMP_STEP = 2; /* +2 BPM every 5 correct notes */
+    const Q = 36, BREATH = 12, BARW = 10, ACCW = 9; /* px per quarter; gaps after a cadence / at a bar line / before an accidental */
+    const SP = function (beats) { return beats <= 0.5 ? 0.74 : beats <= 1 ? 1 : beats <= 1.5 ? 1.28 : beats <= 2 ? 1.55 : 1.95; };
+    let speed = BASE_BPM, topSpeed = BASE_BPM;
     let streak = 0, lives = MAX_LIVES, sinceSpeed = 0, correct = 0, over = false;
-    let notes = []; /* {key, letter, x} */
-    let staffTop = 0, gap = 10, hitX = 40;
-    let runW = 152;
-    let lastTs = 0;
-    let answerHlTimer = 0;
-    /* Wait mode: the next note stops at the gold line until the right note is played */
+    let notes = [];  /* written elements in order: {b (beat), s (strip x), dur, code, rest, tieFrom, playable, ...} */
+    let pend = [];   /* generated, not yet placed */
+    let B = -1;      /* playhead in beats; 0 = first note's onset */
+    let staffTop = 0, gap = 10, hitX = 40, runW = 152;
+    let lastTs = 0, answerHlTimer = 0, uid = 0;
+    let svgEl = null, vfCtx = null, stave = null, outerG = null, innerG = null, glow = null, winKey = "";
     const WAIT_KEY = "pianoSkills.sightReading.waitMode";
     let waitMode = true;
     try { waitMode = localStorage.getItem(WAIT_KEY) !== "off"; } catch (e) {}
     let lastWrong = { id: null, t: -1e9 };
 
+    /* own level + key, saved */
+    const RUN_KEY = "pianoSkills.noteRunner.v1";
+    let level = 1, keyPref = "C";
+    try {
+      const sv = JSON.parse(localStorage.getItem(RUN_KEY) || "null");
+      if (sv && RUNNER_LEVELS[sv.level]) { level = sv.level; keyPref = sv.key || "C"; }
+      else { /* first visit after the drill was retired: start at the drill's old level */
+        const od = JSON.parse(localStorage.getItem("pianoSkills.sightReading.drill") || "null");
+        if (od && RUNNER_LEVELS[od.level]) level = od.level;
+      }
+    } catch (e) {}
+
     const LETTERS = "cdefgab";
-    /* staff line (0 = top line F5, 4 = bottom line E4; 0.5 per step) for any natural key */
     function staffYForKey(key) {
-      const m = String(key).match(/^([a-g])[#b♯♭]?\/(\d+)$/i);
+      const m = String(key).match(/^([a-g])[#b♯♭n]?\/(\d+)$/i);
       if (!m) return 3;
       return (38 - (parseInt(m[2], 10) * 7 + LETTERS.indexOf(m[1].toLowerCase()))) / 2;
     }
-    /* Runner notes are plain noteheads under the key signature, kept between C4 and A5 (at most one ledger line). */
     function runnerKey(key) {
       const m = String(key).match(/^([a-g])[#b♯♭]?\/(\d+)$/i);
       if (!m) return "g/4";
       let idx = parseInt(m[2], 10) * 7 + LETTERS.indexOf(m[1].toLowerCase());
-      while (idx < 28) idx += 7;  /* below C4 */
-      while (idx > 40) idx -= 7;  /* above A5 */
+      while (idx < 28) idx += 7;
+      while (idx > 40) idx -= 7;
       return LETTERS.charAt(idx % 7) + "/" + Math.floor(idx / 7);
     }
     const KEY_ACC = { C: {}, G: { f: 1 }, D: { f: 1, c: 1 }, F: { b: -1 }, Bb: { b: -1, e: -1 } };
     const STEP_SEMI = [0, 2, 4, 5, 7, 9, 11];
-    let keyName = "C", setup = null, gen = null, queue = [];
+    const SIGN = { "1": "#", "-1": "b", "0": "n" };
+    let keyName = "C", setup = null, gen = null, altered = {};
+    function rnd() { return Math.random(); }
+    function pick(a) { return a[Math.floor(rnd() * a.length)]; }
     function computeSetup() {
-      keyName = currentLevel === 3 ? "G" : currentLevel === 5 ? "C" :
-        ({ "0": "C", "7": "G", "5": "F", "2": "D", "-5": "G" })[String(transposeSemis)] || "C";
-      const pool = LEVELS[currentLevel].runnerNotes.map(function (n) {
-        const m = String(n.key).match(/^([a-g])[#b]?\/(\d+)$/i);
-        return m ? parseInt(m[2], 10) * 7 + LETTERS.indexOf(m[1].toLowerCase()) : 32;
-      });
-      let lo = Math.min.apply(null, pool), hi = Math.max.apply(null, pool);
-      while (lo < 28 && hi + 7 <= 40) { lo += 7; hi += 7; }
-      lo = Math.max(28, lo); hi = Math.min(40, hi);
-      if (hi - lo < 4) hi = Math.min(40, lo + 4);
-      if (hi - lo < 4) lo = hi - 4;
-      setup = { key: keyName, lo: lo, hi: hi, tonic: LETTERS.indexOf(keyName.charAt(0).toLowerCase()) };
-      gen = Melody.create({ lo: lo, hi: hi, tonic: setup.tonic });
-      queue = [];
+      const L = RUNNER_LEVELS[level];
+      keyName = L.keys.indexOf(keyPref) !== -1 ? keyPref : L.keys[0];
+      setup = { key: keyName, lo: L.lo, hi: L.hi, tonic: LETTERS.indexOf(keyName.charAt(0).toLowerCase()), level: level };
+      gen = Melody.create({ lo: L.lo, hi: L.hi, tonic: setup.tonic });
+      pend = []; altered = {};
     }
-    function noteFromIdx(idx, dur, end) {
-      const letter = LETTERS.charAt(idx % 7), oct = Math.floor(idx / 7);
-      const acc = (KEY_ACC[keyName] || {})[letter] || 0;
-      return { key: letter + "/" + oct, letter: letter.toUpperCase(), midi: (oct + 1) * 12 + STEP_SEMI[idx % 7] + acc,
-        dur: dur || 1, end: !!end, space: Q * (dur > 1 ? 1.5 : 1) + (end ? BREATH : 0) };
-    }
-    let forced = []; /* test hook: deterministic note sequence */
-    function spawnNote(x) {
-      if (!setup) computeSetup();
-      let n;
-      if (forced.length) {
-        const k = runnerKey(forced.shift());
-        n = noteFromIdx(parseInt(k.split("/")[1], 10) * 7 + LETTERS.indexOf(k.charAt(0)), 1, false);
-      } else {
-        if (!queue.length) queue = gen.nextPhrase().notes.slice();
-        const q = queue.shift();
-        n = noteFromIdx(q.idx, q.dur, q.end);
+    /* one two-bar phrase of rhythm (4/4), cadence cell last */
+    function phraseRhythm(L) {
+      for (let tries = 0; tries < 400; tries++) {
+        const cad = pick(L.cad), cadLen = CELLS[cad].reduce(function (a, c) { return a + c[0]; }, 0);
+        const cells = []; let beat = 0, rests = 0, guard = 0;
+        while (beat < 8 - cadLen && guard++ < 50) {
+          const c = pick(L.cells), len = CELLS[c].reduce(function (a, x) { return a + x[0]; }, 0);
+          if (beat + len > 8 - cadLen) continue;
+          if (len >= 2 && (beat % 2) !== 0) continue;               /* two-beat figures start on beat 1 or 3 */
+          if (c === "qr" && (rests || beat === 0)) continue;         /* at most one rest, never first */
+          if (c === "qr") rests++;
+          cells.push(c); beat += len;
+        }
+        if (beat !== 8 - cadLen) continue;
+        cells.push(cad);
+        const els = []; let t = 0, beamNo = 0;
+        cells.forEach(function (c) {
+          const bid = "b" + (++uid);
+          beamNo++;
+          CELLS[c].forEach(function (x) {
+            els.push({ dur: x[0], code: x[1], dots: x[2] || 0, beam: x[3] ? bid : null, rest: !!x[4], at: t });
+            t += x[0];
+          });
+        });
+        /* bar lines after beat 4 and 8 */
+        els.forEach(function (e) { const end = e.at + e.dur; e.barAfter = Math.abs(end - 4) < 1e-6 || Math.abs(end - 8) < 1e-6; });
+        /* a tie over the bar line (higher levels) */
+        if (L.tie && rnd() < L.tie) {
+          const i = els.findIndex(function (e) { return Math.abs(e.at + e.dur - 4) < 1e-6; });
+          if (i >= 0 && !els[i].rest && els[i + 1] && !els[i + 1].rest && i + 1 < els.length - 1) els[i + 1].tieFrom = true;
+        }
+        const onsets = els.filter(function (e) { return !e.rest && !e.tieFrom; }).length;
+        if (onsets % 2 === 0 && onsets >= 6 && onsets <= 10) return els;
       }
-      n.x = x; n.answered = false;
-      return n;
+      const els = []; for (let i = 0; i < 8; i++) els.push({ dur: 1, code: "q", dots: 0, beam: null, rest: false, at: i, barAfter: i === 3 || i === 7 });
+      return els;
     }
-    function lastNote() { return notes.reduce(function (m, n) { return !m || n.x > m.x ? n : m; }, null); }
-    function drawFrame() {
+    function degOf(idx) { return (((idx - setup.tonic) % 7) + 7) % 7; }
+    function makeNote(e, idx, alter) {
+      const l = LETTERS.charAt(idx % 7), oct = Math.floor(idx / 7);
+      const kacc = (KEY_ACC[keyName] || {})[l] || 0;
+      e.idx = idx; e.alter = alter || 0;
+      e.key = l + "/" + oct; e.letter = l.toUpperCase();
+      e.midi = (oct + 1) * 12 + STEP_SEMI[idx % 7] + kacc + e.alter;
+      e.kacc = kacc;
+      return e;
+    }
+    function nextPhraseEls() {
+      const L = RUNNER_LEVELS[level];
+      const els = phraseRhythm(L);
+      const onsetEls = els.filter(function (e) { return !e.rest && !e.tieFrom; });
+      const ph = gen.nextPhrase(onsetEls.length / 2).notes;
+      const idxs = ph.map(function (n) { return n.idx; });
+      /* chromatic colour at higher levels, only where it resolves by step: #4->5, b7->6, #1->2 */
+      const alters = idxs.map(function () { return 0; });
+      /* compound melody: a note's own voice is two notes back / ahead, so resolve there (or right after) */
+      const semi = function (idx, alt) { return Math.floor(idx / 7) * 12 + STEP_SEMI[idx % 7] + ((KEY_ACC[keyName] || {})[LETTERS.charAt(idx % 7)] || 0) + (alt || 0); };
+      if (L.acc) for (let i = 1; i < idxs.length - 1; i++) {
+        const x = idxs[i], d = degOf(x);
+        if (alters[i - 1] || (i > 1 && alters[i - 2])) continue;
+        const res = [idxs[i + 1], idxs[i + 2]];
+        let a = 0;
+        const up = res.indexOf(x + 1) !== -1, down = res.indexOf(x - 1) !== -1;
+        if (up && (d === 3 || d === 4)) a = 1;                          /* #4 -> 5, #5 -> 6 */
+        else if (down && d === 6) a = -1;                               /* b7 -> 6 */
+        else if (level >= 5 && up && (d === 0 || d === 1)) a = 1;       /* #1 -> 2, #2 -> 3 */
+        else if (level >= 5 && down && d === 2) a = -1;                 /* b3 -> 2 */
+        if (!a || rnd() >= L.acc) continue;
+        /* no tritone or augmented 2nd against the notes either side in the line */
+        const me = semi(x, a);
+        const bad = [idxs[i - 1], idxs[i + 1]].some(function (y) {
+          const dd = Math.abs(me - semi(y, 0)), steps = Math.abs(x - y);
+          return dd % 12 === 6 || (steps === 1 && dd === 3) || (steps === 0 && false);
+        });
+        if (!bad) alters[i] = a;
+      }
+      let k = -1;
+      els.forEach(function (e) {
+        e.id = ++uid;
+        if (e.rest) { e.playable = false; return; }
+        if (!e.tieFrom) k++;
+        makeNote(e, idxs[k], alters[k]);
+        e.playable = !e.tieFrom;
+      });
+      els[els.length - 1].end = true;
+      /* a beam across a wide leap (two voices far apart) engraves with absurd stems: use flags instead */
+      const groups = {};
+      els.forEach(function (e) { if (e.beam) (groups[e.beam] = groups[e.beam] || []).push(e); });
+      Object.keys(groups).forEach(function (k) {
+        const g = groups[k].filter(function (e) { return !e.rest; }).map(function (e) { return e.idx; });
+        if (Math.max.apply(null, g) - Math.min.apply(null, g) > 7) groups[k].forEach(function (e) { e.beam = null; });
+      });
+      return els;
+    }
+    /* accidental signs: altered notes, plus a courtesy sign on the next same-letter note */
+    function signFor(e) {
+      if (e.rest) return;
+      Object.keys(altered).forEach(function (l) { if (--altered[l] <= 0) delete altered[l]; });
+      if (e.tieFrom) return;
+      const l = e.key.charAt(0);
+      if (e.alter) { e.sign = SIGN[String(e.kacc + e.alter)]; altered[l] = 7; }
+      else if (altered[l]) { e.sign = SIGN[String(e.kacc)]; delete altered[l]; }
+    }
+    let forced = [];
+    function refill() {
+      while (pend.length < 2) {
+        if (forced.length) {
+          const k = runnerKey(forced.shift());
+          const e = { id: ++uid, dur: 1, code: "q", dots: 0, beam: null, rest: false, playable: true };
+          makeNote(e, parseInt(k.split("/")[1], 10) * 7 + LETTERS.indexOf(k.charAt(0)), 0);
+          pend.push(e);
+        } else pend = pend.concat(nextPhraseEls());
+      }
+    }
+    function pushNext() {
+      if (!setup) computeSetup();
+      refill();
+      const e = pend.shift();
+      const last = notes[notes.length - 1];
+      if (last) {
+        last.space = Q * SP(last.dur) + (last.end ? BREATH : 0) + (last.barAfter ? BARW : 0);
+        e.b = last.b + last.dur;
+        e.s = last.s + last.space;
+      } else { e.b = 0; e.s = 0; }
+      signFor(e);
+      if (e.sign && last) e.s += ACCW; /* room for the accidental */
+      e.answered = !e.playable;
+      notes.push(e);
+      return e;
+    }
+    /* strip x of the playhead: notes are spaced by duration, so interpolate between onsets */
+    function posAt(beat) {
+      if (!notes.length) return 0;
+      if (beat <= notes[0].b) return notes[0].s + (beat - notes[0].b) * Q;
+      for (let i = 0; i < notes.length - 1; i++) {
+        const a = notes[i], c = notes[i + 1];
+        if (beat < c.b) return a.s + (beat - a.b) / (c.b - a.b) * (c.s - a.s);
+      }
+      const z = notes[notes.length - 1];
+      return z.s + (beat - z.b) * Q;
+    }
+    function screenX(e, P) { return hitX + e.s - P; }
+    function nextTarget() { for (let i = 0; i < notes.length; i++) if (notes[i].playable && !notes[i].answered) return notes[i]; return null; }
+    function ensureAhead() {
+      const P = posAt(B);
+      let guard = 0;
+      while (guard++ < 200) {
+        const last = notes[notes.length - 1];
+        const ahead = notes.filter(function (n) { return n.playable && !n.answered; }).length;
+        if (last && last.s - P > runW - hitX + Q * 2 && ahead >= 3 && last.b > B + 1) break;
+        pushNext();
+      }
+    }
+    function cull() {
+      while (notes.length > 2 && notes[1].b + notes[1].dur < B - 0.01 && screenX(notes[1], posAt(B)) < hitX - 60 && notes[0].answered && notes[1].answered) notes.shift();
+    }
+
+    /* ---- drawing: static stave once, notes engraved by VexFlow into a strip that slides ---- */
+    const NS = "http://www.w3.org/2000/svg";
+    function drawStatic() {
       const host = document.getElementById("sr-runner-vf");
       if (!host) return;
       host.innerHTML = "";
       const stageEl = document.getElementById("sr-runner-stage");
       const stageW = Math.max(280, (stageEl && stageEl.clientWidth) || host.clientWidth || 320);
       const stageH = Math.max(140, (stageEl && stageEl.clientHeight) || 178);
-      const vbHGuess = 96; /* a little zoomed out: room to read ahead on phones */
+      const vbHGuess = 128; /* zoomed out: room to read ahead, plus stems and ledger lines */
       const width = Math.max(152, Math.round(stageW * vbHGuess / stageH));
-      const paintH = 160;
       const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
-      renderer.resize(width, paintH);
-      const ctx = renderer.getContext();
-      const stave = new VF.Stave(4, 36, width - 8);
+      renderer.resize(width, 170);
+      vfCtx = renderer.getContext();
+      stave = new VF.Stave(4, 40, width - 8);
       stave.addClef("treble");
       if (setup && setup.key !== "C") { try { stave.addKeySignature(setup.key); } catch (e) {} }
-      stave.setContext(ctx).draw();
-      const svg = host.querySelector("svg");
-      if (!svg) return;
+      stave.setContext(vfCtx).draw();
+      svgEl = host.querySelector("svg");
+      if (!svgEl) return;
       staffTop = stave.getYForLine(0);
       gap = stave.getYForLine(1) - stave.getYForLine(0);
       const yBot = stave.getYForLine(4);
-      const pad = gap * 2.8;
-      const vbY = staffTop - pad;
-      const vbH = (yBot - staffTop) + pad * 2;
+      const pad = gap * 3.1;
       runW = width;
-      /* gold line sits just clear of the clef so a waiting note never overlaps it */
-      hitX = Math.max(36, stave.getNoteStartX() + gap * 1.2, width * 0.18);
-      /* keep the gold line exactly where notes are scored */
+      hitX = Math.max(36, stave.getNoteStartX() + gap * 1.6, width * 0.18);
+      const stageEl2 = stageEl;
       const pct = (100 * hitX / width).toFixed(3) + "%";
-      const lineEl = stageEl && stageEl.querySelector(".sr-hit-line");
-      const labelEl = stageEl && stageEl.querySelector(".sr-hit-label");
+      const lineEl = stageEl2 && stageEl2.querySelector(".sr-hit-line");
+      const labelEl = stageEl2 && stageEl2.querySelector(".sr-hit-label");
       if (lineEl && lineEl.style.left !== pct) { lineEl.style.left = pct; lineEl.style.marginLeft = "-1px"; }
       if (labelEl && labelEl.style.left !== pct) labelEl.style.left = pct;
-      svg.setAttribute("viewBox", "0 " + vbY + " " + width + " " + vbH);
-      svg.setAttribute("preserveAspectRatio", "xMinYMid meet");
-      svg.style.width = "100%";
-      svg.style.height = "100%";
-      svg.style.display = "block";
-      svg.querySelectorAll(".vf-stave").forEach(function (g) {
-        g.setAttribute("stroke", "#2c2416");
-        g.setAttribute("fill", "#2c2416");
-      });
-      svg.querySelectorAll(".vf-stave path").forEach(function (p) {
-        p.setAttribute("stroke", "#2c2416");
-        p.setAttribute("stroke-width", "1.15");
-        p.setAttribute("fill", "none");
-      });
-      svg.querySelectorAll(".vf-clef path").forEach(function (p) {
-        p.setAttribute("fill", "#2c2416");
-      });
-      const headRx = gap * 0.55;
-      const headRy = gap * 0.40;
-      const hotSlop = Math.max(12, width * 0.08);
-      const NS = "http://www.w3.org/2000/svg";
-      notes.forEach(function (pn) {
-        const line = staffYForKey(pn.key);
-        const y = staffTop + line * gap;
-        const x = pn.x;
-        if (x < hitX - 8) return;
-        const hot = playing && !pn.answered && Math.abs(x - hitX) < hotSlop;
-        const g = document.createElementNS(NS, "g");
-        g.setAttribute("class", "sr-run-note");
-        const ledgers = [];
-        for (let k = 5; k <= line; k++) ledgers.push(k);
-        for (let k = -1; k >= line; k--) ledgers.push(k);
-        ledgers.forEach(function (k) {
-          const led = document.createElementNS(NS, "line");
-          const ly = staffTop + k * gap;
-          led.setAttribute("x1", x - headRx * 1.55);
-          led.setAttribute("x2", x + headRx * 1.55);
-          led.setAttribute("y1", ly);
-          led.setAttribute("y2", ly);
-          led.setAttribute("stroke", "#2c2416");
-          led.setAttribute("stroke-width", "1.15");
-          g.appendChild(led);
-        });
-        if (hot) {
-          const glow = document.createElementNS(NS, "circle");
-          glow.setAttribute("cx", x);
-          glow.setAttribute("cy", y);
-          glow.setAttribute("r", String(headRx * 1.85));
-          glow.setAttribute("fill", "rgba(139,105,20,0.22)");
-          g.appendChild(glow);
-          pn._hot = true;
-        } else pn._hot = false;
-        const head = document.createElementNS(NS, "ellipse");
-        head.setAttribute("cx", x);
-        head.setAttribute("cy", y);
-        head.setAttribute("rx", String(headRx));
-        head.setAttribute("ry", String(headRy));
-        head.setAttribute("transform", "rotate(-20 " + x + " " + y + ")");
-        const flashing = pn.wrongUntil && pn.wrongUntil > performance.now();
-        head.setAttribute("fill", flashing ? "#b3361f" : (hot ? "#8b6914" : "#2c2416"));
-        if (flashing) head.setAttribute("class", "sr-wrong");
-        g.appendChild(head);
-        svg.appendChild(g);
-      });
+      svgEl.setAttribute("viewBox", "0 " + (staffTop - pad) + " " + width + " " + ((yBot - staffTop) + pad * 2));
+      svgEl.setAttribute("preserveAspectRatio", "xMinYMid meet");
+      svgEl.style.width = "100%"; svgEl.style.height = "100%"; svgEl.style.display = "block";
+      svgEl.querySelectorAll(".vf-stave path").forEach(function (p) { p.setAttribute("stroke", "#2c2416"); p.setAttribute("stroke-width", "1.15"); p.setAttribute("fill", "none"); });
+      svgEl.querySelectorAll(".vf-clef path, .vf-keysignature path").forEach(function (p) { p.setAttribute("fill", "#2c2416"); });
+      /* notes are clipped just left of the gold line so they never run over the clef */
+      const defs = document.createElementNS(NS, "defs");
+      const cp = document.createElementNS(NS, "clipPath"); cp.setAttribute("id", "sr-run-clip");
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", String(hitX - gap * 0.95)); r.setAttribute("y", String(staffTop - pad * 2));
+      r.setAttribute("width", String(width)); r.setAttribute("height", String((yBot - staffTop) + pad * 4));
+      cp.appendChild(r); defs.appendChild(cp); svgEl.appendChild(defs);
+      outerG = document.createElementNS(NS, "g"); outerG.setAttribute("clip-path", "url(#sr-run-clip)");
+      outerG.setAttribute("class", "sr-strip-clip");
+      svgEl.appendChild(outerG);
+      innerG = null; winKey = "";
     }
+    function windowEls(P) {
+      const lo = hitX - gap * 3, hi = runW + gap * 4;
+      let a = -1, z = -1;
+      notes.forEach(function (e, i) { const x = screenX(e, P); if (x >= lo && x <= hi) { if (a < 0) a = i; z = i; } });
+      if (a < 0) return [];
+      /* whole beam groups and both ends of a tie */
+      while (a > 0 && ((notes[a].beam && notes[a - 1].beam === notes[a].beam) || notes[a].tieFrom)) a--;
+      while (z < notes.length - 1 && ((notes[z].beam && notes[z + 1].beam === notes[z].beam) || notes[z + 1].tieFrom)) z++;
+      return notes.slice(a, z + 1);
+    }
+    function renderStrip(els) {
+      if (!svgEl || !outerG) return;
+      if (innerG) innerG.remove();
+      innerG = document.createElementNS(NS, "g"); innerG.setAttribute("class", "sr-strip");
+      outerG.appendChild(innerG);
+      glow = document.createElementNS(NS, "ellipse");
+      glow.setAttribute("rx", String(gap * 1.05)); glow.setAttribute("ry", String(gap * 0.85));
+      glow.setAttribute("fill", "rgba(139,105,20,0.22)"); glow.setAttribute("visibility", "hidden");
+      innerG.appendChild(glow);
+      const before = svgEl.childNodes.length;
+      vfCtx.setFillStyle("#2c2416"); vfCtx.setStrokeStyle("#2c2416");
+      const headW = gap * 1.18;
+      const sns = els.map(function (e) {
+        const sn = new VF.StaveNote({ clef: "treble", keys: [e.rest ? "b/4" : e.key], duration: e.code + (e.rest ? "r" : ""), dots: e.dots || 0, auto_stem: true });
+        if (e.dots) VF.Dot.buildAndAttach([sn], { all: true });
+        if (e.sign) sn.addModifier(new VF.Accidental(e.sign), 0);
+        sn.setStave(stave);
+        const mc = new VF.ModifierContext(); sn.addToModifierContext(mc);
+        const tc = new VF.TickContext(); tc.addTickable(sn); tc.preFormat();
+        tc.setX(0);
+        let c0 = 0;
+        try { c0 = (sn.getNoteHeadBeginX() + sn.getNoteHeadEndX()) / 2; } catch (err) { c0 = stave.getNoteStartX() + headW / 2; }
+        tc.setX(e.s - c0); /* notehead centre sits exactly at the note's strip x */
+        sn.setContext(vfCtx);
+        e._sn = sn;
+        return sn;
+      });
+      const beams = [], groups = {};
+      els.forEach(function (e, i) { if (e.beam) (groups[e.beam] = groups[e.beam] || []).push(sns[i]); });
+      Object.keys(groups).forEach(function (k) { if (groups[k].length > 1) { try { beams.push(new VF.Beam(groups[k], true)); } catch (err) {} } });
+      sns.forEach(function (sn, i) {
+        sn.draw();
+        const e = els[i];
+        let el = null;
+        try { el = sn.getSVGElement ? sn.getSVGElement() : null; } catch (err) {}
+        e._el = el;
+        if (el) { el.classList.add("sr-rn"); el.setAttribute("data-id", String(e.id)); }
+        try { e.hx = (sn.getNoteHeadBeginX() + sn.getNoteHeadEndX()) / 2; e.hy = sn.getYs()[0]; } catch (err) { e.hx = e.s; e.hy = staffTop + staffYForKey(e.key || "b/4") * gap; }
+      });
+      beams.forEach(function (bm) { bm.setContext(vfCtx).draw(); });
+      els.forEach(function (e, i) {
+        if (e.tieFrom && i > 0 && els[i - 1]._sn) {
+          try { new VF.StaveTie({ first_note: els[i - 1]._sn, last_note: e._sn, first_indices: [0], last_indices: [0] }).setContext(vfCtx).draw(); } catch (err) {}
+        }
+      });
+      /* bar lines */
+      els.forEach(function (e, i) {
+        if (!e.barAfter) return;
+        const nx = notes[notes.indexOf(e) + 1];
+        const x = nx ? nx.s - (nx.sign ? ACCW : 0) - gap * 1.25 : e.s + Q;
+        const ln = document.createElementNS(NS, "line");
+        ln.setAttribute("x1", x); ln.setAttribute("x2", x);
+        ln.setAttribute("y1", staffTop); ln.setAttribute("y2", staffTop + 4 * gap);
+        ln.setAttribute("stroke", "#2c2416"); ln.setAttribute("stroke-width", "1.1"); ln.setAttribute("class", "sr-bar");
+        svgEl.appendChild(ln);
+      });
+      const added = Array.prototype.slice.call(svgEl.childNodes, before);
+      added.forEach(function (n) { innerG.appendChild(n); });
+    }
+    function place(force) {
+      if (!svgEl) drawStatic();
+      if (!svgEl) return;
+      const P = posAt(B);
+      const els = windowEls(P);
+      const key = els.length ? els[0].id + ":" + els[els.length - 1].id : "";
+      if (force === "redraw" || key !== winKey || !innerG) { renderStrip(els); winKey = key; }
+      innerG.setAttribute("transform", "translate(" + (hitX - P).toFixed(2) + ",0)");
+      const t = nextTarget();
+      const hotSlop = Math.max(12, runW * 0.08);
+      const now = performance.now();
+      let hotE = null;
+      els.forEach(function (e) {
+        if (!e._el) return;
+        const hot = playing && e === t && Math.abs(screenX(e, P) - hitX) < hotSlop;
+        if (hot) hotE = e;
+        e._hot = hot;
+        e._el.classList.toggle("hot", hot);
+        e._el.classList.toggle("wrong", !!(e.wrongUntil && e.wrongUntil > now));
+        e._el.classList.toggle("done", e.playable && e.answered && !e.missed);
+        e._el.classList.toggle("missed", !!e.missed && e.answered && !waitMode);
+      });
+      if (glow) {
+        if (hotE) { glow.setAttribute("cx", hotE.hx); glow.setAttribute("cy", hotE.hy); glow.setAttribute("visibility", "visible"); }
+        else glow.setAttribute("visibility", "hidden");
+      }
+    }
+    function drawFrame() { place(); }
 
     function setWaitMode(on) {
       waitMode = !!on;
@@ -7168,11 +6743,11 @@ const bridge = window.__scalesNotes;
       if (wt) { wt.setAttribute("aria-checked", String(waitMode)); wt.classList.toggle("on", waitMode); }
       const hint = document.getElementById("sr-runner-hint");
       if (hint) hint.textContent = waitMode
-        ? "Each note waits at the gold line until you play it · a wrong note costs a heart · it speeds up as you go"
-        : "Play each note before it crosses the gold line · a miss costs a heart · it speeds up as you go";
+        ? "Each note waits at the gold line until you play it · a wrong note costs a heart · +2 BPM every 5 correct"
+        : "Play each note as it reaches the gold line · a miss costs a heart · +2 BPM every 5 correct";
       const sp = document.getElementById("sr-runner-speed");
       const spTxt = String(Math.round(speed));
-      if (sp.textContent !== spTxt) {
+      if (sp && sp.textContent !== spTxt) {
         const up = +spTxt > +sp.textContent;
         sp.textContent = spTxt;
         const pill = sp.closest(".sr-speed-pill");
@@ -7182,8 +6757,36 @@ const bridge = window.__scalesNotes;
       renderHearts();
       const btn = document.getElementById("sr-runner-toggle");
       if (btn) btn.textContent = (playing || counting) ? "Pause" : "Play";
+      renderPicker();
     }
-    /* Hearts always mirror `lives`: one span per heart, a lost one is an empty outline. */
+    function renderPicker() {
+      document.querySelectorAll("#sr-runner-levels .sr-chip").forEach(function (c) {
+        const on = +c.dataset.level === level;
+        c.classList.toggle("active", on); c.setAttribute("aria-pressed", String(on));
+      });
+      const sel = document.getElementById("sr-runner-key");
+      const keys = RUNNER_LEVELS[level].keys;
+      const k = keys.indexOf(keyPref) !== -1 ? keyPref : keys[0];
+      if (sel) {
+        const want = keys.join(",");
+        if (sel.dataset.keys !== want) {
+          sel.innerHTML = "";
+          keys.forEach(function (kk) { const o = document.createElement("option"); o.value = kk; o.textContent = KEY_LABEL[kk] + " major"; sel.appendChild(o); });
+          sel.dataset.keys = want;
+        }
+        sel.value = k;
+        sel.disabled = keys.length < 2;
+      }
+      const meta = document.getElementById("sr-runner-meta");
+      if (meta) meta.textContent = "Level " + level + " · " + KEY_LABEL[k] + " major · " + RUNNER_LEVELS[level].name;
+    }
+    function setLevel(lv, key) {
+      if (!RUNNER_LEVELS[lv]) return;
+      level = lv;
+      if (key) keyPref = key;
+      try { localStorage.setItem(RUN_KEY, JSON.stringify({ level: level, key: keyPref })); } catch (e) {}
+      resetVisual();
+    }
     function renderHearts(justLost) {
       const el = document.getElementById("sr-runner-hearts");
       if (!el) return;
@@ -7215,55 +6818,42 @@ const bridge = window.__scalesNotes;
       playing = false; over = true;
       cancelAnimationFrame(raf);
       const ov = document.getElementById("sr-runner-over");
-      if (ov) { ov.innerHTML = '<span class="sr-over-title">Out of hearts</span><span class="sr-over-sub">' + correct + " notes · top speed " + Math.round(speed) + " · tap Play for a new run</span>"; ov.hidden = false; }
+      if (ov) { ov.innerHTML = '<span class="sr-over-title">Out of hearts</span><span class="sr-over-sub">' + correct + " notes · top speed " + Math.round(topSpeed) + " BPM · tap Play for a new run</span>"; ov.hidden = false; }
       syncHud();
     }
-    function target() {
-      let best = null, bestDist = 1e9;
-      notes.forEach(function (n) {
-        if (n.answered) return;
-        const d = n.x - hitX;
-        if (d > -20 && d < bestDist) { bestDist = d; best = n; }
-      });
-      return best;
-    }
-    /* input: { letter, midi? } — midi is exact pitch (MIDI keyboard or mic).
-       Callers deliver one input per fresh note-on (MIDI note-on, mic onset, button tap). */
+    /* input: { letter, midi? }. With a pitch (mic / MIDI): "exact octave" compares the pitch,
+       "letter only" compares the pitch class (so B♭ heard as A♯ still counts). Buttons compare the letter. */
     function answerNote(input) {
-      if (!playing) return; /* ignores the count-in too */
-      const t = target();
+      if (!playing) return;
+      const t = nextTarget();
       if (!t) return;
-      const letter = input.letter;
       const mode = document.getElementById("sr-runner-match").value;
-      let ok = letter === t.letter;
-      if (ok && mode === "exact" && input.midi != null && t.midi != null) ok = input.midi === t.midi;
+      let ok;
+      if (input.midi != null && t.midi != null) ok = mode === "exact" ? input.midi === t.midi : ((input.midi - t.midi) % 12 + 12) % 12 === 0;
+      else ok = input.letter === t.letter;
+      const letter = input.letter;
       const now = performance.now();
       if (ok) {
         t.answered = true;
-        if (!t.missed) streak++; /* streak = first-try correct notes */
+        if (!t.missed) streak++;
         correct++; sinceSpeed++;
         updateStats(1, 0);
-        if (sinceSpeed >= RAMP_EVERY) { speed = Math.min(MAX_SPEED, speed + RAMP_STEP); sinceSpeed = 0; } /* steady ramp, wait mode too */
+        if (sinceSpeed >= RAMP_EVERY) { speed = Math.min(MAX_BPM, speed + RAMP_STEP); topSpeed = Math.max(topSpeed, speed); sinceSpeed = 0; }
         highlightLetter(document.getElementById("sr-runner-letters"), letter);
         lastWrong = { id: null, t: -1e9 };
       } else {
-        /* one wrong note-on = one heart: ignore a repeat of the same wrong pitch
-           (retrigger / mic hearing the playback) and near-simultaneous extras */
         const id = input.midi != null ? "m" + input.midi : "l" + letter;
         if ((id === lastWrong.id && now - lastWrong.t < 600) || now - lastWrong.t < 120) return;
         lastWrong = { id: id, t: now };
         streak = 0;
-        if (!waitMode) speed = Math.max(32, speed - 6);
         t.missed = true;
         t.wrongUntil = now + 380;
         updateStats(0, 1);
         highlightLetter(document.getElementById("sr-runner-letters"), letter);
-        document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) {
-          b.classList.toggle("bad", b.dataset.letter === letter);
-        });
+        document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) { b.classList.toggle("bad", b.dataset.letter === letter); });
         loseHeart();
-        drawFrame();
       }
+      place();
       clearTimeout(answerHlTimer);
       answerHlTimer = setTimeout(function () {
         document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) { b.classList.remove("bad"); });
@@ -7274,70 +6864,64 @@ const bridge = window.__scalesNotes;
     function answer(letter) { answerNote({ letter: letter }); }
     function tick() {
       if (!playing) return;
-      const ts = performance.now(); /* wall clock: rAF timestamps can lag (throttled/headless) */
+      const ts = performance.now();
       if (!lastTs) lastTs = ts;
       const dt = Math.min(0.05, (ts - lastTs) / 1000);
       lastTs = ts;
-      const pxPerSec = (speed / 60) * Q; /* speed = beats per minute */
-      let step = pxPerSec * dt;
+      let adv = (speed / 60) * dt; /* beats */
       if (waitMode) {
-        /* halt with the next unanswered note exactly on the gold line */
-        const next = notes.filter(function (n) { return !n.answered; }).sort(function (a, b) { return a.x - b.x; })[0];
-        /* playing ahead of the scroll: glide the next note in quickly instead of making you wait */
-        if (next && next.x - hitX > Q * 1.5) step = Math.max(step, (next.x - hitX - Q) * Math.min(1, dt * 4));
-        if (next) step = Math.max(0, Math.min(step, next.x - hitX));
-      }
-      notes.forEach(function (n) { n.x -= step; });
-      if (!waitMode) notes.forEach(function (n) {
-        /* missed once it slips past the line (must be < the cull at hitX - 12) */
-        if (!n.answered && n.x < hitX - 10) {
-          n.answered = true;
-          streak = 0; speed = Math.max(32, speed - 6);
-          updateStats(0, 1);
-          loseHeart();
-          syncHud();
+        const nx = nextTarget();
+        if (nx) {
+          if (nx.b - B > 1.5) adv = Math.max(adv, (nx.b - B - 1) * Math.min(1, dt * 4)); /* played ahead: glide */
+          adv = Math.max(0, Math.min(adv, nx.b - B));
         }
-      });
-      if (!playing) return; /* game over inside the miss check */
-      notes = notes.filter(function (n) { return n.x > hitX - 12; });
-      let ln = lastNote();
-      const ahead = function () { return notes.filter(function (n) { return !n.answered; }).length; };
-      /* keep the staff filled to the edge, and always a few unplayed notes queued (even off-screen) */
-      while (!ln || ln.x + ln.space < runW + Q || ahead() < 3) { notes.push(spawnNote(ln ? ln.x + ln.space : hitX + 36)); ln = lastNote(); }
-      drawFrame();
+      }
+      B += adv;
+      ensureAhead();
+      if (!waitMode) {
+        const P = posAt(B);
+        for (let i = 0; i < notes.length && playing; i++) {
+          const n = notes[i];
+          if (n.playable && !n.answered && screenX(n, P) < hitX - 10) {
+            n.answered = true; n.missed = true;
+            streak = 0;
+            updateStats(0, 1);
+            loseHeart();
+            syncHud();
+          }
+        }
+      }
+      if (!playing) { place(); return; }
+      cull();
+      place();
       raf = requestAnimationFrame(tick);
     }
-    function fillFrom(x0) {
-      let x = x0;
-      while (x < runW + Q) { const n = spawnNote(x); notes.push(n); x += n.space; }
-    }
-    function freshNotes() {
-      notes = [];
-      computeSetup(); /* key, range and a new melody for this run */
-      drawFrame(); /* sets hitX / runW for this stage size */
-      /* first note lands on the hit line one beat after the count-in */
-      fillFrom(hitX + Q);
+    function freshNotes(startBeat) {
+      notes = []; pend = [];
+      computeSetup();
+      drawStatic();
+      B = startBeat;
+      ensureAhead();
+      place("redraw");
     }
     function stop() {
       if (countHandle) { countHandle.cancel(); countHandle = null; }
       counting = false;
       playing = false;
       cancelAnimationFrame(raf);
-      drawFrame();
+      place();
       syncHud();
     }
     function start() {
       if (playing || counting) { stop(); return; }
-      const unlocked = SRAudio.unlock(); /* inside the tap (iOS) */
-      /* every Play is a new run: full hearts, starting speed */
-      lives = MAX_LIVES; streak = 0; correct = 0; sinceSpeed = 0; speed = BASE_SPEED; over = false;
+      const unlocked = SRAudio.unlock();
+      lives = MAX_LIVES; streak = 0; correct = 0; sinceSpeed = 0; speed = BASE_BPM; topSpeed = BASE_BPM; over = false;
       lastWrong = { id: null, t: -1e9 };
       const ov = document.getElementById("sr-runner-over"); if (ov) ov.hidden = true;
-      freshNotes();
+      freshNotes(-1); /* first note reaches the line one beat after the count-in */
       counting = true;
-      drawFrame();
       syncHud();
-      const beatSec = 60 / speed;
+      const beatSec = 60 / speed; /* count-in at the current BPM */
       unlocked.then(function () {
         if (!counting) return;
         countHandle = countIn(document.getElementById("sr-runner-countin"), beatSec, function () {
@@ -7352,23 +6936,27 @@ const bridge = window.__scalesNotes;
     }
     function resetVisual() {
       if (playing || counting) stop();
-      notes = [];
-      computeSetup();
-      drawFrame();
-      fillFrom(hitX + 6);
-      drawFrame();
+      freshNotes(-0.3);
       syncHud();
     }
     return {
       start: start, stop: stop, answer: answer, answerNote: answerNote, resetVisual: resetVisual, syncHud: syncHud,
+      setLevel: setLevel, getLevel: function () { return { level: level, key: keyName }; },
       isPlaying: function () { return playing; },
       isCounting: function () { return counting; },
       setWaitMode: setWaitMode, isWaitMode: function () { return waitMode; },
       _forceNotes: function (keys) { forced = (keys || []).slice(); },
       _hearts: function () { const el = document.getElementById("sr-runner-hearts"); return { full: el.querySelectorAll(".sr-heart:not(.lost)").length, total: el.querySelectorAll(".sr-heart").length, lives: lives, max: MAX_LIVES, over: over }; },
-      _setup: function () { return setup; }, _melody: Melody,
+      _setup: function () { return setup; }, _melody: Melody, _levels: RUNNER_LEVELS,
+      _consts: { BASE_BPM: BASE_BPM, MAX_BPM: MAX_BPM, RAMP_EVERY: RAMP_EVERY, RAMP_STEP: RAMP_STEP, Q: Q },
+      _phrase: function () { return nextPhraseEls().map(function (e) { return { dur: e.dur, code: e.code, dots: e.dots, rest: e.rest, tie: !!e.tieFrom, beam: e.beam, key: e.key, midi: e.midi, alter: e.alter || 0, bar: !!e.barAfter }; }); },
       _runnerKey: runnerKey, _staffY: staffYForKey,
-      _state: function () { return { playing: playing, counting: counting, streak: streak, lives: lives, correct: correct, over: over, hitX: hitX, notes: notes.map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: n.x, answered: n.answered, missed: !!n.missed }; }), waitMode: waitMode, speed: speed }; }
+      _state: function () {
+        const P = posAt(B);
+        return { playing: playing, counting: counting, streak: streak, lives: lives, correct: correct, over: over, hitX: hitX, beat: B, speed: speed, topSpeed: topSpeed, waitMode: waitMode, level: level, key: keyName,
+          notes: notes.filter(function (n) { return n.playable; }).map(function (n) { return { key: n.key, letter: n.letter, midi: n.midi, x: screenX(n, P), b: n.b, dur: n.dur, answered: n.answered, missed: !!n.missed, sign: n.sign || null }; }),
+          els: notes.map(function (n) { return { b: n.b, s: n.s, dur: n.dur, code: n.code, rest: n.rest, tie: !!n.tieFrom, x: screenX(n, P), playable: n.playable }; }) };
+      }
     };
   })();
 
@@ -7413,63 +7001,6 @@ const bridge = window.__scalesNotes;
       return (k.dataset.note || "").replace("#", "♯") === want;
     });
     if (exact) exact.classList.add("lit");
-  }
-
-  /* The current drill (level + key) is saved so a refresh, a hard reload or reopening
-     the site from a bookmark / home-screen icon comes back to the same drill. */
-  const DRILL_KEY = "pianoSkills.sightReading.drill";
-  const KEY_CYCLE = [0, 7, 5, 2, -5]; /* "New exercise": C, G, F, D, then G in the lower octave */
-  const KEY_NAME = { "0": "C", "7": "G", "5": "F", "2": "D", "-5": "G" };
-  function saveDrill() {
-    try { localStorage.setItem(DRILL_KEY, JSON.stringify({ level: currentLevel, semis: transposeSemis })); } catch (e) {}
-  }
-  function loadDrill() {
-    try {
-      const d = JSON.parse(localStorage.getItem(DRILL_KEY) || "null");
-      if (!d) return;
-      const lv = parseInt(d.level, 10), se = parseInt(d.semis, 10);
-      if (lv >= 1 && lv <= 5) currentLevel = lv;
-      if (KEY_CYCLE.indexOf(se) !== -1) transposeSemis = se;
-    } catch (e) {}
-  }
-  /* Done: L1 → L2 → L3 → L4 → L5, then back to L1 in the next key (C → G → F → D → C …) */
-  function nextDrill() {
-    if (currentLevel < 5) return { level: currentLevel + 1, semis: transposeSemis };
-    const keys = [0, 7, 5, 2];
-    const i = keys.indexOf(transposeSemis);
-    return { level: 1, semis: keys[(i + 1) % keys.length] };
-  }
-  let drillNoteTimer = 0;
-  function markDrillDone() {
-    const nx = nextDrill();
-    transposeSemis = nx.semis;
-    setLevel(nx.level);
-    const el = document.getElementById("sr-drill-note");
-    if (el) {
-      el.textContent = "✓ Done — on to Level " + nx.level + (nx.level === 1 || nx.level === 2 || nx.level === 4 ? " in " + KEY_NAME[String(nx.semis)] : "") + ".";
-      clearTimeout(drillNoteTimer);
-      drillNoteTimer = setTimeout(function () { el.textContent = ""; }, 4000);
-    }
-    const card = document.getElementById("sr-daily-drill");
-    if (card && card.getBoundingClientRect().top < 0) card.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function setLevel(lv) {
-    currentLevel = lv;
-    LEVELS = buildLevels(currentLevel === 3 ? 0 : transposeSemis);
-    saveDrill();
-    const level = LEVELS[lv];
-    const keyed = (lv === 1 || lv === 2 || lv === 4) && transposeSemis !== 0;
-    document.getElementById("sr-drill-meta").textContent = level.meta + (keyed ? " · in " + KEY_NAME[String(transposeSemis)] : "");
-    document.getElementById("sr-drill-source").textContent = level.source;
-    document.getElementById("sr-style-tag").textContent = level.style;
-    document.querySelectorAll("#sr-level-chips .sr-chip").forEach(function (c) {
-      c.classList.toggle("active", +c.dataset.level === lv);
-    });
-    stopDrill();
-    stopListen();
-    drawDrill();
-    Runner.resetVisual();
   }
 
   /* ---------- Pieces: learn section by section; small "Completed" list (not a drill log) ---------- */
@@ -7595,12 +7126,12 @@ const bridge = window.__scalesNotes;
     if (tabS) { tabS.classList.toggle("active", !isSight); tabS.setAttribute("aria-selected", String(!isSight)); }
     if (tabR) { tabR.classList.toggle("active", isSight); tabR.setAttribute("aria-selected", String(isSight)); }
     if (hint) hint.textContent = isSight
-      ? "Bach & Czerny graded drills · mic pitch · Note Runner"
+      ? "Note Runner · mic & MIDI keyboard · Pieces"
       : "Circle of fifths · all 24 scales · fingerings";
     try { localStorage.setItem(TAB_KEY, isSight ? "sight" : "scales"); } catch (e) {}
     if (isSight) {
       if (location.hash !== "#sight-reading") history.replaceState(null, "", "#sight-reading");
-      setLevel(currentLevel);
+      if (!Runner.isPlaying() && !Runner.isCounting()) Runner.resetVisual();
       renderStats();
       /* Circle "back" control is for Scales only — hide so it cannot sit as a gold speck over Sight */
       const toc = document.getElementById("to-cof");
@@ -7625,10 +7156,6 @@ const bridge = window.__scalesNotes;
     if (!el) return;
     el.textContent = text || "";
     el.className = cls || "";
-    if (id === "sr-mic-status") { /* the Daily drill shows the same mic status (prompt, hint, errors) */
-      const d = document.getElementById("sr-drill-mic-status");
-      if (d) { d.textContent = text || ""; d.className = "sr-drill-mic-status" + (cls ? " " + cls : ""); }
-    }
   }
   const MIC_MSG = {
     denied: isIOS()
@@ -7715,9 +7242,8 @@ const bridge = window.__scalesNotes;
       micQuietSince = 0;
       if (micHintShown) { micHintShown = false; setStatus("sr-mic-status", "Listening… play one note at a time.", "ok"); }
     }
-    if (Keys.suppressMic() || listening || listenCount || t < micQuietUntil) {
-      /* the MIDI keyboard is being played, or the page is playing the drill: ignore what the
-         mic hears, and don't let a tail answer later */
+    if (Keys.suppressMic()) {
+      /* the MIDI keyboard is being played: ignore what the mic hears, and don't let a tail answer later */
       micAns.mute(p, t);
       return;
     }
@@ -7737,7 +7263,6 @@ const bridge = window.__scalesNotes;
     if (!note) return;
     window.__srMicAnswers = (window.__srMicAnswers || 0) + 1;
     if (document.getElementById("panel-sight").hidden) return;
-    if (drillCheck) { drillHeard(note.midi, t); return; }
     if (Runner.isPlaying()) Runner.answerNote({ letter: note.letter, midi: note.midi });
   });
   let micHintShown = false;
@@ -7755,7 +7280,6 @@ const bridge = window.__scalesNotes;
       if (!Mic.isOn()) highlightLetter(document.getElementById("sr-runner-letters"), null);
     }, 450);
     if (document.getElementById("panel-sight").hidden) return;
-    if (drillCheck) { drillHeard(ev.midi, performance.now()); return; }
     if (Runner.isPlaying()) Runner.answerNote({ letter: note.letter, midi: ev.midi });
   });
   function renderKeysStatus(st) {
@@ -7824,24 +7348,11 @@ const bridge = window.__scalesNotes;
   function bind() {
     document.getElementById("tab-scales").addEventListener("click", function () { setTab("scales"); });
     document.getElementById("tab-sight").addEventListener("click", function () { setTab("sight"); });
-    document.querySelectorAll("#sr-level-chips .sr-chip").forEach(function (btn) {
-      btn.addEventListener("click", function () { setLevel(+btn.dataset.level); });
-    });
-    document.getElementById("sr-drill-tempo").addEventListener("input", function (e) {
-      document.getElementById("sr-drill-bpm").textContent = e.target.value;
-    });
-    document.getElementById("sr-drill-start").addEventListener("click", startDrill);
-    document.getElementById("sr-drill-done").addEventListener("click", markDrillDone);
-    document.getElementById("sr-drill-listen").addEventListener("click", listenDrill);
-    document.getElementById("sr-drill-mic").addEventListener("click", function () { toggleMic(this); });
     Pieces.init();
-    document.getElementById("sr-drill-new").addEventListener("click", function () {
-      if (currentLevel === 3) { setLevel(3); return; }
-      const idx = KEY_CYCLE.indexOf(transposeSemis);
-      transposeSemis = KEY_CYCLE[(idx + 1) % KEY_CYCLE.length];
-      LEVELS = buildLevels(transposeSemis);
-      setLevel(currentLevel);
+    document.querySelectorAll("#sr-runner-levels .sr-chip").forEach(function (btn) {
+      btn.addEventListener("click", function () { Runner.setLevel(+btn.dataset.level); });
     });
+    document.getElementById("sr-runner-key").addEventListener("change", function (e) { Runner.setLevel(Runner.getLevel().level, e.target.value); });
     document.querySelectorAll("#sr-runner-letters .sr-letter").forEach(function (b) {
       b.addEventListener("click", function () { Runner.answer(b.dataset.letter); });
     });
@@ -7869,16 +7380,12 @@ const bridge = window.__scalesNotes;
         const w = window.innerWidth;
         if (w === window.__srLastW) return;
         window.__srLastW = w;
-        if (drillPlaying) stopDrill();
-        stopListen();
-        drawDrill();
         if (!Runner.isPlaying() && !Runner.isCounting()) Runner.resetVisual();
       }, 150);
     });
   }
 
   function boot() {
-    loadDrill();
     bind();
     renderStats();
     watchMicPermission();
@@ -7890,7 +7397,7 @@ const bridge = window.__scalesNotes;
     try {
       /* #sight-reading opens Sight Reading; a scale link (#scale-…) opens Scales; with no hash
          (bookmark, home-screen icon, a browser that drops the fragment on reload) reopen the
-         tab Clint was last on, so the Daily drill doesn't vanish on refresh. */
+         tab Clint was last on. */
       if (location.hash === "#sight-reading") want = "sight";
       else if (!location.hash && localStorage.getItem(TAB_KEY) === "sight") want = "sight";
     } catch (e) {}
@@ -7900,7 +7407,7 @@ const bridge = window.__scalesNotes;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 
-  window.__srSetLevel = setLevel;
+  window.__srSetLevel = function (lv, key) { Runner.setLevel(lv, key); };
   window.__srSetTab = setTab;
   window.__srRunner = Runner;
 })();
