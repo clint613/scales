@@ -1817,11 +1817,16 @@ html { scroll-padding-top: 6.5rem; } /* things scrolled into view land below the
 }
 .sr-int-feedback.ok { color: #2a6b3a; }
 .sr-int-feedback.bad { color: #8a3b1f; }
-.sr-int-answers { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.65rem; }
-.sr-int-answers .sr-letter {
-  flex: 1 1 calc(25% - 0.35rem); aspect-ratio: auto; height: 2.7rem; font-size: 0.88rem;
+.sr-int-answers { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.65rem; }
+.sr-int-row-wrap { display: flex; flex-direction: column; gap: 0.22rem; }
+.sr-int-row { display: flex; gap: 0.28rem; }
+.sr-int-row .sr-letter {
+  flex: 1 1 0; aspect-ratio: auto; height: 2.45rem; font-size: 0.78rem;
+  padding: 0 0.15rem; min-width: 0;
 }
-.sr-int-answers .sr-letter[hidden] { display: none; }
+.sr-int-row .sr-letter[hidden] { display: none; }
+.sr-int-row .sr-letter.sel { background: var(--accent-pale); border-color: var(--accent); }
+.sr-int-row .sr-letter:disabled { opacity: 0.34; cursor: not-allowed; }
 
 .sr-mic-row {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem 0.85rem;
@@ -2241,14 +2246,29 @@ body.sr-sight-open header::after { display: none; }
         <div id="sr-int-staff" role="img" aria-label="Two notes on the staff"></div>
       </div>
       <p class="sr-int-feedback" id="sr-int-feedback" aria-live="polite">What is the interval?</p>
-      <div class="sr-int-answers" id="sr-int-answers" role="group" aria-label="Interval name">
-        <button type="button" class="sr-letter" data-int="2">2nd</button>
-        <button type="button" class="sr-letter" data-int="3">3rd</button>
-        <button type="button" class="sr-letter" data-int="4">4th</button>
-        <button type="button" class="sr-letter" data-int="5">5th</button>
-        <button type="button" class="sr-letter" data-int="6">6th</button>
-        <button type="button" class="sr-letter" data-int="7">7th</button>
-        <button type="button" class="sr-letter" data-int="8">Octave</button>
+      <div class="sr-int-answers" id="sr-int-answers">
+        <div class="sr-int-row-wrap">
+          <span class="sr-chip-label">Quality</span>
+          <div class="sr-int-row" id="sr-int-quality" role="group" aria-label="Interval quality">
+            <button type="button" class="sr-letter" data-quality="diminished">dim</button>
+            <button type="button" class="sr-letter" data-quality="minor">min</button>
+            <button type="button" class="sr-letter" data-quality="Perfect">Perf</button>
+            <button type="button" class="sr-letter" data-quality="Major">Maj</button>
+            <button type="button" class="sr-letter" data-quality="Augmented">Aug</button>
+          </div>
+        </div>
+        <div class="sr-int-row-wrap">
+          <span class="sr-chip-label">Interval</span>
+          <div class="sr-int-row" id="sr-int-generic" role="group" aria-label="Interval number">
+            <button type="button" class="sr-letter" data-int="2">2nd</button>
+            <button type="button" class="sr-letter" data-int="3">3rd</button>
+            <button type="button" class="sr-letter" data-int="4">4th</button>
+            <button type="button" class="sr-letter" data-int="5">5th</button>
+            <button type="button" class="sr-letter" data-int="6">6th</button>
+            <button type="button" class="sr-letter" data-int="7">7th</button>
+            <button type="button" class="sr-letter" data-int="8">Octave</button>
+          </div>
+        </div>
       </div>
       <div class="sr-controls">
         <button type="button" class="sr-btn secondary" id="sr-int-listen" title="Hear the two notes">▶ Listen</button>
@@ -7097,6 +7117,8 @@ const bridge = window.__scalesNotes;
   const INT_NUMS = { 1: "Unison", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th", 6: "6th", 7: "7th", 8: "Octave" };
   const INT_PERFECT = { 1: 0, 4: 5, 5: 7, 8: 12 };
   const INT_MAJOR = { 2: 2, 3: 4, 6: 9, 7: 11 };
+  const INT_QSHORT = { diminished: "dim", minor: "min", Perfect: "Perf", Major: "Maj", Augmented: "Aug" };
+  const INT_KEYISH = { "F#": 1, "C#": 1, "G#": 1, "Bb": 1, "Eb": 1, "Ab": 1 };
   function intTimes(n) { return n === 2 ? "doubly " : n === 3 ? "triply " : n === 4 ? "quadruply " : "×" + n + " "; }
   function makeNote(letter, acc, oct) {
     letter = String(letter || "C").charAt(0).toUpperCase();
@@ -7142,17 +7164,94 @@ const bridge = window.__scalesNotes;
     const short = generic === 8 ? "Octave" : (INT_NUMS[generic] || (generic === 1 ? "Unison" : generic + "th"));
     const full = (quality + " " + short).trim();
     const fromTo = a.name + " to " + b.name;
-    return { generic: generic, simple: simple, semitones: semitones, quality: quality, short: short, full: full, fromTo: fromTo, label: full + " · " + fromTo, odd: generic % 2 === 1 };
+    const simpleName = quality === "Perfect" || quality === "Augmented" || quality === "diminished" || quality === "Major" || quality === "minor";
+    return { generic: generic, simple: simple, semitones: semitones, quality: quality, short: short, full: full, fromTo: fromTo, label: full + " · " + fromTo, odd: generic % 2 === 1, simpleName: simpleName };
   }
+  function qualitySemitones(generic, quality) {
+    const simple = ((generic - 1) % 7) + 1;
+    const octaves = Math.floor((generic - 1) / 7);
+    let base = null;
+    if (INT_PERFECT[simple] != null) {
+      if (quality === "Perfect") base = INT_PERFECT[simple];
+      else if (quality === "Augmented") base = INT_PERFECT[simple] + 1;
+      else if (quality === "diminished") base = INT_PERFECT[simple] - 1;
+    } else if (INT_MAJOR[simple] != null) {
+      if (quality === "Major") base = INT_MAJOR[simple];
+      else if (quality === "minor") base = INT_MAJOR[simple] - 1;
+      else if (quality === "Augmented") base = INT_MAJOR[simple] + 1;
+      else if (quality === "diminished") base = INT_MAJOR[simple] - 2;
+    }
+    return base == null ? null : base + 12 * octaves;
+  }
+  function isValidCombo(quality, generic) { return qualitySemitones(+generic, quality) != null; }
+  function levelSets(level) {
+    if (level === 1) return { qualities: ["minor", "Perfect", "Major"], generics: [2, 3, 4, 5, 8] };
+    if (level === 2) return { qualities: ["minor", "Perfect", "Major"], generics: [2, 3, 4, 5, 6, 7, 8] };
+    return { qualities: ["diminished", "minor", "Perfect", "Major", "Augmented"], generics: [2, 3, 4, 5, 6, 7, 8] };
+  }
+  function allowedCombos(level) {
+    const s = levelSets(level), out = [];
+    s.qualities.forEach(function (q) {
+      s.generics.forEach(function (g) { if (isValidCombo(q, g)) out.push({ quality: q, generic: g }); });
+    });
+    return out;
+  }
+  function accOk(note, level) {
+    if (!note) return false;
+    if (!note.acc) return true;
+    if (level === 1) return !!INT_KEYISH[note.letter + note.acc];
+    if (level === 2) return note.acc === "#" || note.acc === "b";
+    return note.acc === "#" || note.acc === "b" || note.acc === "##" || note.acc === "bb";
+  }
+  function intPos(n) { return INT_LETTERS.indexOf(n.letter) + n.oct * 7; }
+  function fromPos(p) { return makeNote(INT_LETTERS[((p % 7) + 7) % 7], "", Math.floor(p / 7)); }
+  function alterNote(letter, oct, midi) {
+    const natural = makeNote(letter, "", oct);
+    const delta = midi - natural.midi;
+    const acc = delta === 0 ? "" : delta === 1 ? "#" : delta === 2 ? "##" : delta === -1 ? "b" : delta === -2 ? "bb" : null;
+    if (acc == null) return null;
+    return makeNote(letter, acc, oct);
+  }
+  function noteAfter(start, generic, quality, dir) {
+    const steps = (generic - 1) * dir;
+    const dest = fromPos(intPos(start) + steps);
+    const semi = qualitySemitones(generic, quality);
+    if (semi == null) return null;
+    return alterNote(dest.letter, dest.oct, start.midi + dir * semi);
+  }
+  function levelAllows(info, a, b, clef, level) {
+    const s = levelSets(level);
+    if (s.qualities.indexOf(info.quality) === -1 || s.generics.indexOf(info.generic) === -1) return false;
+    if (!isValidCombo(info.quality, info.generic)) return false;
+    if (info.semitones < 1) return false;
+    if (level === 1 && clef !== "treble") return false;
+    if (!accOk(a, level) || !accOk(b, level)) return false;
+    return true;
+  }
+
   const Intervals = (function () {
-    const L1 = [2, 3, 5, 8], ALL = [2, 3, 4, 5, 6, 7, 8];
     const RANGE = {
       trebleL1: [makeNote("E", "", 4), makeNote("F", "", 5)],
       treble: [makeNote("D", "", 4), makeNote("G", "", 5)],
       bass: [makeNote("G", "", 2), makeNote("A", "", 3)]
     };
-    function pos(n) { return INT_LETTERS.indexOf(n.letter) + n.oct * 7; }
-    function fromPos(p) { return makeNote(INT_LETTERS[((p % 7) + 7) % 7], "", Math.floor(p / 7)); }
+    function rangeOf(level, clef) {
+      return clef === "bass" ? RANGE.bass : (level === 1 ? RANGE.trebleL1 : RANGE.treble);
+    }
+    function startNotes(level, clef) {
+      const range = rangeOf(level, clef);
+      const lo = intPos(range[0]), hi = intPos(range[1]);
+      const accs = level >= 3 ? ["", "#", "b", "##", "bb"] : ["", "#", "b"];
+      const out = [];
+      for (let p = lo; p <= hi; p++) {
+        const nat = fromPos(p);
+        accs.forEach(function (acc) {
+          const n = makeNote(nat.letter, acc, nat.oct);
+          if (accOk(n, level)) out.push(n);
+        });
+      }
+      return out;
+    }
     function load() {
       try {
         const d = JSON.parse(localStorage.getItem(INT_KEY) || "null");
@@ -7163,9 +7262,8 @@ const bridge = window.__scalesNotes;
     let data = load();
     if (data.level !== 2 && data.level !== 3) data.level = 1;
     if (data.layout !== "harmonic") data.layout = "melodic";
-    let current = null, locked = false, nextTimer = 0, listenTimer = 0;
+    let current = null, locked = false, nextTimer = 0, listenTimer = 0, pickQ = null, pickG = null;
     function save() { try { localStorage.setItem(INT_KEY, JSON.stringify(data)); } catch (e) {} }
-    function allowed() { return data.level === 1 ? L1 : ALL; }
     function hud() {
       const st = document.getElementById("sr-int-streak");
       const ac = document.getElementById("sr-int-acc");
@@ -7176,7 +7274,7 @@ const bridge = window.__scalesNotes;
     function meta() {
       const el = document.getElementById("sr-int-meta");
       if (!el) return;
-      const clef = current ? current.clef : (data.level === 3 ? "treble or bass" : "treble");
+      const clef = current ? current.clef : (data.level === 1 ? "treble" : "treble or bass");
       el.textContent = "Level " + data.level + " · " + clef;
     }
     function syncChips() {
@@ -7186,11 +7284,29 @@ const bridge = window.__scalesNotes;
       document.querySelectorAll("#sr-int-layout .sr-chip").forEach(function (b) {
         b.classList.toggle("active", b.dataset.layout === data.layout);
       });
-      const allow = allowed();
-      document.querySelectorAll("#sr-int-answers .sr-letter").forEach(function (b) {
-        const on = allow.indexOf(+b.dataset.int) !== -1;
-        b.hidden = !on;
-        b.classList.remove("ok", "bad");
+      syncPicks();
+    }
+    function syncPicks() {
+      const allow = levelSets(data.level);
+      document.querySelectorAll("#sr-int-quality .sr-letter").forEach(function (b) {
+        const q = b.dataset.quality;
+        const visible = allow.qualities.indexOf(q) !== -1;
+        b.hidden = !visible;
+        const partnerOk = !pickG || isValidCombo(q, pickG);
+        b.disabled = locked || !visible || !partnerOk;
+        b.classList.toggle("sel", pickQ === q && !b.classList.contains("ok") && !b.classList.contains("bad"));
+        b.setAttribute("aria-pressed", String(pickQ === q));
+        if (!locked) b.classList.remove("ok", "bad");
+      });
+      document.querySelectorAll("#sr-int-generic .sr-letter").forEach(function (b) {
+        const g = +b.dataset.int;
+        const visible = allow.generics.indexOf(g) !== -1;
+        b.hidden = !visible;
+        const partnerOk = !pickQ || isValidCombo(pickQ, g);
+        b.disabled = locked || !visible || !partnerOk;
+        b.classList.toggle("sel", pickG === g && !b.classList.contains("ok") && !b.classList.contains("bad"));
+        b.setAttribute("aria-pressed", String(pickG === g));
+        if (!locked) b.classList.remove("ok", "bad");
       });
     }
     function feedback(text, cls) {
@@ -7201,30 +7317,49 @@ const bridge = window.__scalesNotes;
       if (cls) el.classList.add(cls);
     }
     function tipFor(info) {
-      return info.odd
-        ? "Line to line (or space to space) = odd interval: 3rd, 5th, 7th."
-        : "Line to space = even interval: 2nd, 4th, 6th, octave.";
+      const n = info.semitones;
+      return info.full + " = " + (n === 1 ? "1 half step" : n + " half steps") + ".";
+    }
+    function promptPicks() {
+      if (locked) return;
+      if (pickQ && pickG) return;
+      if (pickQ) feedback(pickQ + " — pick the number", "");
+      else if (pickG) feedback((INT_NUMS[pickG] || "") + " — pick the quality", "");
+      else feedback("What is the interval?", "");
+    }
+    function inRange(n, level, clef) {
+      const range = rangeOf(level, clef);
+      const p = intPos(n);
+      return p >= intPos(range[0]) && p <= intPos(range[1]);
     }
     function pickPair() {
-      const gens = allowed();
-      const useBass = data.level === 3 && Math.random() < 0.5;
-      const clef = useBass ? "bass" : "treble";
-      const range = useBass ? RANGE.bass : (data.level === 1 ? RANGE.trebleL1 : RANGE.treble);
-      const lo = pos(range[0]), hi = pos(range[1]);
-      for (let attempt = 0; attempt < 40; attempt++) {
-        const g = gens[Math.floor(Math.random() * gens.length)];
-        const steps = g - 1;
-        const maxStart = hi - steps;
-        if (maxStart < lo) continue;
-        const s = lo + Math.floor(Math.random() * (maxStart - lo + 1));
-        let a = fromPos(s), b = fromPos(s + steps);
-        if (data.layout === "melodic" && Math.random() < 0.5) { const t = a; a = b; b = t; }
-        const sig = clef + "|" + a.key + "|" + b.key;
-        if (current && current.sig === sig) continue;
-        return { a: a, b: b, clef: clef, info: nameInterval(a, b), sig: sig };
+      const level = data.level;
+      const all = allowedCombos(level);
+      let pool = all;
+      if (level === 3 && Math.random() < 0.5) {
+        const ad = all.filter(function (c) { return c.quality === "Augmented" || c.quality === "diminished"; });
+        if (ad.length) pool = ad;
       }
-      const a = fromPos(lo), b = fromPos(lo + (gens[0] - 1));
-      return { a: a, b: b, clef: clef, info: nameInterval(a, b), sig: clef + "|" + a.key + "|" + b.key };
+      const wantDouble = level === 3 && Math.random() < 0.2;
+      const clef = (level >= 2 && Math.random() < 0.5) ? "bass" : "treble";
+      const starts = startNotes(level, clef);
+      for (let attempt = 0; attempt < 80; attempt++) {
+        const combo = pool[Math.floor(Math.random() * pool.length)];
+        const start = starts[Math.floor(Math.random() * starts.length)];
+        const dir = data.layout === "harmonic" ? 1 : (Math.random() < 0.5 ? 1 : -1);
+        const dest = noteAfter(start, combo.generic, combo.quality, dir);
+        if (!dest || !accOk(dest, level) || !inRange(dest, level, clef) || dest.midi === start.midi) continue;
+        const hasDouble = start.acc === "##" || start.acc === "bb" || dest.acc === "##" || dest.acc === "bb";
+        if (wantDouble && !hasDouble && attempt < 50) continue;
+        if (!wantDouble && hasDouble && attempt < 60) continue;
+        const info = nameInterval(start, dest);
+        if (info.quality !== combo.quality || info.generic !== combo.generic || !levelAllows(info, start, dest, clef, level)) continue;
+        const sig = clef + "|" + start.key + "|" + dest.key;
+        if (current && current.sig === sig) continue;
+        return { a: start, b: dest, clef: clef, info: info, sig: sig };
+      }
+      const a = makeNote("C", "", 4), b = makeNote("E", "", 4);
+      return { a: a, b: b, clef: "treble", info: nameInterval(a, b), sig: "treble|c/4|e/4" };
     }
     function draw() {
       const host = document.getElementById("sr-int-staff");
@@ -7234,9 +7369,8 @@ const bridge = window.__scalesNotes;
       const avail = Math.max(200, (frame && frame.clientWidth) || host.clientWidth || 280);
       const harmonic = data.layout === "harmonic";
       const staffW = Math.min(avail - 4, harmonic ? 220 : 260);
-      const height = 150;
       const renderer = new VF.Renderer(host, VF.Renderer.Backends.SVG);
-      renderer.resize(avail, height);
+      renderer.resize(avail, 150);
       const ctx = renderer.getContext();
       const left = Math.max(0, Math.round((avail - staffW) / 2));
       const stave = new VF.Stave(left, 16, staffW);
@@ -7244,7 +7378,7 @@ const bridge = window.__scalesNotes;
       stave.setContext(ctx).draw();
       function accOn(sn, notes) {
         notes.forEach(function (n, i) {
-          if (n.sign) { try { sn.addModifier(new VF.Accidental(n.sign === "##" ? "##" : n.sign === "bb" ? "bb" : n.sign), i); } catch (e) {} }
+          if (n.sign) { try { sn.addModifier(new VF.Accidental(n.sign), i); } catch (e) {} }
         });
       }
       let ticks;
@@ -7263,10 +7397,11 @@ const bridge = window.__scalesNotes;
       try { VF.Formatter.FormatAndDraw(ctx, stave, ticks); } catch (e) { console.warn("[intervals] draw", e); }
     }
     function clearMarks() {
-      document.querySelectorAll("#sr-int-answers .sr-letter").forEach(function (b) { b.classList.remove("ok", "bad"); });
+      document.querySelectorAll("#sr-int-answers .sr-letter").forEach(function (b) { b.classList.remove("ok", "bad", "sel"); });
     }
     function next(preset) {
       locked = false;
+      pickQ = null; pickG = null;
       if (nextTimer) { clearTimeout(nextTimer); nextTimer = 0; }
       clearMarks();
       current = preset || pickPair();
@@ -7274,6 +7409,7 @@ const bridge = window.__scalesNotes;
       current.sig = current.clef + "|" + current.a.key + "|" + current.b.key;
       feedback("What is the interval?", "");
       meta();
+      syncPicks();
       draw();
       return current;
     }
@@ -7287,24 +7423,56 @@ const bridge = window.__scalesNotes;
       save(); syncChips();
       if (current) draw();
     }
-    function answer(generic) {
+    function markButtons(quality, generic, ok) {
+      document.querySelectorAll("#sr-int-quality .sr-letter").forEach(function (b) {
+        const q = b.dataset.quality;
+        if (q === current.info.quality) b.classList.add("ok");
+        else if (q === quality && !ok) b.classList.add("bad");
+        b.classList.remove("sel");
+      });
+      document.querySelectorAll("#sr-int-generic .sr-letter").forEach(function (b) {
+        const g = +b.dataset.int;
+        if (g === current.info.generic) b.classList.add("ok");
+        else if (g === generic && !ok) b.classList.add("bad");
+        b.classList.remove("sel");
+      });
+    }
+    function answer(quality, generic) {
       if (!current || locked) return null;
       generic = +generic;
+      if (!isValidCombo(quality, generic)) return { ok: false, invalid: true };
       locked = true;
       const info = current.info;
-      const ok = generic === info.generic;
+      const ok = quality === info.quality && generic === info.generic;
       if (ok) { data.correct += 1; data.streak += 1; if (data.streak > (data.best || 0)) data.best = data.streak; }
       else { data.wrong += 1; data.streak = 0; }
       save(); hud();
-      document.querySelectorAll("#sr-int-answers .sr-letter").forEach(function (b) {
-        const g = +b.dataset.int;
-        if (g === info.generic) b.classList.add("ok");
-        else if (g === generic && !ok) b.classList.add("bad");
-      });
-      const head = ok ? "Yes — " + info.label : "It's a " + info.short + " — " + info.label;
+      markButtons(quality, generic, ok);
+      syncPicks();
+      const article = /^[aeiou]/i.test(info.full) ? "an " : "a ";
+      const head = ok ? "Yes — " + info.label : "It's " + article + info.full + " — " + info.fromTo;
       feedback(head + ". " + tipFor(info), ok ? "ok" : "bad");
-      nextTimer = setTimeout(function () { nextTimer = 0; next(); }, 1800);
-      return { ok: ok, info: info };
+      nextTimer = setTimeout(function () { nextTimer = 0; next(); }, 2000);
+      return { ok: ok, info: info, invalid: false };
+    }
+    function selectQuality(q) {
+      if (locked) return null;
+      if (pickQ === q) pickQ = null;
+      else pickQ = q;
+      syncPicks();
+      if (pickQ && pickG && isValidCombo(pickQ, pickG)) return answer(pickQ, pickG);
+      promptPicks();
+      return null;
+    }
+    function selectGeneric(g) {
+      if (locked) return null;
+      g = +g;
+      if (pickG === g) pickG = null;
+      else pickG = g;
+      syncPicks();
+      if (pickQ && pickG && isValidCombo(pickQ, pickG)) return answer(pickQ, pickG);
+      promptPicks();
+      return null;
     }
     function listen() {
       if (!current) return;
@@ -7325,6 +7493,27 @@ const bridge = window.__scalesNotes;
         }, 480);
       }
     }
+    function enumerate(level) {
+      const out = [];
+      const clefs = level === 1 ? ["treble"] : ["treble", "bass"];
+      const combos = allowedCombos(level);
+      clefs.forEach(function (clef) {
+        const starts = startNotes(level, clef);
+        starts.forEach(function (a) {
+          combos.forEach(function (combo) {
+            [1, -1].forEach(function (dir) {
+              const b = noteAfter(a, combo.generic, combo.quality, dir);
+              if (!b || !inRange(b, level, clef) || !accOk(b, level) || b.midi === a.midi) return;
+              const info = nameInterval(a, b);
+              if (info.quality === combo.quality && info.generic === combo.generic && levelAllows(info, a, b, clef, level)) {
+                out.push({ a: a, b: b, clef: clef, info: info, dir: dir });
+              }
+            });
+          });
+        });
+      });
+      return out;
+    }
     function init() {
       hud(); syncChips();
       document.querySelectorAll("#sr-int-levels .sr-chip").forEach(function (btn) {
@@ -7333,8 +7522,11 @@ const bridge = window.__scalesNotes;
       document.querySelectorAll("#sr-int-layout .sr-chip").forEach(function (btn) {
         btn.addEventListener("click", function () { setLayout(btn.dataset.layout); });
       });
-      document.querySelectorAll("#sr-int-answers .sr-letter").forEach(function (btn) {
-        btn.addEventListener("click", function () { answer(+btn.dataset.int); });
+      document.querySelectorAll("#sr-int-quality .sr-letter").forEach(function (btn) {
+        btn.addEventListener("click", function () { selectQuality(btn.dataset.quality); });
+      });
+      document.querySelectorAll("#sr-int-generic .sr-letter").forEach(function (btn) {
+        btn.addEventListener("click", function () { selectGeneric(+btn.dataset.int); });
       });
       const listenBtn = document.getElementById("sr-int-listen");
       if (listenBtn) listenBtn.addEventListener("click", listen);
@@ -7344,13 +7536,18 @@ const bridge = window.__scalesNotes;
     }
     return {
       init: init, next: next, answer: answer, setLevel: setLevel, setLayout: setLayout,
+      selectQuality: selectQuality, selectGeneric: selectGeneric,
       redraw: draw, listen: listen, current: function () { return current; },
-      _data: function () { return data; }
+      enumerate: enumerate, _data: function () { return data; },
+      _picks: function () { return { quality: pickQ, generic: pickG, locked: locked }; }
     };
   })();
   window.__srIntervals = Intervals;
   window.__srNameInterval = nameInterval;
   window.__srMakeNote = makeNote;
+  window.__srValidCombo = isValidCombo;
+  window.__srLevelAllows = levelAllows;
+  window.__srQualitySemitones = qualitySemitones;
 
   /* ---------- Pieces: learn section by section; small "Completed" list (not a drill log) ---------- */
   const Pieces = (function () {
